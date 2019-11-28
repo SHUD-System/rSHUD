@@ -7,3 +7,5 @@ src/*.so
 src/*.dll
 experiments
 *.R
+^.DS_Store
+*.swp
