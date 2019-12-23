@@ -17,7 +17,7 @@ Cut sptialLines with threshold.
 \code{sp.CutSptialLines}
 }
 \examples{
-library(SHUDtb)
+library(SHUDtoolbox)
 library(sp)
 x=1:1000/100
 l1 = Lines(Line(cbind(x, sin(x)) ), ID='a' )
