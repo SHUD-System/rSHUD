@@ -6,7 +6,7 @@
 \code{hydrograph}}
 \usage{
 hydrograph(x, legend.position = "bottom", unit = rep("", ncol(x)),
-  col = c(3, 4), heights = c(3, 7), bg = TRUE, ylab = "Value")
+  col = c(3, 4), heights = c(3, 7), bg = TRUE, ylabs = NULL)
 }
 \arguments{
 \item{x}{time-seres matrix. The first column will be plot on top subfigure.}
@@ -21,7 +21,7 @@ hydrograph(x, legend.position = "bottom", unit = rep("", ncol(x)),
 
 \item{bg}{Whether plot the background rectangles.}
 
-\item{ylab}{ylab}
+\item{ylabs}{ylab for top and bottom plot.}
 }
 \description{
 Plot hydrograph

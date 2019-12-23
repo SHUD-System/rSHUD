@@ -2,11 +2,11 @@ Package: SHUDtoolbox
 Type: Package
 Title: Toolbox For SHUD Model System
 Version: 1.0.0
-Date: 2019-11-25
+Date: 2019-12-25
 Author: Lele Shu <lele.shu@gmail.com>
 Maintainer: Lele Shu <lele.shu@gmail.com>
 Description: The Solver for Hydrological Unstructured Domain (SHUD) is a multiprocess, multi-scale hydrologic model 
-  where the major hydrological processes are fully coupled using the semi-discrete finite volume method. 
+  where the major hydrological processes are fully coupled using the finite volume method. 
   This toolbox is to convert the geospatial data into SHUD format, read/write input files; read SHUD output files; hydrological analysis and spatial visualize the SHUD results. 
 URL: https://shud-system.github.io/
 License: GPL (>= 3)
