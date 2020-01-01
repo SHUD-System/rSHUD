@@ -52,7 +52,7 @@ pre.files <- function(iGen, pop, CV){
   prjname=CV$prjname
   calib=CV$calib
   calibrange = CV$range
-  dir.out = as.character(as.matrix(CV$method$PATH_OUT))
+  dir.out = as.character(as.matrix(CV$PATH_OUT))
   njob =ncol(pop)
   # dir.png = file.path(dir.out, 'png')
   dir.calib = file.path(dir.out, 'cfg.calib')
