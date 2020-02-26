@@ -45,3 +45,51 @@ shud.filein <- function(projname=get('PRJNAME', envir=.shud),
                  'md.forc', 'md.bc', 'md.lai', 'md.rl', 'md.mf' )
   fns
 }
+#' Prepare configure file for autoSHUD
+#' \code{read.auto} 
+#' @return Character of full path of input files for SHUD model
+#' @export
+read.auto<-function(fn){
+  msg = 'read.auto: '
+  message(msg,'Reading rawdata information from file: ', fn)
+  if(file.exists(fn)){
+    
+    tmp=as.matrix(read.table(fn, header = F, row.names = 1))
+    cdir = tmp[,1]
+    # print(cdir)
+  }else{
+    message(msg, 'File missing.')
+    stop('File missing: ', fn)
+  }
+  # dir.rawdata=cdir['dir.rawdata']
+  # dir.soil = cdir['dir.soil']
+  # dir.ldas = cdir['dir.ldas']
+  # dir.out = cdir['dir.out']
+  # 
+  # prjname=cdir['prjname']
+  # years=as.numeric(cdir['startyear']): as.numeric(cdir['endyear'])
+  # 
+  # fsp.wbd = cdir['fsp.wbd']
+  # fsp.stm = cdir['fsp.stm']
+  # 
+  # fr.dem=cdir['fr.dem']
+  # fr.landuse = cdir['fr.landuse']
+  # NumCells = as.numeric(cdir['NumCells'])
+  # if(is.null(NumCells) | is.na(NumCells)){
+  #   NumCells = 1000;
+  # }
+  # AqDepth = as.numeric(cdir['AqDepth'])
+  # if(is.null(AqDepth) | is.na(AqDepth)){
+  #   AqDepth = 10;
+  # }
+  # # years=2017:2018
+  # dir.png =file.path(dir.out, 'Image')
+  # dir.pihmgis = file.path(dir.out, 'PIHMgis' )
+  # dir.pihmin <- file.path(dir.out, 'input', prjname)
+  # dir.pihmout <- file.path(dir.out, 'output', paste0(prjname, '.out') )
+  # # dir.forc <- file.path(dir.out, 'forcing')
+  # dir.forc=cdir['dir.forc']
+  # 
+  # tmp=lapply(list(dir.out,dir.png, dir.pihmgis, dir.pihmin, dir.pihmout, dir.forc), dir.create, showWarnings=F, recursive=T)
+  as.list(cdir)
+}

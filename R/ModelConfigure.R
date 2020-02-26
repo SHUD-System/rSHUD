@@ -36,14 +36,14 @@ shud.para <- function( nday = 10){
   
   vdt = rep(1440, length(dts))
   
-  vn = c('VERBOSE', 'INIT_MODE',
+  vn = c('VERBOSE', 'INIT_MODE', 'CloseBoundary', 
          'ASCII_OUTPUT', 'Binary_OUTPUT', 
          'SpinupDay', 'NUM_OPENMP', 'SCR_INTV',
          'ABSTOL', 'RELTOL', 
          'INIT_SOLVER_STEP', 'MAX_SOLVER_STEP', 'LSM_STEP', 
          'START', 'END', 
          dts)
-  v = c(0,  3,
+  v = c(0,  3, 1,
         0, 1,
         0, 8, 1440,
         1e-4, 1e-4,

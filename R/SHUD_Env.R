@@ -16,5 +16,9 @@ shud.env <- function(prjname, inpath = file.path('input', prjname),
   dir.create(anapath, showWarnings = F, recursive = T)
   assign('anapath', anapath, envir = .shud)
   assign('MASK', NULL, envir=.shud)
+  PRJNAME <<- prjname
+  inpath <<- inpath
+  outpath <<- outpath
+  anapath <<- anapath
   return(list(prjname=prjname, inpath=inpath, outpath=outpath, anapath=anapath))
 }

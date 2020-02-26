@@ -46,11 +46,12 @@ write.cmaes <- function(x=NULL, file, backup = TRUE){
 CMAES<- function (CV, cmd, objfunc,  Call_Model, 
                   lambda = CV$method$LAMBDA,
                   maxstep = CV$method$MAXGEN,
-                  ncores = max(CV$method$NCORES, 1),
+                  # ncores = max(CV$method$NCORES, 1),
                   sigma = CV$method$SIGMA,
                   stopfitness=CV$method$STOPFITNESS,
                   debug=FALSE,
                   ...){
+  #This function is modified from CRAN package 'cmaes'.
   # stopifnot(is.numeric(par))
   stopifnot(!is.null(objfunc))
   # if( !file.exists(cmd) ){
@@ -61,9 +62,9 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
   range = CV$range
   message('CMAES::Output path: ', dir.out)
   dir.create(dir.out, showWarnings = FALSE, recursive = TRUE)
-  if(ncores > 1){
-      doParallel::registerDoParallel(ncores)
-  }
+  # if(ncores > 1){
+  #     doParallel::registerDoParallel(ncores)
+  # }
   para.name = names(CV$range)
   para.id = which(CV$range[1, ]!=0)
   N = sum(length(para.id)) # number of parameters to calibration.
@@ -131,7 +132,7 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
     # Range + arx to .calib files
     # run the model  and get GOF back.
     # debug(Call_Model)
-    xout = Call_Model(iGen=iGen, pop = arx, ncores=ncores, 
+    xout = Call_Model(iGen=iGen, pop = arx, #ncores=ncores, 
                       CV=CV, CMD.EXE = cmd, objfunc=objfunc, 
                       debug=debug,
                       ...)

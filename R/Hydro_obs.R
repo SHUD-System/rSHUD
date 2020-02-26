@@ -92,6 +92,7 @@ QvsO <-function(qq,sim=qq[,2],obs=qq[,1], ...){
 fdc <- function(val,
                    xlab='Exceedance (%)',
                    ylab='value'){
+  vname=deparse(substitute(val))
   if(xts::is.xts(val) | zoo::is.zoo(val)){
     val = zoo::coredata(val)
   }
@@ -99,8 +100,11 @@ fdc <- function(val,
     nx=nrow(val)
     x = 1:nx /(nx-1) *100
     y = apply(val, 2, sort,  decreasing = TRUE)
+    if(is.null(colnames(y))){
+      colnames(y)=vname 
+    }
     md0=data.frame(x,y)
-    colnames(md0)=c('x', colnames(val))
+    colnames(md0)=c('x', colnames(y))
   }else{
     nx=length(val)
     x = 1:nx /(nx-1) *100

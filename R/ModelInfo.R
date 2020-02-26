@@ -149,3 +149,17 @@ MeshAtt<- function(pm=readmesh(), att=readatt(),
              )
   return(y)
 }
+#' Summary of the attributions on Rivers
+#' \code{RiverAtt} 
+#' @param  river SHUD.RIVER 
+#' @return Attributes of each river reach
+#' @export
+RiverAtt<- function(riv=readriv()){
+  riv=readriv()
+  head(riv@river)
+  it = riv@river$Type
+  y=data.frame(riv@river, 
+               riv@rivertype[it, -1])
+  head(y)
+  return(y)
+}

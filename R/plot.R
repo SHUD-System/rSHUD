@@ -96,10 +96,12 @@ hydrograph <- function(x, legend.position='bottom', unit = rep('', ncol(x)),
   g.bottom <- g.bottom+
     ggplot2::coord_cartesian(ylim = plim ) +
     ggplot2::guides(fill = "none") +
-    ggplot2::geom_line(data=dfq, ggplot2::aes_string(x = 'Time', y = 'value', linetype = 'variable' , color = 'variable')) +
+    ggplot2::geom_line(data=dfq, ggplot2::aes_string(x = 'Time', y = 'value', 
+                                                     linetype = 'variable' , color = 'variable')) +
     ggplot2::theme()  + 
-    scale_color_discrete(labels=labs) +
-    scale_linetype_discrete(labels=labs)+
+    scale_colour_discrete("") +
+    scale_linetype_manual("", values=1:(ncol(x)-1) ) +
+    scale_shape_manual("", values=1:(ncol(x)-1) )+
     ggplot2::labs(x = "Time", y = paste( cn[-1], unit[-1]) )
   if(!is.null(ylabs)){
     if(is.list(ylabs)){

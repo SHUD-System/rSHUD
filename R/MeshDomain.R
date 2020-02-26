@@ -37,16 +37,16 @@ shud.mesh <- function(tri, dem, AqDepth = 10, r.aq = dem * 0 + AqDepth){
   topo[topo<0]=0
   pt = tri$P;
   pid=tri$T;
-
+  
   x = (pt[pid[,1],1] + pt[pid[,2],1] + pt[pid[,3], 1]) / 3
   y = (pt[pid[,1],2] + pt[pid[,2],2] + pt[pid[,3], 2]) / 3
-
+  
   cxy = cbind(x, y)
   zc=raster::extract(dem, cxy)
-
+  
   m = data.frame(1:nrow(topo), tri$T, topo[,1:3], zc)
   colnames(m) = c('ID', paste0('Node', 1:3), paste0('Nabr',1:3), 'Zmax' )
-
+  
   zs=raster::extract(dem, pt)
   aq=raster::extract(r.aq, pt)
   pt = data.frame(1:nrow(pt), pt, aq, zs)
@@ -79,16 +79,16 @@ Tri2Centroid <- function(tri){
 #' @return data.frame of SHUD .att
 #' @export
 shud.att <- function(tri, r.soil =NULL, r.geol=NULL, r.lc=NULL, r.forc=NULL,
-                    r.mf = NULL, r.BC = NULL, r.SS =NULL){
-  pt = Tri2Centroid(tri)
-  ncell = nrow(pt)
+                     r.mf = NULL, r.BC = NULL, r.SS =NULL){
+  p.centroids = Tri2Centroid(tri)
+  ncell = nrow(p.centroids)
   atthead=c( "INDEX",  "SOIL", "GEOL", "LC", 
              'FORC', 'MF', 'BC', 'SS')
   nh = length(atthead)
   att = cbind(1:ncell, 1, 1, 1, 
               1, 1, 0, 0)
-  extract.id <- function(r, pt){
-    id = raster::extract(r, pt)
+  extract.id <- function(r, p.centroids){
+    id = raster::extract(r, p.centroids)
     if(is.matrix(id) | is.data.frame(id)){
       ret=id[,2]
     }else{
@@ -96,24 +96,25 @@ shud.att <- function(tri, r.soil =NULL, r.geol=NULL, r.lc=NULL, r.forc=NULL,
     }
     ret
   }
+  apply.raster <- function(rr, pxy, v0){
+    xv = rep(v0, nrow(pxy))
+    if (!is.null(rr)){
+      if( is.numeric(rr)){
+        xv = xv * rr
+      }else{
+        xv = extract.id(rr, pxy)
+      }
+    }
+    return(xv)
+  }
   colnames(att) = atthead;
-  if (!is.null(r.soil)){
-    att[,2] = extract.id(r.soil, pt)
-  }
-  if (!is.null(r.geol)){
-    att[,3] = extract.id(r.geol, pt)
-  }
-  if (!is.null(r.lc)){
-    att[,4] = extract.id(r.lc, pt)
-  }
-  if (!is.null(r.forc)){
-    att[,5] = extract.id(r.forc, pt)
-  }
-  if (!is.null(r.mf)){
-    att[,6] = extract.id(r.mf, pt)
-  }
-  if (!is.null(r.BC)){
-    att[,7] = extract.id(r.BC, pt)
-  }
-  att
+  nx = nrow(p.centroids)
+  att[, 2] = apply.raster(r.soil, p.centroids, v0=1)
+  att[, 3] = apply.raster(r.geol, p.centroids, v0=1)
+  att[, 4] = apply.raster(r.lc, p.centroids, v0=1)
+  att[, 5] = apply.raster(r.forc, p.centroids, v0=1)
+  att[, 6] = apply.raster(r.mf, p.centroids, v0=1)
+  att[, 7] = apply.raster(r.BC, p.centroids, v0=0)
+  att[, 8] = apply.raster(r.SS, p.centroids, v0=0)
+  return( data.frame(att) )
 }

@@ -6,9 +6,8 @@
 \code{CMAES}}
 \usage{
 CMAES(CV, cmd, objfunc, Call_Model, lambda = CV$method$LAMBDA,
-  maxstep = CV$method$MAXGEN, ncores = max(CV$method$NCORES, 1),
-  sigma = CV$method$SIGMA, stopfitness = CV$method$STOPFITNESS,
-  debug = FALSE, ...)
+  maxstep = CV$method$MAXGEN, sigma = CV$method$SIGMA,
+  stopfitness = CV$method$STOPFITNESS, debug = FALSE, ...)
 }
 \arguments{
 \item{CV}{Input data, list of data.}
@@ -23,8 +22,6 @@ CMAES(CV, cmd, objfunc, Call_Model, lambda = CV$method$LAMBDA,
 
 \item{maxstep}{Maximum generations}
 
-\item{ncores}{Number of cores to simulate. 1 = one thread.}
-
 \item{sigma}{Sigma Value to sample (0, 1)}
 
 \item{stopfitness}{The optimal value. When the objective value is smaller than stopfitness, calibration success.}
@@ -32,6 +29,8 @@ CMAES(CV, cmd, objfunc, Call_Model, lambda = CV$method$LAMBDA,
 \item{debug}{Whether debug Model.}
 
 \item{...}{More options passing to objfunc.}
+
+\item{ncores}{Number of cores to simulate. 1 = one thread.}
 }
 \description{
 Automatically calibrate model, that requires user-defined model and objective function.

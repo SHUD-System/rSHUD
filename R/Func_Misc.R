@@ -186,3 +186,17 @@ CommonPoints <- function(x, y){
   }
   return(ret)
 }
+
+#' Number of days in years.
+#' @param years Years
+#' @return Number of days between first and last years.
+#' @export
+#' @examples 
+#' days_in_year(1980)
+#' days_in_year(1983:2019)
+days_in_year <- function(years){
+  t1=as.Date(paste0(min(years, na.rm = TRUE), '-01-01'))
+  t2=as.Date(paste0(max(years, na.rm = TRUE), '-12-31'))
+  td = as.numeric(t2 - t1) + 1
+  return(td)
+}

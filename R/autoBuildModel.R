@@ -85,13 +85,22 @@ autoBuildModel <- function(
   raster::plot(dem); raster::plot(wbd, add=T, border=2, lwd=2); raster::plot(riv, add=T, lwd=2, col=4)
   dev.off()
 
-  riv.s1 = rgeos::gSimplify(riv, tol=tol.riv, topologyPreserve = TRUE)
-  riv.s2 = sp.simplifyLen(riv, tol.len)
+  if(tol.riv > 0){
+    riv.s1 = rgeos::gSimplify(riv, tol=tol.riv, topologyPreserve = TRUE)
+  }else{
+    riv.s1 = riv
+  }
+  if(tol.len > 0){
+    riv.s2 = sp.simplifyLen(riv.s1, tol.len)
+  }else{
+    riv.s2 = riv.s1
+  }
   # raster::plot(riv.s1); raster::plot(riv.s2, add=T, col=3)
 
   wb.dis = rgeos::gUnionCascaded(wbd)
   wb.s1 = rgeos::gSimplify(wb.dis, tol=tol.wb, topologyPreserve = TRUE)
-  wb.s2 = sp.simplifyLen(wb.s1, tol.len)
+  # wb.s2 = sp.simplifyLen(wb.s1, tol.len)
+  wb.s2= wb.s1
 
   png(filename = file.path(pngout, 'data_1.png'), height=11, width=11, res=100, units='in')
   raster::plot(dem); raster::plot(wb.s2, add=TRUE, border=2, lwd=2);
@@ -124,7 +133,7 @@ autoBuildModel <- function(
   # generate SHUD .att
   pa=shud.att(tri, r.soil = rsoil, r.geol = rgeol, r.lc = rlc, r.forc = sp.forc )
 
-  write.forc(forcfiles,  file=fin['md.forc'])
+  write.forc(forcfiles,  file=fin['md.forc'], backup = backup)
 
   # generate SHUD .riv
   pr=shud.river(riv.simp, dem)
@@ -134,18 +143,22 @@ autoBuildModel <- function(
 
   # shud.riv to Shapefile
   spr = riv.simp
+  spr@data = data.frame(spr@data, 'Riv'=pr@river, 'Tp'=pr@rivertype[pr@river$Type,])
   writeshape(spr, raster::crs(wbd), file=file.path(gisout, 'river'))
 
   if(length(oid)>1){
-    warning("There are ", length(oid), ' outlets in streams')
+    message("There are ", length(oid), ' outlets in streams')
     dev.off();
     raster::plot(spr); raster::plot(spr[oid, ], add=TRUE, col=2, lwd=3)
     flag = readline('Continue?')
     if(flag =='N' | flag =='n'){
       stop('Exit the autoBuildModel')
+    }else{
+      message('Continure the ModelBuilder')
     }
   }
   # Cut the rivers with triangles
+  message(msg, 'Cut the rivers with triangles.')
   sp.seg = sp.RiverSeg(spm, spr)
   writeshape(sp.seg, raster::crs(wbd), file=file.path(gisout, 'seg'))
 
@@ -153,7 +166,8 @@ autoBuildModel <- function(
   prs = shud.rivseg(sp.seg)
 
   # Generate initial condition
-  pic = shud.ic(nrow(pm@mesh), nrow(pr@river))
+  message(msg, 'Initial conditions')
+  pic = shud.ic(nrow(pm@mesh), nrow(pr@river), AqD = AqDepth)
 
   # Generate shapefile of river
   # spp.riv = sp.riv2shp(pr);
@@ -171,6 +185,7 @@ autoBuildModel <- function(
   dev.off()
 
   #soil/geol/landcover
+  message(msg, 'Generate land cover')
   lc = unlist(alc)
   para.lc = PTF.lc(lc)
   para.soil = PTF.soil(asoil, rm.outlier = rm.outlier)
@@ -192,6 +207,7 @@ autoBuildModel <- function(
   zoo::plot.zoo(lr$RL, col=col, main='Roughness Length');
   graphics::legend('top', paste0(lc), col=col, lwd=1)
   dev.off()
+  message(msg, 'Write SHUD model input files.')
   write.tsd(backup=backup,lr$LAI, file = fin['md.lai'])
   write.tsd(backup=backup,lr$RL, file = fin['md.rl'])
 
