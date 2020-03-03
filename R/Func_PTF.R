@@ -254,13 +254,13 @@ MeltFactor <- function(years){
   yrlim=range(years);
   ny = length(years)
   t1=as.Date(paste(yrlim[1],'-01-01',sep=''))
-  t2=as.Date(paste(yrlim[2],'-12-31',sep=''))
+  t2=as.Date(paste(yrlim[2]+1,'-01-01',sep=''))
   tdaily = seq.Date(t1,t2,by=1)
   DataDaily= xts::as.xts(numeric(length(tdaily)),order.by=tdaily)
   DataMon =  xts::apply.monthly(DataDaily,FUN=sum)
   #tmon = time(DataMon)- days_in_month(time(DataMon))+1
   tmon = as.Date( format(stats::time(DataMon), "%Y-%m-01"))
-  ret = xts::as.xts(rep(mf, ny), order.by=tmon)
+  ret = xts::as.xts(c(rep(mf, ny), mf[1]), order.by=tmon)
   colnames(ret) = 'MF'
   return(ret)
 }

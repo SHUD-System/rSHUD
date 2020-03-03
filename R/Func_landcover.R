@@ -48,6 +48,8 @@ fun.lairl <- function(lc, years=2000){
     1.2867143,  1.3945997,  1.5506977,  1.7727263,  2.5190228,  4.1367678,  5.0212291,  4.5795799,  2.8484358,  1.8856229,  1.5178736,  1.3656797
   ),
   ncol = 14, nrow = 12)
+  
+  years=sort(c(years, max(years, na.rm=TRUE)+1), decreasing = FALSE)
   nlc = length(lc)
   ny  = length(years)
   ym = rbind(expand.grid(1:12, years), c(1, max(years)+1) )
