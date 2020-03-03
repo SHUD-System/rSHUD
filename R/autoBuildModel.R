@@ -133,7 +133,7 @@ autoBuildModel <- function(
   # generate SHUD .att
   pa=shud.att(tri, r.soil = rsoil, r.geol = rgeol, r.lc = rlc, r.forc = sp.forc )
 
-  write.forc(forcfiles,  file=fin['md.forc'], backup = backup)
+  write.forc(forcfiles,  file=fin['md.forc'], startdate = paste0(min(years), '0101'), backup = backup)
 
   # generate SHUD .riv
   pr=shud.river(riv.simp, dem)
