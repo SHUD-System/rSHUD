@@ -4,7 +4,7 @@
 - www.shud.xyz
 
 ## SHUD
-The Solver of Hydrological Unstructured Domain (SHUD) is a multiprocess, multi-scale hydrologic model where the major hydrological processes are fully coupled using the semi-discrete finite volume method. 
+The Simulator for Hydrological Unstructured Domain (SHUD) is a multiprocess, multi-scale hydrologic model where the major hydrological processes are fully coupled using the semi-discrete finite volume method. 
 
 This package can be used with the AutoSHUD project, that can build modeling domain automatically.
 
