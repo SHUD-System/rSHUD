@@ -512,3 +512,39 @@ PointInDistance <- function(pt, tol){
   }
   cbind('P1'=id[id1], P2=id2)
 }
+
+#' Conver the MULTIPOLYGONS to SINGLEPOLYGONS.
+#' @param x the spatialpolygon*
+#' @param id Index of the sorted (decreasing) polygons to return. default = 0;
+#' @export
+SinglePolygon <- function(x, id=0){
+  n1 = length(x)
+  y1 = list()
+  y2 = list()
+  k=1
+  for(i in 1:n1){
+    message('level 1:', i, '/', n1)
+    x1 = x@polygons[[i]]
+    
+    n2=length(x1@Polygons)
+    for(j in 1:n2){
+      message('level 2:', j, '/', n2)
+      x2 = x1@Polygons[[j]]
+      y1[[k]] = Polygons( list(x2), ID=k)
+      k=k+1
+    }
+  }
+  
+  y=sp::SpatialPolygonsDataFrame(SpatialPolygons(y1), data=data.frame('ID'=2:k-1))
+  
+  if(id < 1){
+    return(y)
+  }else{
+    ia=rgeos::gArea(y, byid = TRUE)
+    id=order(ia, decreasing = TRUE)[1]
+    return(y[id,])
+    
+  }
+}
+
+
