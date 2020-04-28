@@ -3,7 +3,7 @@
 \name{shud.triangle}
 \alias{shud.triangle}
 \title{Generate triangle mesh domain
-\code{shud.domain}}
+\code{shud.triangle}}
 \usage{
 shud.triangle(wb, dem = NULL, riv = NULL, lk = NULL, pts = NULL,
   q = 30, ...)
@@ -28,5 +28,5 @@ A object with class triangulation.
 }
 \description{
 Generate triangle mesh domain
-\code{shud.domain}
+\code{shud.triangle}
 }

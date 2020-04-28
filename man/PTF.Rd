@@ -6,12 +6,14 @@
 \code{PTF}}
 \usage{
 PTF(x = t(matrix(c(33, 33, 2, 1.4), ncol = 5, nrow = 4)),
-  topsoil = TRUE)
+  topsoil = TRUE, xmin = c(0.1, 0.1, 1.3, 1.3))
 }
 \arguments{
 \item{x}{data.frame or matrix, column = c(Silt_perc, Clay_perc, OrganicMatter _perc, BulkDensity g/cm3)}
 
 \item{topsoil}{TRUE/FALSE, default = TRUE}
+
+\item{xmin}{Lower limitation of the value of c(Silt_perc, Clay_perc, OrganicMatter _perc, BulkDensity g/cm3)}
 }
 \value{
 Hydraulic parameters, matrix

@@ -1,5 +1,5 @@
 #' Generate triangle mesh domain
-#' \code{shud.domain} 
+#' \code{shud.triangle} 
 #' @param wb SpatialPolygon or SpatialLines which define the watershed boundary
 #' @param riv SpatialLines of river network, optional
 #' @param dem Elevation data.
@@ -59,7 +59,7 @@ shud.triangle <- function(wb, dem = NULL,
   tri
 }
 
-#' Generate triangle mesh domain
+#' Convert the .mesh file to shapefile.
 #' \code{sp.mesh2Shape} 
 #' @param pm SHUD mesh object
 #' @param dbf attribute table of the mesh triangles.

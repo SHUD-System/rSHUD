@@ -2,6 +2,7 @@
 #' \code{PTF} 
 #' @param  x  data.frame or matrix, column = c(Silt_perc, Clay_perc, OrganicMatter _perc, BulkDensity g/cm3)
 #' @param topsoil TRUE/FALSE, default = TRUE
+#' @param xmin Lower limitation of the value of c(Silt_perc, Clay_perc, OrganicMatter _perc, BulkDensity g/cm3)
 #' @return Hydraulic parameters, matrix
 #' @export
 #' @examples 
@@ -9,7 +10,9 @@
 #' y=PTF(x)
 #' apply(y[,-1], 2, summary)
 #' plot(x[,3], y[,2])
-PTF <- function (x=t(matrix(c(33, 33, 2, 1.4), ncol=5, nrow=4) ), topsoil=TRUE){
+PTF <- function (x=t(matrix(c(33, 33, 2, 1.4), ncol=5, nrow=4) ), topsoil=TRUE, 
+                 xmin=c(.1, .1, 1.3, 1.3) ){
+  msg='PTF:: '
   #Wösten, J. H. M., Pachepsky, Y. a., & Rawls, W. J. (2001). Pedotransfer functions: Bridging the gap between available basic soil data and missing soil hydraulic characteristics. Journal of Hydrology, 251(3–4), 123–150. https://doi.org/10.1016/S0022-1694(01)00464-4
   if(is.matrix(x) || is.data.frame(x)){
     if(ncol(x) < 4){
@@ -27,26 +30,38 @@ PTF <- function (x=t(matrix(c(33, 33, 2, 1.4), ncol=5, nrow=4) ), topsoil=TRUE){
   ly =  matrix(ifelse(topsoil,1,0), nrow= nsoil, ncol=1)
   for (i in  1:nsoil){
     id= i;
-    S = y[i,1] #Silt. percentage to ratio
-    if (S <=0) { #must be positive. minimum value 0.1_perc.
-      warning('Non-positive SILT percentage, type ', i)
-      S = 1/10
+    applymin <- function(x, xb, name){
+      if (x <=xb) { #must be positive. minimum value 0.1_perc.
+        message(msg, name, ' value ', i, ' is less than limite ', xb )
+        x = xb
+      } 
+      return (x)
     }
-    C = y[i,2] # Clay ratio. percentage to ratio
-    if (C <=0){ #must be positive. minimum value 0.1_perc.
-      warning('Non-positive CLAY percentage, type ', i)
-      C = 1/10
-    }
-    OM = y[i,3] #Percentage Organic matter
-    if(OM <=0) { #must be positive or zero
-      warning('Non-positive OM percentage, type ', i)
-      OM = 1.3
-    }
-    D = y[i,4]  # Bulk Density
-    if (D <=0) { # cannot be negative. default = 1.3 g/cm3
-      warning('Non-positive bulk density, type ', i)
-      D = 1.3
-    }
+    S = applymin(y[i, 1], xmin[1], 'SILT')
+    C = applymin(y[i, 1], xmin[2], 'CLAY')
+    OM = applymin(y[i, 1], xmin[3], 'Organic Mater')
+    D = applymin(y[i, 1], xmin[4], 'Bulk Density')
+    
+    # S = y[i,1] #Silt. percentage to ratio
+    # if (S <=xmin[1]) { #must be positive. minimum value 0.1_perc.
+    #   warning('Non-positive SILT percentage, type ', i)
+    #   S = 1/10
+    # }
+    # C = y[i,2] # Clay ratio. percentage to ratio
+    # if (C <=xmin[2]){ #must be positive. minimum value 0.1_perc.
+    #   warning('Non-positive CLAY percentage, type ', i)
+    #   C = 1/10
+    # }
+    # OM = y[i,3] #Percentage Organic matter
+    # if(OM <=xmin[3]) { #must be positive or zero
+    #   warning('Non-positive OM percentage, type ', i)
+    #   OM = 1.3
+    # }
+    # D = y[i,4]  # Bulk Density
+    # if (D <= xmin[4]) { # cannot be negative. default = 1.3 g/cm3
+    #   warning('Non-positive bulk density, type ', i)
+    #   D = 1.3
+    # }
     topsoil = ly[i];
     #KsatV
     #outData[i][1]= (7.755+0.03252*S+0.93*topsoil-0.967*D*D-0.000484*C*C-0.000322*S*S+0.001/S-0.0748/OM-0.643*log(S)-0.01398*D*C-0.1673*D*OM+0.02986*topsoil*C-0.03305*topsoil*S);

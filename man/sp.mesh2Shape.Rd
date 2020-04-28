@@ -2,7 +2,7 @@
 % Please edit documentation in R/trianglulate.R
 \name{sp.mesh2Shape}
 \alias{sp.mesh2Shape}
-\title{Generate triangle mesh domain
+\title{Convert the .mesh file to shapefile.
 \code{sp.mesh2Shape}}
 \usage{
 sp.mesh2Shape(pm = readmesh(), dbf = NULL, crs = NULL)
@@ -18,6 +18,6 @@ sp.mesh2Shape(pm = readmesh(), dbf = NULL, crs = NULL)
 SpatialPolygons object
 }
 \description{
-Generate triangle mesh domain
+Convert the .mesh file to shapefile.
 \code{sp.mesh2Shape}
 }

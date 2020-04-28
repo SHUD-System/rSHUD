@@ -6,11 +6,12 @@
 \code{autoBuildModel}}
 \usage{
 autoBuildModel(indata, forcfiles, prjname = "sac", outdir = getwd(),
-  a.max = 1e+06 * 0.2, q.min = 33, tol.riv = 200, tol.wb = 200,
-  tol.len = 500, AqDepth = 10, years = 2000:2010, clean = TRUE,
+  a.max = 1e+06 * 0.2, q.min = 33, tol.riv = 0, tol.wb = 200,
+  tol.len = 0, AqDepth = 10, years = 2000:2010, clean = TRUE,
   cfg.para = shud.para(nday = 365 * length(years) +
   round(length(years)/4)), cfg.calib = shud.calib(),
-  mf = MeltFactor(years = years), rm.outlier = TRUE, backup = TRUE)
+  mf = MeltFactor(years = years), rm.outlier = TRUE, quiet = FALSE,
+  backup = TRUE)
 }
 \arguments{
 \item{indata}{Input data, list of data.}
@@ -44,6 +45,8 @@ autoBuildModel(indata, forcfiles, prjname = "sac", outdir = getwd(),
 \item{mf}{Meltfactor}
 
 \item{rm.outlier}{Whether to remove the outlier in soil/geol;}
+
+\item{quiet}{Whether to ask confirmation when multiple outlets exist.}
 
 \item{backup}{Whether to write backup files.}
 }
