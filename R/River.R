@@ -2,9 +2,10 @@
 #' \code{shud.river}
 #' @param sl SpatialLines*
 #' @param dem Raster of elevation
+#' @param area Area of the watershed, for estimating the width/depth of river.
 #' @return SHUD.RIVER
 #' @export
-shud.river <- function(sl, dem){
+shud.river <- function(sl, dem, AREA=NULL){
   msg='shud.river::'
   # sp.slt = sp.Polylines2Lines(sp)
   sp.slt = sl
@@ -40,7 +41,16 @@ shud.river <- function(sl, dem){
   
   sp.df = sp::SpatialLinesDataFrame(sp.slt, data=df)
   ntype = max(rivord)
-  rtype = RiverType(ntype)
+  if(is.null(AREA)){
+    rtype = RiverType(ntype)
+  }else{
+    fx  = function(a, n = 10){
+      dd =  (1 / (1:n) ) ^ 0.8
+      rev(8 * log10(a + 1)  * a  ^ 0.25 * dd)
+    }
+    wd = fx(AREA, ntype)
+    rtype = RiverType(ntype, width=wd)
+  }
   p.z=raster::extract(dem, xy)
   SHUD.RIVER(river = df,
              rivertype = data.frame(rtype), 
