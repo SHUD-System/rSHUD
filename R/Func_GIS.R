@@ -547,4 +547,23 @@ SinglePolygon <- function(x, id=0){
   }
 }
 
+#' Remove the duplicated lines, which means the FROM and TO points are identical.
+#' \code{rmDuplicatedLines}
+#' @param x ShapeLine*
+#' @param ... More options in duplicated()
+#' @return ShapeLine* without duplicated lines.
+#' @export
+rmDuplicatedLines <- function(x, ...){
+  # x=spi.riv
+  cd = extractCoords(x)
+  # dim(cd)
+  ft = FromToNode(x, cd)
+  id=which(duplicated(ft, MARGIN = 1, ...))
+  if(length(id)>0){
+    r =x[-id,]
+  }else{
+    r = x
+  }
+  return(r)
+}
 
