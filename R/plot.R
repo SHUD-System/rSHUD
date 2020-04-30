@@ -73,7 +73,6 @@ hydrograph <- function(x, legend.position='bottom', unit = rep('', ncol(x)),
   sv = rep(1,length(pv))
   sv[pv<0]=2
   dfp = data.frame('Time' = time(x), 'rain' = pv )
-  # head(dfp)
 
   dfqq =  data.frame('Time' = time(x), x[,-1] )
   dfq = reshape2::melt(dfqq, id='Time')

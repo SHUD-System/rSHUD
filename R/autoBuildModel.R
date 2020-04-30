@@ -163,9 +163,11 @@ autoBuildModel <- function(
   # shud.riv to Shapefile
   spr = riv.simp
   if(is(spr, 'SpatialLines')){
-    spr =sp::SpatialLinesDataFrame(spr, data.frame('Riv'=pr@river, 'Tp'=pr@rivertype[pr@river$Type,]))
+    spr =sp::SpatialLinesDataFrame(spr, 
+                                   data.frame('Riv'=pr@river, 'Tp'=pr@rivertype[pr@river$Type,]),
+                                   match.ID = FALSE)
   }else{
-    spr@data = data.frame(spr@data, 'Riv'=pr@river, 'Tp'=pr@rivertype[pr@river$Type,])
+    spr@data = data.frame(spr@data, 'Riv'=pr@river, 'Tp'=pr@rivertype[pr@river$Type,], match.ID = FALSE)
   }
   writeshape(spr, raster::crs(wbd), file=file.path(gisout, 'river'))
   
@@ -233,7 +235,7 @@ autoBuildModel <- function(
     ageol=indata[['asoil']]
   }
   para.soil = PTF.soil(asoil, rm.outlier = rm.outlier)
-  para.geol = PTF.geol(asoil, rm.outlier = rm.outlier)
+  para.geol = PTF.geol(ageol, rm.outlier = rm.outlier)
   
   
   # 43-mixed forest in NLCD classification
