@@ -38,9 +38,9 @@ PTF <- function (x=t(matrix(c(33, 33, 2, 1.4), ncol=5, nrow=4) ), topsoil=TRUE,
       return (x)
     }
     S = applymin(y[i, 1], xmin[1], 'SILT')
-    C = applymin(y[i, 1], xmin[2], 'CLAY')
-    OM = applymin(y[i, 1], xmin[3], 'Organic Mater')
-    D = applymin(y[i, 1], xmin[4], 'Bulk Density')
+    C = applymin(y[i, 2], xmin[2], 'CLAY')
+    OM = applymin(y[i, 3], xmin[3], 'Organic Mater')
+    D = applymin(y[i, 4], xmin[4], 'Bulk Density')
     
     # S = y[i,1] #Silt. percentage to ratio
     # if (S <=xmin[1]) { #must be positive. minimum value 0.1_perc.
