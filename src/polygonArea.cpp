@@ -1,6 +1,5 @@
 #include <Rcpp.h>
 #include <iostream>
-#include <math.h>
 using namespace Rcpp;
 
 //' Calculate the Polygon Area;
