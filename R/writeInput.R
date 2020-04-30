@@ -46,7 +46,8 @@ write.tsd <- function(x, file, append = F, quite=F, header = NULL, backup=TRUE){
   tday = as.numeric( difftime(tt, tt[1], units = 'days') )
   if(is.null(header)){
     t0 = format(time(x)[1], '%Y%m%d')
-    header = c(nr, nc+1, t0)
+    t1 = format(time(x)[nrow(x)], '%Y%m%d')
+    header = c(nr, nc+1, t0, t1)
   }
   dd = data.frame('Time_Day' = tday, mat)
   write(header,file = file, ncolumns = length(header), append = append, sep = '\t')
@@ -159,3 +160,5 @@ write.forc <- function(fns, path='', startdate='20000101', file, backup=TRUE){
   write( path, file=file, append=T,  ncolumns = 1)
   write( fns, file=file, append=T,  ncolumns = 1)
 }
+
+
