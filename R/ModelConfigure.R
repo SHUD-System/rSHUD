@@ -43,7 +43,7 @@ shud.para <- function( nday = 10){
          'INIT_SOLVER_STEP', 'MAX_SOLVER_STEP', 'LSM_STEP', 
          'START', 'END', 
          dts)
-  v = c(0,  3, 1,
+  val = c(0,  3, 1,
         0, 1,
         0, 8, 1440,
         1e-4, 1e-4,
@@ -51,9 +51,9 @@ shud.para <- function( nday = 10){
         0, nday,
         vdt
   )
-  v=data.frame(rbind(v))
-  names(v) = toupper( vn )
-  return(v)
+  val=data.frame(rbind(val))
+  names(val) = toupper( vn )
+  val
 }
 #' Generate the default model calibration
 #' \code{shud.calib} 
