@@ -14,7 +14,7 @@ read.tsd <- function(file){
     header = utils::read.table(text = text[r0] )
     nr = as.numeric(header[1])
     nc = as.numeric(header[2])
-    t0 = header[length(header)]
+    t0 = header[3]
     tmp =  as.matrix(utils::read.table(text = text[0:nr + 1 + r0], header = T))
     tsd = xts::as.xts(tmp[,-1], 
                       order.by = as.POSIXct(paste(t0), format="%Y%m%d") + tmp[,1] * 86400)
