@@ -48,7 +48,7 @@ shud.river <- function(sl, dem, AREA=NULL){
       dd =  (1 / (1:n) ) ^ 0.8
       rev(8 * log10(a + 1)  * a  ^ 0.25 * dd)
     }
-    wd = fx(AREA, ntype)
+    wd = round(fx(AREA, ntype), 2)
     rtype = RiverType(ntype, width=wd)
   }
   p.z=raster::extract(dem, xy)

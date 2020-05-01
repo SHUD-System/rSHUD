@@ -155,7 +155,8 @@ autoBuildModel <- function(
   write.forc(forcfiles,  file=fin['md.forc'], startdate = paste0(min(years), '0101'), backup = backup)
   
   # generate SHUD .riv
-  pr=shud.river(riv.simp, dem)
+  AA = rgeos::gArea(wbd) * 1e-6
+  pr=shud.river(riv.simp, dem, AREA = AA)
   oid = getOutlets(pr)
   message(msg, 'Number of Rivers = ', nrow(pr@river))
   # Correct river slope to avoid negative slope
@@ -287,7 +288,7 @@ autoBuildModel <- function(
 #                   outdir= dirs$model,
 #                   a.max = a.max,
 #                   AqDepth = 20,
-#                   tol.len = 0, 
+#                   tol.len = 0,
 #                   tol.riv = 0,
 #                   tol.wb = sqrt(a.max)/3,
 #                   quiet = TRUE,
