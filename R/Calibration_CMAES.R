@@ -132,7 +132,8 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
     # Range + arx to .calib files
     # run the model  and get GOF back.
     # debug(Call_Model)
-    xout = Call_Model(iGen=iGen, pop = arx, #ncores=ncores, 
+    ncores = CV$method$NCORES
+    xout = Call_Model(iGen=iGen, pop = arx, ncores=ncores,
                       CV=CV, CMD.EXE = cmd, objfunc=objfunc, 
                       debug=debug,
                       ...)
