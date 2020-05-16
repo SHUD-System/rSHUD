@@ -28,6 +28,6 @@ devtools::install_github("SHUD-System/rSHUD")
 Current rSHUD requires different version of RTriangle package. you must install that via github(Dec 2019):
 ```
 install.packages("devtools")
-devtools::install_github("davidcsterratt/RTriangle", subdir="pkg")
+devtools::install_github("shulele/RTriangle", subdir="pkg")
 ```
 
