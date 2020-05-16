@@ -5,10 +5,13 @@
 \title{Calculate the water balance
 \code{wb.ele}}
 \usage{
-wb.ele(xl = BasicPlot(varname = c(paste0("elev", c("prcp", "etic",
-  "ettr", "etev")), paste0("eleq", c("surf", "sub")), paste0("eley",
-  c("surf", "unsat", "gw")))), fun = xts::apply.yearly,
-  period = "years", plot = TRUE)
+wb.ele(
+  xl = BasicPlot(varname = c(paste0("elev", c("prcp", "etic", "ettr", "etev")),
+    paste0("eleq", c("surf", "sub")), paste0("eley", c("surf", "unsat", "gw")))),
+  fun = xts::apply.yearly,
+  period = "years",
+  plot = TRUE
+)
 }
 \arguments{
 \item{xl}{List of data. Five variables are included:}

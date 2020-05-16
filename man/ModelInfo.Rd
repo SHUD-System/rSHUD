@@ -5,8 +5,11 @@
 \title{Summary of the basic information of model input data.
 \code{ModelInfo}}
 \usage{
-ModelInfo(path = shud.filein()["outpath"], spr = readriv.sp(),
-  crs.pcs = raster::crs(spr))
+ModelInfo(
+  path = shud.filein()["outpath"],
+  spr = readriv.sp(),
+  crs.pcs = raster::crs(spr)
+)
 }
 \arguments{
 \item{path}{Where to export the basic model infomation.}

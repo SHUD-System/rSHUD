@@ -7,17 +7,17 @@
 #' @return Area
 #' @export
 polygonArea <- function(X, Y) {
-    .Call('_SHUDtoolbox_polygonArea', PACKAGE = 'SHUDtoolbox', X, Y)
+    .Call('_rSHUD_polygonArea', PACKAGE = 'rSHUD', X, Y)
 }
 
 #' Identify whether every row of x is same as m;
 #' @param x Row vector
 #' @param m Matrix
 #' @return TRUE/FALSE of matching
-#' @useDynLib SHUDtoolbox
+#' @useDynLib rSHUD
 #' @export
 rowMatch <- function(x, m) {
-    .Call('_SHUDtoolbox_rowMatch', PACKAGE = 'SHUDtoolbox', x, m)
+    .Call('_rSHUD_rowMatch', PACKAGE = 'rSHUD', x, m)
 }
 
 #' Determine the topological relation among triangles. 
@@ -25,6 +25,6 @@ rowMatch <- function(x, m) {
 #' @return topological relation of triangles. m x 4; cols = c(ID, Nabor1, Nabor2, Nabor3)
 #' @export
 triTopology <- function(tri) {
-    .Call('_SHUDtoolbox_triTopology', PACKAGE = 'SHUDtoolbox', tri)
+    .Call('_rSHUD_triTopology', PACKAGE = 'rSHUD', tri)
 }
 

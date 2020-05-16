@@ -5,8 +5,7 @@
 \title{Write data.frame out into file
 \code{write.df}}
 \usage{
-write.df(x, file, append = F, quite = F, header = NULL,
-  backup = TRUE)
+write.df(x, file, append = F, quite = F, header = NULL, backup = TRUE)
 }
 \arguments{
 \item{x}{data.frame}

@@ -5,8 +5,11 @@
 \title{determine River path, disolve the river network based on downstream-relationship.
 \code{sp.RiverPath}}
 \usage{
-sp.RiverPath(sp, coord = extractCoords(sp, unique = TRUE),
-  idown = sp.RiverDown(sp, coord = coord))
+sp.RiverPath(
+  sp,
+  coord = extractCoords(sp, unique = TRUE),
+  idown = sp.RiverDown(sp, coord = coord)
+)
 }
 \arguments{
 \item{sp}{SpatialLines*}

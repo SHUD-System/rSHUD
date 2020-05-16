@@ -5,9 +5,18 @@
 \title{Automatically calibrate model, that requires user-defined model and objective function.
 \code{CMAES}}
 \usage{
-CMAES(CV, cmd, objfunc, Call_Model, lambda = CV$method$LAMBDA,
-  maxstep = CV$method$MAXGEN, sigma = CV$method$SIGMA,
-  stopfitness = CV$method$STOPFITNESS, debug = FALSE, ...)
+CMAES(
+  CV,
+  cmd,
+  objfunc,
+  Call_Model,
+  lambda = CV$method$LAMBDA,
+  maxstep = CV$method$MAXGEN,
+  sigma = CV$method$SIGMA,
+  stopfitness = CV$method$STOPFITNESS,
+  debug = FALSE,
+  ...
+)
 }
 \arguments{
 \item{CV}{Input data, list of data.}

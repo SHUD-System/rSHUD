@@ -1,11 +1,11 @@
-Package: SHUDtoolbox
+Package: rSHUD
 Type: Package
 Title: Toolbox For SHUD Model System
 Version: 1.0.0
 Date: 2019-12-25
 Author: Lele Shu <lele.shu@gmail.com>
 Maintainer: Lele Shu <lele.shu@gmail.com>
-Description: The Solver for Hydrological Unstructured Domain (SHUD) is a multiprocess, multi-scale hydrologic model 
+Description: The Simulator for Hydrologic Unstructured Domains (SHUD) is a multiprocess, multi-scale hydrologic model 
   where the major hydrological processes are fully coupled using the finite volume method. 
   This toolbox is to convert the geospatial data into SHUD format, read/write input files; read SHUD output files; hydrological analysis and spatial visualize the SHUD results. 
 URL: https://shud-system.github.io/
@@ -38,7 +38,7 @@ Imports: Rcpp,
   GGally,
   doParallel
 LinkingTo: Rcpp, sp
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 Remotes: shulele/RTriangle/pkg
 Suggests: testthat,
     knitr,

@@ -5,9 +5,11 @@
 \title{Prepare Input file of SHUD model
 \code{shud.filein}}
 \usage{
-shud.filein(projname = get("PRJNAME", envir = .shud),
-  inpath = get("inpath", envir = .shud), outpath = get("outpath", envir
-  = .shud))
+shud.filein(
+  projname = get("PRJNAME", envir = .shud),
+  inpath = get("inpath", envir = .shud),
+  outpath = get("outpath", envir = .shud)
+)
 }
 \arguments{
 \item{projname}{Character, project name, default= PRJNAME which is a global variable.}

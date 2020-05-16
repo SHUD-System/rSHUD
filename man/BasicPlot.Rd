@@ -4,13 +4,18 @@
 \alias{BasicPlot}
 \title{Read multiply SHUD model output files and do time-series plot}
 \usage{
-BasicPlot(varname = c(paste0("eley", c("surf", "unsat", "gw")),
-  paste0("elev", c("prcp", "infil", "rech")), paste0("elev", c("etp",
-  "etev", "ettr", "etic")), paste0("rivq", c("down", "sub", "surf")),
-  paste0("rivy", "stage")), sp.riv = NULL,
+BasicPlot(
+  varname = c(paste0("eley", c("surf", "unsat", "gw")), paste0("elev", c("prcp",
+    "infil", "rech")), paste0("elev", c("etp", "etev", "ettr", "etic")), paste0("rivq",
+    c("down", "sub", "surf")), paste0("rivy", "stage")),
+  sp.riv = NULL,
   rdsfile = file.path(get("outpath", envir = .shud), "BasicPlot.RDS"),
-  plot = TRUE, imap = FALSE, iRDS = TRUE, return = T,
-  w.focal = matrix(1/9, 3, 3))
+  plot = TRUE,
+  imap = FALSE,
+  iRDS = TRUE,
+  return = T,
+  w.focal = matrix(1/9, 3, 3)
+)
 }
 \arguments{
 \item{varname}{vector of output keywords}

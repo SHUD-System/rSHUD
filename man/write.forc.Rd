@@ -5,8 +5,7 @@
 \title{Write SHUD .forc file
 \code{write.forc}}
 \usage{
-write.forc(fns, path = "", startdate = "20000101", file,
-  backup = TRUE)
+write.forc(fns, path = "", startdate = "20000101", file, backup = TRUE)
 }
 \arguments{
 \item{fns}{filenames; Vector of character,}

@@ -4,9 +4,12 @@
 \alias{readout}
 \title{Read output file from SHUD model}
 \usage{
-readout(keyword, path = get("outpath", envir = .shud), ASCII = FALSE,
-  file = file.path(path, paste0(get("PRJNAME", envir = .shud), ".",
-  keyword, ".dat")))
+readout(
+  keyword,
+  path = get("outpath", envir = .shud),
+  ASCII = FALSE,
+  file = file.path(path, paste0(get("PRJNAME", envir = .shud), ".", keyword, ".dat"))
+)
 }
 \arguments{
 \item{keyword}{keyword of the output file. File name format is: projectname.keyword.dat}

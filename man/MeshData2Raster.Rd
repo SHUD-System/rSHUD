@@ -5,9 +5,15 @@
 \title{SpatialData to Raster
 \code{MeshData2Raster}}
 \usage{
-MeshData2Raster(x = getElevation(), rmask = shud.mask(proj = proj),
-  pm = readmesh(), proj = NULL, stack = FALSE, method = "ide",
-  plot = FALSE)
+MeshData2Raster(
+  x = getElevation(),
+  rmask = shud.mask(proj = proj),
+  pm = readmesh(),
+  proj = NULL,
+  stack = FALSE,
+  method = "ide",
+  plot = FALSE
+)
 }
 \arguments{
 \item{x}{vector or matrix, length/nrow is number of cells.}

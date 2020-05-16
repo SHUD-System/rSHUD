@@ -5,9 +5,12 @@
 \title{Setup .shud environment.
 \code{shud.env}}
 \usage{
-shud.env(prjname, inpath = file.path("input", prjname),
+shud.env(
+  prjname,
+  inpath = file.path("input", prjname),
   outpath = file.path("output", paste0(prjname, ".out")),
-  anapath = file.path(outpath, "SHUDtb"))
+  anapath = file.path(outpath, "SHUDtb")
+)
 }
 \arguments{
 \item{prjname}{charactor of SHUD model project name.}

@@ -5,7 +5,7 @@
 \title{parameters for river types
 \code{RiverType}}
 \usage{
-RiverType(n)
+RiverType(n, width = 2 * (1:n))
 }
 \arguments{
 \item{n}{number of types}

@@ -5,8 +5,13 @@
 \title{SpatialData to Raster
 \code{sp2raster}}
 \usage{
-sp2raster(sp, mask = get("MASK", envir = .shud), ngrids = 200,
-  resolution = NULL, field = 1)
+sp2raster(
+  sp,
+  mask = get("MASK", envir = .shud),
+  ngrids = 200,
+  resolution = NULL,
+  field = 1
+)
 }
 \arguments{
 \item{sp}{SpatialPolygon}

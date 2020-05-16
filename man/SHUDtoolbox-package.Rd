@@ -1,6 +1,6 @@
-\name{SHUDtoolbox-package}
-\alias{SHUDtoolbox-package}
-\alias{SHUDtoolbox}
+\name{rSHUD-package}
+\alias{rSHUD-package}
+\alias{rSHUD}
 \docType{package}
 \title{
   A short title line describing what the package does

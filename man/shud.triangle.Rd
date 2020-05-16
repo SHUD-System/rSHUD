@@ -5,8 +5,7 @@
 \title{Generate triangle mesh domain
 \code{shud.triangle}}
 \usage{
-shud.triangle(wb, dem = NULL, riv = NULL, lk = NULL, pts = NULL,
-  q = 30, ...)
+shud.triangle(wb, dem = NULL, riv = NULL, lk = NULL, pts = NULL, q = 30, ...)
 }
 \arguments{
 \item{wb}{SpatialPolygon or SpatialLines which define the watershed boundary}

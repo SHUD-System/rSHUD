@@ -5,8 +5,12 @@
 \title{Calculate the water balance
 \code{wb.riv}}
 \usage{
-wb.riv(xl = BasicPlot(varname = paste0("rivq", c("sub", "surf", "down")),
-  plot = FALSE, return = TRUE), fun = xts::apply.yearly, plot = TRUE)
+wb.riv(
+  xl = BasicPlot(varname = paste0("rivq", c("sub", "surf", "down")), plot = FALSE,
+    return = TRUE),
+  fun = xts::apply.yearly,
+  plot = TRUE
+)
 }
 \arguments{
 \item{xl}{List of data. Five variables are included: prcp (eleqprcp),and discharge ()}

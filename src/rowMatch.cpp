@@ -5,7 +5,7 @@ using namespace Rcpp;
 //' @param x Row vector
 //' @param m Matrix
 //' @return TRUE/FALSE of matching
-//' @useDynLib SHUDtoolbox
+//' @useDynLib rSHUD
 //' @export
 // [[Rcpp::export]]
 LogicalVector rowMatch(NumericVector x, NumericMatrix m) {

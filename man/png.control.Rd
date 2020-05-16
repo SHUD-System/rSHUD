@@ -5,9 +5,16 @@
 \title{Prepare png figure out.
 \code{png.control}}
 \usage{
-png.control(fn = "figure.png", file = file.path(path, fn),
-  path = get("anapath", envir = .shud), ratio = 9/11, ht = 11,
-  wd = ht * ratio, units = "in", res = 200)
+png.control(
+  fn = "figure.png",
+  file = file.path(path, fn),
+  path = get("anapath", envir = .shud),
+  ratio = 9/11,
+  ht = 11,
+  wd = ht * ratio,
+  units = "in",
+  res = 200
+)
 }
 \arguments{
 \item{fn}{Filename}

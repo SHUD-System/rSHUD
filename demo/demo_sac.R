@@ -6,7 +6,7 @@ x=lapply(clib, library, character.only=T)
 # fns=list.files('src/', glob2rx('*.cpp'), full.names = T)
 # x=lapply(fns, Rcpp::sourceCpp)
 
-library(SHUDtoolbox)
+library(rSHUD)
 prjname = 'sac'
 PRJNAME=prjname
 inapth = file.path(prjname)

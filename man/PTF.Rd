@@ -5,8 +5,11 @@
 \title{Pedotransfer function to generate soil/geol parameter from soil texture
 \code{PTF}}
 \usage{
-PTF(x = t(matrix(c(33, 33, 2, 1.4), ncol = 5, nrow = 4)),
-  topsoil = TRUE, xmin = c(0.1, 0.1, 1.3, 1.3))
+PTF(
+  x = t(matrix(c(33, 33, 2, 1.4), ncol = 5, nrow = 4)),
+  topsoil = TRUE,
+  xmin = c(0.1, 0.1, 1.3, 1.3)
+)
 }
 \arguments{
 \item{x}{data.frame or matrix, column = c(Silt_perc, Clay_perc, OrganicMatter _perc, BulkDensity g/cm3)}

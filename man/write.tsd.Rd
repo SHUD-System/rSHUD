@@ -5,8 +5,7 @@
 \title{Write xts data out into file
 \code{write.tsd}}
 \usage{
-write.tsd(x, file, append = F, quite = F, header = NULL,
-  backup = TRUE)
+write.tsd(x, file, append = F, quite = F, header = NULL, backup = TRUE)
 }
 \arguments{
 \item{x}{xts data}

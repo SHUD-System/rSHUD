@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // polygonArea
 double polygonArea(NumericVector X, NumericVector Y);
-RcppExport SEXP _SHUDtoolbox_polygonArea(SEXP XSEXP, SEXP YSEXP) {
+RcppExport SEXP _rSHUD_polygonArea(SEXP XSEXP, SEXP YSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -19,7 +19,7 @@ END_RCPP
 }
 // rowMatch
 LogicalVector rowMatch(NumericVector x, NumericMatrix m);
-RcppExport SEXP _SHUDtoolbox_rowMatch(SEXP xSEXP, SEXP mSEXP) {
+RcppExport SEXP _rSHUD_rowMatch(SEXP xSEXP, SEXP mSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -31,7 +31,7 @@ END_RCPP
 }
 // triTopology
 NumericMatrix triTopology(NumericMatrix tri);
-RcppExport SEXP _SHUDtoolbox_triTopology(SEXP triSEXP) {
+RcppExport SEXP _rSHUD_triTopology(SEXP triSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -42,13 +42,13 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_SHUDtoolbox_polygonArea", (DL_FUNC) &_SHUDtoolbox_polygonArea, 2},
-    {"_SHUDtoolbox_rowMatch", (DL_FUNC) &_SHUDtoolbox_rowMatch, 2},
-    {"_SHUDtoolbox_triTopology", (DL_FUNC) &_SHUDtoolbox_triTopology, 1},
+    {"_rSHUD_polygonArea", (DL_FUNC) &_rSHUD_polygonArea, 2},
+    {"_rSHUD_rowMatch", (DL_FUNC) &_rSHUD_rowMatch, 2},
+    {"_rSHUD_triTopology", (DL_FUNC) &_rSHUD_triTopology, 1},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_SHUDtoolbox(DllInfo *dll) {
+RcppExport void R_init_rSHUD(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

@@ -5,8 +5,16 @@
 \title{extract Coordinates of SpatialLines or  SpatialPolygons
 \code{shud.att}}
 \usage{
-shud.att(tri, r.soil = NULL, r.geol = NULL, r.lc = NULL,
-  r.forc = NULL, r.mf = NULL, r.BC = NULL, r.SS = NULL)
+shud.att(
+  tri,
+  r.soil = NULL,
+  r.geol = NULL,
+  r.lc = NULL,
+  r.forc = NULL,
+  r.mf = NULL,
+  r.BC = NULL,
+  r.SS = NULL
+)
 }
 \arguments{
 \item{tri}{Triangles defination}

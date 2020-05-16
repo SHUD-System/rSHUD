@@ -5,9 +5,16 @@
 \title{Generatue fishnet
 \code{fishnet}}
 \usage{
-fishnet(ext, crs = sp::CRS("+init=epsg:4326"), n = 10,
-  dx = diff(ext[1:2])/n, dy = dx, lines = FALSE, polygons = TRUE,
-  points = FALSE)
+fishnet(
+  ext,
+  crs = sp::CRS("+init=epsg:4326"),
+  n = 10,
+  dx = diff(ext[1:2])/n,
+  dy = dx,
+  lines = FALSE,
+  polygons = TRUE,
+  points = FALSE
+)
 }
 \arguments{
 \item{ext}{Extension of the fishnet. c(xmin, xmax, ymin, ymax)}

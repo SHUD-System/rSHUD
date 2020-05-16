@@ -5,8 +5,13 @@
 \title{Summary of the attributions on Mesh
 \code{MeshAtt}}
 \usage{
-MeshAtt(pm = readmesh(), att = readatt(), soil = readsoil(),
-  geol = readgeol(), lc = readlc())
+MeshAtt(
+  pm = readmesh(),
+  att = readatt(),
+  soil = readsoil(),
+  geol = readgeol(),
+  lc = readlc()
+)
 }
 \arguments{
 \item{pm}{SHUD.MESH, .sp.mesh}

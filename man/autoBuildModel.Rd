@@ -5,13 +5,26 @@
 \title{Automatically run SHUDgis based on the input data and parameters.
 \code{autoBuildModel}}
 \usage{
-autoBuildModel(indata, forcfiles, prjname = "sac", outdir = getwd(),
-  a.max = 1e+06 * 0.2, q.min = 33, tol.riv = 0, tol.wb = 200,
-  tol.len = 0, AqDepth = 10, years = 2000:2010, clean = TRUE,
-  cfg.para = shud.para(nday = 365 * length(years) +
-  round(length(years)/4)), cfg.calib = shud.calib(),
-  mf = MeltFactor(years = years), rm.outlier = TRUE, quiet = FALSE,
-  backup = TRUE)
+autoBuildModel(
+  indata,
+  forcfiles,
+  prjname = "sac",
+  outdir = getwd(),
+  a.max = 1e+06 * 0.2,
+  q.min = 33,
+  tol.riv = 0,
+  tol.wb = 200,
+  tol.len = 0,
+  AqDepth = 10,
+  years = 2000:2010,
+  clean = TRUE,
+  cfg.para = shud.para(nday = 365 * length(years) + round(length(years)/4)),
+  cfg.calib = shud.calib(),
+  mf = MeltFactor(years = years),
+  rm.outlier = TRUE,
+  quiet = FALSE,
+  backup = TRUE
+)
 }
 \arguments{
 \item{indata}{Input data, list of data.}

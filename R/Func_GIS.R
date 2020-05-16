@@ -341,7 +341,7 @@ AddHoleToPolygon <-function(poly,hole){
 #' @param tol Tolerence. If the length of segment is larger than tolerance, cut the segment until the maximum segment is shorter than tolerance.
 #' @export
 #' @examples
-#' library(SHUDtoolbox)
+#' library(rSHUD)
 #' library(sp)
 #' x=1:1000/100
 #' l1 = Lines(Line(cbind(x, sin(x)) ), ID='a' )
