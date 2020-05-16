@@ -9,7 +9,7 @@ The Simulator for Hydrological Unstructured Domain (SHUD) is a multiprocess, mul
 This package can be used with the AutoSHUD project, that can build modeling domain automatically.
 
 ## Purpose of the package:
-1. convert the geospatial data into SHUD format. The tool kit is able to process the raster and vector data, then building the unstructured triangular mesh domain for PIHM.
+1. Convert the geospatial data into SHUD format. The tool kit is able to process the raster and vector data, then building the unstructured triangular mesh domain for PIHM.
 2. Write/read the SHUD input files.
 3. Read the SHUD output files.
 4. Generate the calibration parameter set.
