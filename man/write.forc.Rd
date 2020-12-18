@@ -5,16 +5,16 @@
 \title{Write SHUD .forc file
 \code{write.forc}}
 \usage{
-write.forc(fns, path = "", startdate = "20000101", file, backup = TRUE)
+write.forc(x, file, path = "", startdate = "20000101", backup = TRUE)
 }
 \arguments{
-\item{fns}{filenames; Vector of character,}
+\item{x}{data.frame of the forcing sites information. c(id, lon, lat, x, y, z, filename)}
+
+\item{file}{file name}
 
 \item{path}{Common path of the files.}
 
 \item{startdate}{Start Date. Character. e.g. 20000101}
-
-\item{file}{file name}
 
 \item{backup}{TRUE/FALSE, if backup the existing file}
 }

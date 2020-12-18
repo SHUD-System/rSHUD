@@ -185,7 +185,8 @@ RiverType <- function(n, width = 2 * (1:n) ){
                 0, #bankslope
                 width, #Width
                 1.0, #Sinuosity
-                4.63e-07, #manning's n, day/m^(1/3)
+                0.04, # manning's n, s/m^(1/3)
+                # 4.63e-07, #manning's n, day/m^(1/3)
                 0.6, #CWR
                 0.1, #KsatH
                 .1 # Bed Sediment Thickness.

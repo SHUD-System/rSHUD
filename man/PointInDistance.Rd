@@ -2,7 +2,7 @@
 % Please edit documentation in R/Func_GIS.R
 \name{PointInDistance}
 \alias{PointInDistance}
-\title{Simplify SpatialData.
+\title{Find the points in distance less than tol.
 \code{PointInDistance}}
 \usage{
 PointInDistance(pt, tol)
@@ -16,6 +16,6 @@ PointInDistance(pt, tol)
 Index of points that within tol
 }
 \description{
-Simplify SpatialData.
+Find the points in distance less than tol.
 \code{PointInDistance}
 }

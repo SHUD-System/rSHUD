@@ -15,7 +15,7 @@ ModelInfo <- function(path = shud.filein()['outpath'],
   files=shud.filein()
   # colnames(files)='shud_files'
   
-  pm=readmesh(); pr=readriv(); pseg=readchannel()
+  pm=readmesh(); pr=readriv(); pseg=readrivseg()
   ia=getArea(pm = pm); 
   
   #======Basic Info ============

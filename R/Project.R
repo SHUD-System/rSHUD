@@ -15,7 +15,7 @@ shud.filein <- function(projname=get('PRJNAME', envir=.shud),
   fn.pt = file.path(inpath, paste0(projname, '.sp.points' ) )
   fn.edge = file.path(inpath, paste0(projname, '.sp.edges' ) )
   fn.mdriv = file.path(inpath, paste0(projname, '.sp.riv' ) )
-  fn.mdseg = file.path(inpath, paste0(projname, '.sp.rivchn' ) )
+  fn.mdseg = file.path(inpath, paste0(projname, '.sp.rivseg' ) )
   
   fn.ic = file.path(inpath, paste0(projname, '.cfg.ic' ) )
   fn.para = file.path(inpath, paste0(projname, '.cfg.para' ) )

@@ -68,12 +68,12 @@ readriv <-function(file = shud.filein()['md.riv'] ){
 readriv.sp <-function(file = file.path(shud.filein()['inpath'], 'gis', 'river.shp' ) ){
   spr = rgdal::readOGR(file)  
 }
-#' Read the .rivchn file
-#' \code{readchannel} 
-#' @param file full path of .rivchn file
+#' Read the .rivseg file
+#' \code{readrivseg} 
+#' @param file full path of .rivseg file
 #' @return matrix
 #' @export
-readchannel <-function(file = shud.filein()['md.rivseg'] ){
+readrivseg <-function(file = shud.filein()['md.rivseg'] ){
   d = read.df(file = file);
   ret <- d[[1]]
 }
@@ -205,6 +205,6 @@ readforc.csv <-function(file = shud.filein()['md.forc'], id=NULL){
     tsd=zoo::zoo(y[,-1], xt)
     ret[[i]] = tsd
   }
-  names(ret) = basename(fns)
+  names(ret) = basename(fns[id])
   ret
 }

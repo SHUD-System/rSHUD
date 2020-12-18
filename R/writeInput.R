@@ -145,20 +145,23 @@ write.config <-function(x, file, backup=TRUE){
 
 #' Write SHUD .forc file
 #' \code{write.forc}
-#' @param fns  filenames; Vector of character,
+#' @param x  data.frame of the forcing sites information. c(id, lon, lat, x, y, z, filename)
 #' @param path Common path of the files.
 #' @param startdate Start Date. Character. e.g. 20000101
 #' @param file file name
 #' @param backup TRUE/FALSE, if backup the existing file
 #' @export
-write.forc <- function(fns, path='', startdate='20000101', file, backup=TRUE){
+write.forc <- function(x, file, path='', startdate='20000101', backup=TRUE){
     msg='writeforc::'
   filebackup(file, backup = backup)
-  nf=length(fns)
+  nf=nrow(x)
+  nc=ncol(x)
   message(msg, 'Writing to file ', file)
   write( paste(nf, startdate), file=file, append=F)
   write( path, file=file, append=T,  ncolumns = 1)
-  write( fns, file=file, append=T,  ncolumns = 1)
+  write(colnames(x), file = file, ncolumns = nc,append = T, sep = '\t')
+  write(t(x), file = file, ncolumns = nc, append = T, sep = '\t')
+  # write( fns, file=file, append=T,  ncolumns = 1)
 }
 
 

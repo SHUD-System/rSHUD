@@ -27,6 +27,7 @@ Imports: Rcpp,
   sp, 
   rgeos, 
   RTriangle,
+  deldir,
   rgdal (>= 1.1.0),
   proj4,
   abind,
@@ -38,7 +39,7 @@ Imports: Rcpp,
   GGally,
   doParallel
 LinkingTo: Rcpp, sp
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Remotes: shulele/RTriangle/pkg
 Suggests: testthat,
     knitr,

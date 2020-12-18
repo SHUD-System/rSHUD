@@ -104,7 +104,7 @@ sp2raster <- function (sp, mask = get('MASK', envir = .shud),
 #' @export
 shud.mask  <- function (pm = readmesh(), proj=NULL,
                         rr = get('MASK', envir=.shud),
-                        n=40000, cellsize=NULL){
+                        n=10000, cellsize=NULL){
   # mesh=readmesh(shp=TRUE); ngrids=100; resolution=0
   if(is.null(rr)){
     spm =sp.mesh2Shape(pm)
@@ -118,9 +118,9 @@ shud.mask  <- function (pm = readmesh(), proj=NULL,
       grd <- sp::makegrid(sp0, cellsize = cellsize)
     }
     names(grd)       <- c("X", "Y")
-    coordinates(grd) <- c("X", "Y")
-    gridded(grd)     <- TRUE  # Create SpatialPixel object
-    fullgrid(grd)    <- TRUE  # Create SpatialGrid object
+    sp::coordinates(grd) <- c("X", "Y")
+    sp::gridded(grd)     <- TRUE  # Create SpatialPixel object
+    sp::fullgrid(grd)    <- TRUE  # Create SpatialGrid object
     rr=raster::raster(grd); rr[]=1
     rr=raster::mask(rr, sp0)
     if(!is.null(proj)){
@@ -148,7 +148,7 @@ MeshData2Raster <- function(x=getElevation(),
                             pm=readmesh(), proj=NULL,
                             stack=FALSE, method='ide',
                             plot =FALSE){
-
+  
   if(stack){
     ret <- raster::stack(apply(x, 1, FUN = MeshData2Raster) )
   }else{
@@ -287,7 +287,7 @@ fishnet <- function(ext, crs=sp::CRS("+init=epsg:4326"),
                       as.matrix(xm[-1, -ny]), as.matrix(xm[-nx, -ny]), along=3)
     yloc=abind::abind(as.matrix(ym[-nx, -ny]), as.matrix(ym[-nx, -1]), as.matrix(ym[-1, -1]),
                       as.matrix(ym[-1, -ny]), as.matrix(ym[-nx, -ny]), along=3)
-
+    
     # df=as.data.frame(matrix(0, nrow=(nx-1)*(ny-1), 6))
     df=data.frame(as.numeric(apply(xloc, 1:2, min)),
                   as.numeric(apply(xloc, 1:2, max)),
@@ -324,12 +324,12 @@ AddHoleToPolygon <-function(poly,hole){
   # invert the coordinates for Polygons to flag it as a hole
   coordsHole <-  hole@polygons[[1]]@Polygons[[1]]@coords
   newHole <- sp::Polygon(coordsHole,hole=TRUE)
-
+  
   # punch the hole in the main poly
   listPol <- poly@polygons[[1]]@Polygons
   listPol[[length(listPol)+1]] <- newHole
   punch <-sp::Polygons(listPol,poly@polygons[[1]]@ID)
-
+  
   # make the polygon a SpatialPolygonsDataFrame as the entry
   new <- sp::SpatialPolygons(list(punch),proj4string=poly@proj4string)
   new <- sp::SpatialPolygonsDataFrame(new,data=as(poly,"data.frame"))
@@ -485,7 +485,7 @@ SimpleSpatial <-function(x){
   r=rgeos::readWKT(paste('GEOMETRYCOLLECTION(', str, ')'))
 }
 
-#' Simplify SpatialData.
+#' Find the points in distance less than tol.
 #' \code{PointInDistance}
 #' @param pt 2-column coordinates (x,y).
 #' @param tol Tolerance
@@ -565,5 +565,110 @@ rmDuplicatedLines <- function(x, ...){
     r = x
   }
   return(r)
+}
+
+#' Generate Thiesson Polygons from a point data
+#' \code{voronoipolygons}
+#' @param x ShapePoints* in PCS
+#' @param pts Coordinates (x,y) of the points
+#' @param rw extent
+#' @param crs projection parameters
+#' @return ShapePolygon*
+#' @export
+#' @examples 
+#' library(rgeos)
+#' library(rSHUD)
+#' n=10
+#' xx = rnorm(n)
+#' yy = rnorm(n)
+#' str = paste('MULTIPOINT(', paste(paste('(', xx, yy, ')'), collapse = ','), ')')
+#' x=readWKT(str)
+#' vx = voronoipolygons(x)
+#' raster::plot(vx, axes=TRUE)
+#' raster::plot(add=TRUE, x, col=2)
+#' #' ====END====
+#' 
+#' x=1:5
+#' y=1:5
+#' xy=expand.grid(x,y)
+#' vx=voronoipolygons(pts=xy)
+#' plot(vx, axes=TRUE)
+#' points(xy)
+#' #' ====END====
+#' 
+#' library(rgdal)
+#' library(raster)
+#' library(rgeos)
+#' n=10
+#' xx = rnorm(n)
+#' yy = rnorm(n)
+#' str = paste('MULTIPOINT(', paste(paste('(', xx, yy, ')'), collapse = ','), ')')
+#' x=readWKT(str)
+#' y=readWKT(paste('MULTIPOINT(', paste(paste('(', xx+2, yy+2, ')'), collapse = ','), ')'))
+#' e1 = extent(y)
+#' e2 = extent(x)
+#' rw = c(min(e1[1], e2[1]),
+#'        max(e1[2], e2[2]),
+#'        min(e1[3], e2[3]),
+#'        max(e1[4], e2[4]) ) + c(-1, 1, -1, 1)
+#' vx=voronoipolygons(x=x, rw=rw)
+#' plot(vx); plot(add=TRUE, x, col=2); plot(add=TRUE, y, col=3)
+voronoipolygons = function(x, pts = x@coords, rw=NULL, crs=NULL) {
+  z = deldir::deldir(pts[,1], pts[,2], rw=rw)
+  w = deldir::tile.list(z)
+  polys = vector(mode='list', length=length(w))
+  for (i in seq(along=polys)) {
+    pcrds = cbind(w[[i]]$x, w[[i]]$y)
+    pcrds = rbind(pcrds, pcrds[1,])
+    polys[[i]] = sp::Polygons(list(sp::Polygon(pcrds)), ID=as.character(i))
+  }
+  SP = sp::SpatialPolygons(polys)
+  voronoi = sp::SpatialPolygonsDataFrame(SP, 
+                                         data=data.frame(x=pts[,1], 
+                                                         y=pts[,2], row.names=sapply(slot(SP, 'polygons'), 
+                                                                                     function(x) slot(x, 'ID'))))
+  if(!is.null(crs)){
+    raster::crs(voronoi) = crs;
+  }
+  return(voronoi)
+}
+
+
+
+#' Generate the coverage map for forcing sites.
+#' \code{ForcingCoverage}
+#' @param sp.meteoSite ShapePoints* in PCS
+#' @param pcs Projected Coordinate System
+#' @param gcs Geographic Coordinate System
+#' @param dem DEM raster
+#' @param wbd watershed boundary
+#' @param enlarge enlarge factor for the boundary.
+#' @return ShapePolygon*
+#' @export
+ForcingCoverage <- function(sp.meteoSite=NULL, pcs, gcs=sp::CRS('+init=epsg:4326'), 
+                            dem, wbd, enlarge = 10000){
+  if( is.null(sp.meteoSite) ){
+    sp.meteoSite = rgeos::gCentroid(wbd)
+  }
+  x.pcs = spTransform(sp.meteoSite, pcs)
+  x.gcs = spTransform(sp.meteoSite, gcs)
+  
+  ll = coordinates(x.gcs)
+  xy = coordinates(x.pcs)
+  z = raster::extract(dem, x.pcs)
+  
+  att = data.frame(1:length(sp.meteoSite), ll, xy, z, paste0(sp.meteoSite@data$ID, '.csv'))
+  colnames(att) = c('ID', 'Lon', 'Lat', 'X', 'Y','Z', 'Filename')
+  
+  e1 = extent(wbd)
+  e2 = extent(x.pcs)
+  rw = c(min(e1[1], e2[1]), 
+         max(e1[2], e2[2]),
+         min(e1[3], e2[3]),
+         max(e1[4], e2[4]) ) + c(-1, 1, -1, 1) * enlarge
+  sp.forc=voronoipolygons(x=x.pcs, rw=rw, crs=pcs)
+  att[is.na(att)] = -9999
+  sp.forc@data = att
+  return(sp.forc)
 }
 

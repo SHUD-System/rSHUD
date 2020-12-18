@@ -31,6 +31,8 @@ PTF <- function (x=t(matrix(c(33, 33, 2, 1.4), ncol=5, nrow=4) ), topsoil=TRUE,
   for (i in  1:nsoil){
     id= i;
     applymin <- function(x, xb, name){
+      if(is.na(x) | is.na(xb)){
+      }
       if (x <=xb) { #must be positive. minimum value 0.1_perc.
         message(msg, name, ' value ', i, ' is less than limit ', xb )
         x = xb

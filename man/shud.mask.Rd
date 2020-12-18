@@ -9,7 +9,7 @@ shud.mask(
   pm = readmesh(),
   proj = NULL,
   rr = get("MASK", envir = .shud),
-  n = 40000,
+  n = 10000,
   cellsize = NULL
 )
 }
