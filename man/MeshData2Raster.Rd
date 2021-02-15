@@ -26,6 +26,8 @@ MeshData2Raster(
 
 \item{stack}{Whether export the stack, only when the x is a matrix, i.e. (Ntime x Ncell).}
 
+\item{method}{method for interpolation, default = 'idw'}
+
 \item{plot}{Whether plot the result.}
 }
 \value{

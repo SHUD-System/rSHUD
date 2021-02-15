@@ -5,7 +5,7 @@
 #' @return Index of downstream for each segements
 #' @export
 sp.RiverDown <- function(sp, coord = extractCoords(sp)){
-  ft = FromToNode(sp, coord = coord)
+  ft = FromToNode(sp, coord = coord)[, 2:3]
   nsp = length(sp)
   idown = rep(-3, nsp)
   for(i in 1:nsp){
@@ -37,7 +37,7 @@ sp.RiverPath <- function(sp,
   pt.list <- unlist(coordinates(sp), recursive = FALSE)
   id.list<-lapply(pt.list, function(x) { xy2ID(xy = x, coord = coord)})
 
-  ft = FromToNode(sp, coord = coord)
+  ft = FromToNode(sp, coord = coord)[, 2:3]
   nsp = length(sp)
   p.frq = data.frame(table(unlist(id.list)) )
   p0 = ft[!(ft[, 1] %in% ft[,2]), 1]
@@ -127,7 +127,12 @@ sp.RiverOrder <- function(sp, coord = extractCoords(sp)){
 
   # ext=raster::extent(sp)
   # sp.tmp =  rgeos::gSimplify(sp, tol=max(diff(ext[1:2] ), diff(ext[3:4])) )
-  ft = unique(FromToNode(sp, coord))
+  ft0 = FromToNode(sp, coord)
+  ft = unique(ft0[, 2:3])
+  if(length(sp) != nrow(ft)){
+    message(msg, 'ERROR: duplicated river reches extis.')
+    stop('STOP WITH ERROR')
+  }
   x = cbind(1:length(sp), ft)
   y =x
   x.ord =x[,1]*0
@@ -143,7 +148,6 @@ sp.RiverOrder <- function(sp, coord = extractCoords(sp)){
   }
   x.ord
 }
-
 #' return the Index of nodes in SpatialData
 #' \code{NodeIDList}
 #' @param sp SpatialLines*
@@ -166,13 +170,15 @@ FromToNode <- function(sp, coord = extractCoords(sp, unique = TRUE) ){
     unlist(lapply(id.list, function(x) x[1])),
     unlist(lapply(id.list, function(x) x[length(x)] ) )
   )
-  colnames(frto)=c('FrNode', 'ToNode')
+  frto = cbind(1:length(sp), frto)
+  colnames(frto)=c('ID', 'FrNode', 'ToNode')
   frto
 }
 
 #' parameters for river types
 #' \code{RiverType}
 #' @param n number of types
+#' @param width Width of rivers
 #' @return data.frame of parameters
 #' @export
 RiverType <- function(n, width = 2 * (1:n) ){

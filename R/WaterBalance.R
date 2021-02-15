@@ -6,14 +6,9 @@
 #' @param plot Whether plot the result
 #' @return A matrix, contains the colums of water balance factors
 #' @export
-wb.all <-function(
-  xl=BasicPlot(varname=c(paste0('elev', c('prcp', 'etic', 'ettr', 'etev', 'etp') )
-                         , 'rivqdown', 
-                         paste0('eley', c('surf', 'unsat', 'gw') ),
-                         paste0('rivy', 'stage') ),plot = FALSE, return = TRUE), 
-               ic=readic(),
-  fun = xts::apply.monthly, plot=TRUE
-){
+wb.all <-function(xl=BasicPlot(varname=c(paste0('elev', c('prcp', 'eta', 'etp') ), 'rivqdown', 
+                                         paste0('eley', c('surf', 'unsat', 'gw') ) ), plot = FALSE, return = TRUE), 
+                  ic=readic(), fun = xts::apply.monthly, plot=TRUE ){
   func <-function(x, w){
     aa= sum(ia)
     y = sweep(x, 2, w, '*')
@@ -25,17 +20,18 @@ wb.all <-function(
   oid=getOutlets(pr)
   P = fun( func(xl$elevprcp, w ), FUN=sum)
   Q = fun(xl$rivqdown[,oid], FUN=sum) / aa
-  IC = fun( func(xl$elevetic, w ), FUN=sum)
-  ET = fun( func(xl$elevettr, w ), FUN=sum)
-  EV = fun( func(xl$elevetev, w ), FUN=sum)
+  # IC = fun( func(xl$elevetic, w ), FUN=sum)
+  # ET = fun( func(xl$elevettr, w ), FUN=sum)
+  # EV = fun( func(xl$elevetev, w ), FUN=sum)
+  # AET=IC+EV+ET
+  AET = fun( func(xl$eleveta, w ), FUN=sum)
   PET = fun( func(xl$elevetp, w ), FUN=sum)
-  AET=IC+EV+ET
   ds = wb.DS(xl=xl, ic=ic)
-  dh = P-Q-IC-EV-ET
-  x=cbind(dh, P, Q, AET, PET,IC, ET,EV)
+  dh = P-Q-AET
+  x=cbind(dh, P, Q, AET, PET)
   # colnames(x)=c('P', 'PET','Q','ET_IC', 'ET_TR','ET_EV')
   # y = cbind(dh, x)
-  colnames(x)=c('DH', 'P', 'Q','AET','PET','ET_IC', 'ET_TR','ET_EV')
+  colnames(x)=c('DH', 'P', 'Q','AET','PET')
   if(plot){
       hydrograph(x)
   }

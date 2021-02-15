@@ -12,7 +12,7 @@ shud.river(sl, dem, AREA = NULL)
 
 \item{dem}{Raster of elevation}
 
-\item{area}{Area of the watershed, for estimating the width/depth of river.}
+\item{AREA}{Area of the watershed, for estimating the width/depth of river.}
 }
 \value{
 SHUD.RIVER

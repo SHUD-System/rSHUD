@@ -3,6 +3,7 @@
 #' \code{ModelInfo} 
 #' @param  path Where to export the basic model infomation.
 #' @param  crs.pcs The crs4string that defines the (x,y) in the model.
+#' @param  spr river shapefile
 #' @return Basic model infomation, figures and tables
 #' @export
 ModelInfo <- function(path = shud.filein()['outpath'],
@@ -151,7 +152,7 @@ MeshAtt<- function(pm=readmesh(), att=readatt(),
 }
 #' Summary of the attributions on Rivers
 #' \code{RiverAtt} 
-#' @param  river SHUD.RIVER 
+#' @param  riv SHUD.RIVER 
 #' @return Attributes of each river reach
 #' @export
 RiverAtt<- function(riv=readriv()){

@@ -11,7 +11,7 @@ readforc.fn(file = shud.filein()["md.forc"])
 \item{file}{full path of file}
 }
 \value{
-files of forcing .csv.
+data.frame of forcing sites.
 }
 \description{
 Read the .forc file

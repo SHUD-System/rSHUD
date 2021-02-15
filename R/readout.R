@@ -60,13 +60,14 @@ readout <- function(keyword,
 #' @param iRDS Whether save RDS file.
 #' @param sp.riv River SpatialLine*
 #' @param rdsfile Save RDS file
+#' @param w.focal forcal matrix
 #' @keywords read output.
 #' @return A list of TimeSeries data. 
 #' @export  
 BasicPlot <- function(
-  varname=c(paste0('eley',c( 'surf','unsat', 'gw') ), 
+  varname=c(paste0('eley',c( 'surf','unsat', 'gw', 'snow') ), 
             paste0('elev',c('prcp','infil', 'rech') ),
-            paste0('elev',c('etp', 'etev', 'ettr', 'etic') ),
+            paste0('elev',c('etp', 'eta', 'etev', 'ettr', 'etic') ),
             paste0('rivq',c('down', 'sub', 'surf')),
             paste0('rivy','stage')
   ) ,

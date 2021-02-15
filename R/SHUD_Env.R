@@ -1,6 +1,7 @@
 #============ 
 #' Setup .shud environment.
 #' \code{shud.env} 
+#' @param prjname Project name
 #' @param inpath path of SHUD model input directory
 #' @param outpath path of SHUD model output directory
 #' @param prjname charactor of SHUD model project name.

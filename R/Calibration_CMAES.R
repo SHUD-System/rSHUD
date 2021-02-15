@@ -36,7 +36,6 @@ write.cmaes <- function(x=NULL, file, backup = TRUE){
 #' @param Call_Model Function that calls model simulation.
 #' @param lambda Number of children in each generation
 #' @param maxstep Maximum generations
-#' @param ncores Number of cores to simulate. 1 = one thread.
 #' @param sigma Sigma Value to sample (0, 1)
 #' @param stopfitness The optimal value. When the objective value is smaller than stopfitness, calibration success.
 #' @param debug Whether debug Model. 
@@ -133,6 +132,7 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
     # run the model  and get GOF back.
     # debug(Call_Model)
     ncores = CV$method$NCORES
+    
     xout = Call_Model(iGen=iGen, pop = arx, ncores=ncores,
                       CV=CV, CMD.EXE = cmd, objfunc=objfunc, 
                       debug=debug,
@@ -211,3 +211,4 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
               BestOBJ  = BestOBJ[1:iGen])
   )
 }
+

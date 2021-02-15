@@ -14,6 +14,8 @@ ModelInfo(
 \arguments{
 \item{path}{Where to export the basic model infomation.}
 
+\item{spr}{river shapefile}
+
 \item{crs.pcs}{The crs4string that defines the (x,y) in the model.}
 }
 \value{

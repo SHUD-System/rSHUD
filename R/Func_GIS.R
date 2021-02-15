@@ -15,6 +15,9 @@
 #' plot(sp2)
 writeshape <- function(shp, file=NULL, crs = raster::crs(shp)){
   msg='writeshape::'
+  if(tolower(raster::extension(file)) == '.shp'){
+    file = substr(file, 1, nchar(file)-4)
+  }
   if(grepl(class(shp)[1],'SpatialPolygons' ) ){
     # shp = methods::as(shp, "SpatialPolygonsDataFrame")
     shp=sp::SpatialPolygonsDataFrame(shp, 
@@ -140,6 +143,7 @@ shud.mask  <- function (pm = readmesh(), proj=NULL,
 #' @param stack Whether export the stack, only when the x is a matrix, i.e. (Ntime x Ncell).
 #' @param proj Projejction parameter
 #' @param pm shud mesh
+#' @param method method for interpolation, default = 'idw'
 #' @param plot Whether plot the result.
 #' @return Raster map
 #' @export
@@ -238,35 +242,34 @@ removeholes <- function(sp){
   return(ret)
 }
 #' Generatue fishnet
-#' \code{fishnet}
-#' @param ext Extension of the fishnet. c(xmin, xmax, ymin, ymax)
-#' @param n Number of dx
-#' @param dx Interval of x direction
-#' @param dy Interval of y direction
-#' @param crs Projection
-#' @param polygons Whether to export SpatialPolygons
-#' @param points Whether to export SpatialPoints
-#' @param lines Whether to export SpatialLines
+#' \code{fishnet} Generate fishnet by the coordinates
+#' @param xx  x coordinates
+#' @param yy  y coordinates
+#' @param crs projections parameters, defaul = epsg:4326
+#' @param type option = 'polygon', 'points', 'line'
+#' @return spatildata (.shp)
 #' @export
 #' @examples
 #' library(raster)
-#' pg=fishnet(ext=c(-80,80, -50,50), dx=5)
-#' plot(pg)
-fishnet <- function(ext, crs=sp::CRS("+init=epsg:4326"),
-                    n=10,
-                    dx=diff(ext[1:2])/n, dy=dx,
-                    lines=FALSE, polygons=TRUE, points=FALSE){
-  xmin = ext[1]
-  xmax = ext[2]
-  ymin = ext[3]
-  ymax = ext[4]
-  dx = min(dx, diff(ext[1:2]))
-  dy = min(dy, diff(ext[3:4]))
-  xx=seq(ext[1], ext[2], by=dx)
-  yy=seq(ext[3], ext[4], by=dy)
+#' ext=c(0, 8, 2, 10)
+#' dx = 2; dy = 4
+#' xx=seq(ext[1], ext[2], by=dx)
+#' yy=seq(ext[3], ext[4], by=dy)
+#' sp1 =fishnet(xx=ext[1:2], yy=ext[3:4])
+#' sp2 =fishnet(xx=xx + .5 * dx, yy=yy + 0.5 * dy)
+#' sp3 =fishnet(xx=xx, yy=yy, type = 'point')
+#' plot(sp1, axes=TRUE, xlim=c(-1, 1)*dx +ext[1:2], ylim=c(-1, 1)*dy + ext[3:4])
+#' plot(sp2, axes=TRUE, add=TRUE, border=2)
+#' plot(sp3, axes=TRUE, add=TRUE, col=3, pch=20)
+#' grid()
+fishnet <- function(xx, yy,
+                    crs=sp::CRS("+init=epsg:4326"),
+                    type='polygon'){
   nx = length(xx)
   ny = length(yy)
-  if(lines){
+  if(grepl('line', tolower(type)) ){
+    ymin = min(yy); ymax = max(yy)
+    xmin = min(xx); xmax = max(xx)
     vline=cbind(xx, ymin, xx, ymax)
     hline =  cbind(xmin, yy, xmax, yy)
     mat = rbind(vline, hline)
@@ -276,10 +279,8 @@ fishnet <- function(ext, crs=sp::CRS("+init=epsg:4326"),
     colnames(df) = c('x1', 'y1', 'x2','y2')
     spdf=sp::SpatialLinesDataFrame(spl, data = df)
     ret = spdf
-    raster::crs(ret) = crs
-    return(ret)
   }
-  if(polygons){
+  if(grepl('polygon', tolower(type)) ){
     xy=expand.grid(xx,yy)
     xm = matrix(xy[,1], nx,ny)
     ym = matrix(xy[,2], nx, ny)
@@ -309,11 +310,16 @@ fishnet <- function(ext, crs=sp::CRS("+init=epsg:4326"),
     # x1 = x0@polygons[[1]]@Polygons
     # SRL =lapply(1:length(x1),  function(x, i) {Polygons(list(x[[i]]), ID=i)},  x=x1 )
     ret = sp::SpatialPolygonsDataFrame( Sr=SRL, data=df, match.ID = TRUE)
-    raster::crs(ret) = crs
-    return(ret)
   }
-  return(NA)
+  if(grepl('point', tolower(type)) ){
+    xm = expand.grid(xx, yy)
+    df = data.frame('X' = xm[, 1], 'Y' = xm[,2])
+    ret = sp::SpatialPointsDataFrame(coords = df, data=df, match.ID = TRUE)
+  }
+  raster::crs(ret) = crs
+  return(ret)
 }
+
 #' Add holes into Polygons
 #' \code{AddHoleToPolygon}
 #' @param poly SpatialPolygons
@@ -558,7 +564,7 @@ rmDuplicatedLines <- function(x, ...){
   cd = extractCoords(x)
   # dim(cd)
   ft = FromToNode(x, cd)
-  id=which(duplicated(ft, MARGIN = 1, ...))
+  id=which(duplicated(ft[, -1], MARGIN = 1, ...))
   if(length(id)>0){
     r =x[-id,]
   }else{
@@ -650,18 +656,18 @@ ForcingCoverage <- function(sp.meteoSite=NULL, pcs, gcs=sp::CRS('+init=epsg:4326
   if( is.null(sp.meteoSite) ){
     sp.meteoSite = rgeos::gCentroid(wbd)
   }
-  x.pcs = spTransform(sp.meteoSite, pcs)
-  x.gcs = spTransform(sp.meteoSite, gcs)
+  x.pcs = sp::spTransform(sp.meteoSite, pcs)
+  x.gcs = sp::spTransform(sp.meteoSite, gcs)
   
-  ll = coordinates(x.gcs)
-  xy = coordinates(x.pcs)
+  ll = sp::coordinates(x.gcs)
+  xy = sp::coordinates(x.pcs)
   z = raster::extract(dem, x.pcs)
   
   att = data.frame(1:length(sp.meteoSite), ll, xy, z, paste0(sp.meteoSite@data$ID, '.csv'))
   colnames(att) = c('ID', 'Lon', 'Lat', 'X', 'Y','Z', 'Filename')
   
-  e1 = extent(wbd)
-  e2 = extent(x.pcs)
+  e1 = raster::extent(wbd)
+  e2 = raster::extent(x.pcs)
   rw = c(min(e1[1], e2[1]), 
          max(e1[2], e2[2]),
          min(e1[3], e2[3]),
@@ -672,3 +678,61 @@ ForcingCoverage <- function(sp.meteoSite=NULL, pcs, gcs=sp::CRS('+init=epsg:4326
   return(sp.forc)
 }
 
+
+#' Find the subset of a extent in a grid.
+#' \code{grid.subset}
+#' @param ext txtent of the grid
+#' @param res resolution of the grid
+#' @param ext.sub the extent of subset
+#' @param x x coordinates of the grids
+#' @param y y coordinates of the grids
+#' @return list, list(xid, yid, x, y)
+#' @export
+#' @examples 
+grid.subset <- function(ext, res,
+                        ext.sub,
+                        dx =matrix(res, 2,1)[1],
+                        dy =matrix(res, 2,1)[2],
+                        x = seq(ext[1]+dx/2, ext[2]-dx/2, by=dx),
+                        y = seq(ext[3]+dy/2, ext[4]-dy/2, by=dy)
+                        ){
+  xmin = min(x - dx/2); xmax = max(x + dx/2)
+  ymin = min(y - dy/2); ymax = max(y + dy/2)
+  # ext= c(min(x), max(x), min(y), max(y))
+
+  if(ext.sub[1] < xmin | ext.sub[2] > xmax | ext.sub[3] < ymin | ext.sub[4] > ymax){
+    warning(paste('Extent required is larger than the boundbox of dataset'))
+    message(paste(ext.sub, collaps=','))
+    message(paste(c(xmin,xmax,ymin, ymax), collaps=','))
+  }
+  xid = min(which(abs(x  - ext.sub[1]) <= dx/2)):max(which(abs(x  - ext.sub[2]) <= dx/2))
+  yid = min(which(abs(y  - ext.sub[3]) <= dy/2)):max(which(abs(y  - ext.sub[4]) <= dy/2))
+  nx = length(xid); ny = length(yid)
+  x.cord = x[xid]; y.cord = y[yid]
+  rt = list('xid' = xid,
+            'yid' = yid,
+            'x'=x.cord,
+            'y'=y.cord)
+  return(rt)
+}
+
+
+#' Generate a shapefile from coordinates.
+#' \code{xy2shp}
+#' @param xy matrix
+#' @param df attribute table
+#' @param crs projection parameters
+#' @return SpatialPointsDataFrame
+#' @export
+#' @examples 
+xy2shp <- function(xy, df=data.frame('ID'=1:nrow(xy), xy), crs=NULL ){
+  s1= paste0('POINT(', paste(xy[,2], xy[,1]), ')' )
+  s2= paste('GEOMETRYCOLLECTION(', paste(s1, collapse = ','), ')')
+  sp.xy=rgeos::readWKT(s2)
+  spd=sp::SpatialPointsDataFrame(sp.xy, 
+                             data=df)
+  if(!is.null(crs)){
+    raster::crs(spd)=crs
+  }
+  return(spd)
+}

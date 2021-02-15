@@ -9,6 +9,10 @@ fdc(val, xlab = "Exceedance (\%)", ylab = "value")
 }
 \arguments{
 \item{val}{Matrix or data.frame, number of column=2}
+
+\item{xlab}{xlab}
+
+\item{ylab}{ylab}
 }
 \value{
 ggplot handler

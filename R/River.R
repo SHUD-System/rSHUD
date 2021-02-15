@@ -2,7 +2,7 @@
 #' \code{shud.river}
 #' @param sl SpatialLines*
 #' @param dem Raster of elevation
-#' @param area Area of the watershed, for estimating the width/depth of river.
+#' @param AREA Area of the watershed, for estimating the width/depth of river.
 #' @return SHUD.RIVER
 #' @export
 shud.river <- function(sl, dem, AREA=NULL){
@@ -15,11 +15,12 @@ shud.river <- function(sl, dem, AREA=NULL){
   # pt = cbind(1:nrow(xy), xy, z)
   # colnames(pt) = c('Index','X', 'Y', 'Zmax')
   message(msg, '\nCalculate river order ...')
+
   rivord = sp.RiverOrder(sp.slt)
   message(msg, '\nIdentify the downstrem ...')
   rivdown = sp.RiverDown(sp.slt)
   message(msg, '\nFrom/To nodes ...') 
-  ft = FromToNode(sp.slt)
+  ft = FromToNode(sp.slt)[, 2:3]
   message(msg, '\nSlope and length of river ...')
   zf = raster::extract(dem, xy[ft[,1], ])
   zt = raster::extract(dem, xy[ft[,2], ])

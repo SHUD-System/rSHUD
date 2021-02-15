@@ -3,42 +3,37 @@
 \name{fishnet}
 \alias{fishnet}
 \title{Generatue fishnet
-\code{fishnet}}
+\code{fishnet} Generate fishnet by the coordinates}
 \usage{
-fishnet(
-  ext,
-  crs = sp::CRS("+init=epsg:4326"),
-  n = 10,
-  dx = diff(ext[1:2])/n,
-  dy = dx,
-  lines = FALSE,
-  polygons = TRUE,
-  points = FALSE
-)
+fishnet(xx, yy, crs = sp::CRS("+init=epsg:4326"), type = "polygon")
 }
 \arguments{
-\item{ext}{Extension of the fishnet. c(xmin, xmax, ymin, ymax)}
+\item{xx}{x coordinates}
 
-\item{crs}{Projection}
+\item{yy}{y coordinates}
 
-\item{n}{Number of dx}
+\item{crs}{projections parameters, defaul = epsg:4326}
 
-\item{dx}{Interval of x direction}
-
-\item{dy}{Interval of y direction}
-
-\item{lines}{Whether to export SpatialLines}
-
-\item{polygons}{Whether to export SpatialPolygons}
-
-\item{points}{Whether to export SpatialPoints}
+\item{type}{option = 'polygon', 'points', 'line'}
+}
+\value{
+spatildata (.shp)
 }
 \description{
 Generatue fishnet
-\code{fishnet}
+\code{fishnet} Generate fishnet by the coordinates
 }
 \examples{
 library(raster)
-pg=fishnet(ext=c(-80,80, -50,50), dx=5)
-plot(pg)
+ext=c(0, 8, 2, 10)
+dx = 2; dy = 4
+xx=seq(ext[1], ext[2], by=dx)
+yy=seq(ext[3], ext[4], by=dy)
+sp1 =fishnet(xx=ext[1:2], yy=ext[3:4])
+sp2 =fishnet(xx=xx + .5 * dx, yy=yy + 0.5 * dy)
+sp3 =fishnet(xx=xx, yy=yy, type = 'point')
+plot(sp1, axes=TRUE, xlim=c(-1, 1)*dx +ext[1:2], ylim=c(-1, 1)*dy + ext[3:4])
+plot(sp2, axes=TRUE, add=TRUE, border=2)
+plot(sp3, axes=TRUE, add=TRUE, col=3, pch=20)
+grid()
 }

@@ -9,6 +9,8 @@ RiverType(n, width = 2 * (1:n))
 }
 \arguments{
 \item{n}{number of types}
+
+\item{width}{Width of rivers}
 }
 \value{
 data.frame of parameters

@@ -11,7 +11,7 @@
 #' apply(y[,-1], 2, summary)
 #' plot(x[,3], y[,2])
 PTF <- function (x=t(matrix(c(33, 33, 2, 1.4), ncol=5, nrow=4) ), topsoil=TRUE, 
-                 xmin=c(.1, .1, 1.3, 1.3) ){
+                 xmin=c(.1, .1, 1.2, 1.3) ){
   msg='PTF:: '
   #Wösten, J. H. M., Pachepsky, Y. a., & Rawls, W. J. (2001). Pedotransfer functions: Bridging the gap between available basic soil data and missing soil hydraulic characteristics. Journal of Hydrology, 251(3–4), 123–150. https://doi.org/10.1016/S0022-1694(01)00464-4
   if(is.matrix(x) || is.data.frame(x)){
@@ -30,19 +30,19 @@ PTF <- function (x=t(matrix(c(33, 33, 2, 1.4), ncol=5, nrow=4) ), topsoil=TRUE,
   ly =  matrix(ifelse(topsoil,1,0), nrow= nsoil, ncol=1)
   for (i in  1:nsoil){
     id= i;
-    applymin <- function(x, xb, name){
+    applymin <- function(x, xb, name, unit){
       if(is.na(x) | is.na(xb)){
       }
-      if (x <=xb) { #must be positive. minimum value 0.1_perc.
-        message(msg, name, ' value ', i, ' is less than limit ', xb )
+      if (x <xb) { #must be positive. minimum value 0.1_perc.
+        message(msg, name, ' value ', x, ' (', i, ') is less than limit ', xb , ' ', unit)
         x = xb
       } 
       return (x)
     }
-    S = applymin(y[i, 1], xmin[1], 'SILT')
-    C = applymin(y[i, 2], xmin[2], 'CLAY')
-    OM = applymin(y[i, 3], xmin[3], 'Organic Mater')
-    D = applymin(y[i, 4], xmin[4], 'Bulk Density')
+    S = applymin(y[i, 1], xmin[1], 'SILT', '%wt')
+    C = applymin(y[i, 2], xmin[2], 'CLAY', '%wt')
+    OM = applymin(y[i, 3], xmin[3], 'Organic Matter', '%wt')
+    D = applymin(y[i, 4], xmin[4], 'Bulk Density', 'g/cm3')
     
     # S = y[i,1] #Silt. percentage to ratio
     # if (S <=xmin[1]) { #must be positive. minimum value 0.1_perc.
@@ -225,11 +225,11 @@ lc.default <- function(){
 }
 
 #' Generate the default land cover parameters of NLCD classes.
-#' \code{PTF.lc} 
+#' \code{PTF.NLCD} 
 #' @param lc NLCD (2001 and later version) land use code. 
 #' @return Default land cover parameters of NLCD classes.
 #' @export
-PTF.lc <- function(lc){
+PTF.NLCD <- function(lc){
   dtab = rbind(
   # http://glcf.umiacs.umd.edu/data/landcover/
     # Index		LAIMAX		RMIN		RSREF		ALBEDO		VEGFRAC		ROUGH		Drz		SOILDGRD		IMPAF	

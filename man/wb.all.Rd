@@ -6,9 +6,8 @@
 \code{wb.all}}
 \usage{
 wb.all(
-  xl = BasicPlot(varname = c(paste0("elev", c("prcp", "etic", "ettr", "etev", "etp")),
-    "rivqdown", paste0("eley", c("surf", "unsat", "gw")), paste0("rivy", "stage")), plot
-    = FALSE, return = TRUE),
+  xl = BasicPlot(varname = c(paste0("elev", c("prcp", "eta", "etp")), "rivqdown",
+    paste0("eley", c("surf", "unsat", "gw"))), plot = FALSE, return = TRUE),
   ic = readic(),
   fun = xts::apply.monthly,
   plot = TRUE

@@ -83,6 +83,8 @@ QvsO <-function(qq,sim=qq[,2],obs=qq[,1], ...){
 #' Default Comparison of the observation and simulation
 #' \code{fdc} 
 #' @param val Matrix or data.frame, number of column=2
+#' @param xlab xlab
+#' @param ylab ylab
 #' @return ggplot handler
 #' @export
 #' @examples 

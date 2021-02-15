@@ -10,7 +10,7 @@ readforc.csv(file = shud.filein()["md.forc"], id = NULL)
 \arguments{
 \item{file}{full path of file}
 
-\item{id}{Index of the forcing sites.}
+\item{id}{Index of the forcing sites.  default = NULL, which return average values of all sites.}
 }
 \value{
 forcing data, list.

@@ -5,9 +5,9 @@
 \title{Read multiply SHUD model output files and do time-series plot}
 \usage{
 BasicPlot(
-  varname = c(paste0("eley", c("surf", "unsat", "gw")), paste0("elev", c("prcp",
-    "infil", "rech")), paste0("elev", c("etp", "etev", "ettr", "etic")), paste0("rivq",
-    c("down", "sub", "surf")), paste0("rivy", "stage")),
+  varname = c(paste0("eley", c("surf", "unsat", "gw", "snow")), paste0("elev",
+    c("prcp", "infil", "rech")), paste0("elev", c("etp", "eta", "etev", "ettr", "etic")),
+    paste0("rivq", c("down", "sub", "surf")), paste0("rivy", "stage")),
   sp.riv = NULL,
   rdsfile = file.path(get("outpath", envir = .shud), "BasicPlot.RDS"),
   plot = TRUE,
@@ -31,6 +31,8 @@ BasicPlot(
 \item{iRDS}{Whether save RDS file.}
 
 \item{return}{Whether return the data. Some the results are too huge to load in memoery at once.}
+
+\item{w.focal}{forcal matrix}
 }
 \value{
 A list of TimeSeries data.

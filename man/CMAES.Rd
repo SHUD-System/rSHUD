@@ -38,8 +38,6 @@ CMAES(
 \item{debug}{Whether debug Model.}
 
 \item{...}{More options passing to objfunc.}
-
-\item{ncores}{Number of cores to simulate. 1 = one thread.}
 }
 \description{
 Automatically calibrate model, that requires user-defined model and objective function.

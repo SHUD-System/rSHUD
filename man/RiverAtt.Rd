@@ -8,7 +8,7 @@
 RiverAtt(riv = readriv())
 }
 \arguments{
-\item{river}{SHUD.RIVER}
+\item{riv}{SHUD.RIVER}
 }
 \value{
 Attributes of each river reach

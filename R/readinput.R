@@ -166,45 +166,59 @@ readlc <-function( file = shud.filein()['md.lc']){
 #' Read the .forc file
 #' \code{readlc} 
 #' @param file full path of file
-#' @return files of forcing .csv.
+#' @return data.frame of forcing sites.
 #' @export
 readforc.fn <-function( file = shud.filein()['md.forc']){
-  text = readLines(file)
-  hd=read.table(text = text[1])
-  path=text[2]
-  fns = text[-1 * 1:2]
-  ret = as.matrix(file.path(path, fns), ncol=1)
-  colnames(ret) = hd[2]
-  ret
+  txt = readLines(file)
+  hd=read.table(text = txt[1])
+  path=txt[2]
+  df=read.table(text=txt[-1 * 1:2 ], header = TRUE)
+  nc=ncol(df)
+  df[, nc] = file.path(path, df[, nc])
+  ret = list('StartTime' = as.character(hd[2]) ,
+             Sites = df)
+  return(ret)
 }
 #============ 
 #' Read the .csv files in .forc file
 #' \code{readlc} 
 #' @param file full path of file
-#' @param id  Index of the forcing sites.
+#' @param id  Index of the forcing sites.  default = NULL, which return average values of all sites.
 #' @return forcing data, list.
 #' @export
+
 readforc.csv <-function(file = shud.filein()['md.forc'], id=NULL){
   msg='readforc.csv::'
-  fns=readforc.fn(file=file)
-  tstr = colnames(fns)
+  xf = readforc.fn(file=file)
+  fns = xf$Sites[, ncol(xf$Sites)]
+  tstr = xf$StartTime
   t0 = as.POSIXct(tstr, format = '%Y%m%d')
   if( is.null(id)){
     fn = fns
-    id=1:length(fns)
+    RID=1:length(fns)
   }else{
     fn = fns[id]
+    RID = id
   }
   nf = length(fn)
-  ret = list()
+  xl = list()
   for(i in 1:nf){
     message(msg, i, '/', nf,'\t', fn[i])
-    x=read.df(fns[id[i]]) 
+    x=read.df(fns[RID[i]]) 
     y=x[[1]]
     xt = t0+y[,1]*86400
     tsd=zoo::zoo(y[,-1], xt)
-    ret[[i]] = tsd
+    xl[[i]] = tsd
   }
-  names(ret) = basename(fns[id])
-  ret
+  names(xl) = basename(fns[RID])
+  
+  if( is.null(id) ){
+    mx = xl[[1]] * 0
+    for(i in 1:nf){
+      mx = mx + xl[[i]]
+    }
+    return(mx/nf)
+  }else{
+    return(xl)
+  }
 }

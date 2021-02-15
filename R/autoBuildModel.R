@@ -143,7 +143,7 @@ autoBuildModel <- function(
   if(is.list(rsoil)){ 
     xsoil = 1:ncells
   }else{
-    xsoil=rsiol
+    xsoil=rsoil
   }
   if(is.list(rgeol)){ 
     xgeol = 1:ncells
