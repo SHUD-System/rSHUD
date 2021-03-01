@@ -671,13 +671,20 @@ ForcingCoverage <- function(sp.meteoSite=NULL, pcs, gcs=sp::CRS('+init=epsg:4326
   rw = c(min(e1[1], e2[1]), 
          max(e1[2], e2[2]),
          min(e1[3], e2[3]),
-         max(e1[4], e2[4]) ) + c(-1, 1, -1, 1) * enlarge
-  sp.forc=voronoipolygons(x=x.pcs, rw=rw, crs=pcs)
+         max(e1[4], e2[4]) ) 
+  if(is.null(enlarge)){
+    enlarge = min(diff(rw[1:2]), diff(rw[3:4])) * 0.02
+  }
+  rw = rw + c(-1, 1, -1, 1) * enlarge
+  if(length(x.pcs)<2){
+    sp.forc = fishnet(xx = rw[1:2],yy = rw[3:4], crs=pcs)
+  }else{
+    sp.forc=voronoipolygons(x=x.pcs, rw=rw, crs=pcs)
+  }
   att[is.na(att)] = -9999
   sp.forc@data = att
   return(sp.forc)
 }
-
 
 #' Find the subset of a extent in a grid.
 #' \code{grid.subset}
