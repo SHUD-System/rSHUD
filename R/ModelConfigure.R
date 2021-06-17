@@ -64,19 +64,26 @@ shud.calib <- function(){
     'GEOL_KSATH', 'GEOL_KSATV', 'GEOL_KMACSATH','GEOL_MACVF', 'GEOL_THETAS','GEOL_THETAR',  'GEOL_DMAC',
     'SOIL_KINF',  'SOIL_KMACSATV', 'SOIL_DINF', 'SOIL_ALPHA', 'SOIL_BETA', 'SOIL_MACHF', 
     'LC_VEGFRAC', 'LC_ALBEDO', 'LC_ROUGH', 'LC_DROOT','LC_ISMAX', 'LC_ImpAF', 'LC_SoilDgd', 
-    'TS_PRCP', 'TS_LAI',
+    'TS_PRCP', 'TS_LAI', 'TS_MF',
     'TS_SFCTMP+', 
     'ET_ETP', 'ET_IC', 'ET_TR', 'ET_Soil',
     'RIV_ROUGH', 'RIV_KH', 
     'RIV_SINU', 'RIV_CWR', 'RIV_BedThick',
     'RIV_BSLOPE+','RIV_DPTH+','RIV_WDTH+', 
+    
+    'Fzn_surfmax', 'Fzn_surfmin', 'Fzn_surfday', 
+    'Fzn_submax', 'Fzn_submin', 'Fzn_subday',
+    
     'IC_GW+', 'IC_RIV+',
     'AQ_DEPTH+' 
     ) )
   v=data.frame(rbind(rep(1, length(cn))))
   names(v) = toupper(cn)
-  id=which(grepl('\\+', cn))
-  # id
+  id=which(grepl('\\+', cn)) # Additional Value
   v[id] = 0
+  
+  id=which(grepl('^Fzn', cn)) # Additional Value
+  v[id] = 
+  
   return(v)
 }

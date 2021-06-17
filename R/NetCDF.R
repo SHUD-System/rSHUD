@@ -144,10 +144,11 @@ xyz2Raster <- function(x, y=NULL, arr=NULL,
   }else{
     # single layer
     val = arr[ , ]
-    dx = mean(diff(x)); dy = mean(diff(y))
+    dx = abs(mean(diff(x))); dy = abs(mean(diff(y)))
     nx = length(x);   ny = length(y)
     r = raster::raster(ncols=nx, nrows=ny)
     raster::extent(r) = c(min(x), max(x), min(y), max(y)) + c(-dx, dx, -dy, dy)/2
+    # raster::res(r) = c(dx, dy)
     # r = raster::setValues(r, t(val[, ny:1]))
     if(flip){    idx = ny:1
     }else{    idx = 1:ny  }
@@ -155,4 +156,3 @@ xyz2Raster <- function(x, y=NULL, arr=NULL,
   }
   rs
 }
-

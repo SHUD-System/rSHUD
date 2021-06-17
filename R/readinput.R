@@ -187,10 +187,10 @@ readforc.fn <-function( file = shud.filein()['md.forc']){
 #' @return forcing data, list.
 #' @export
 
-readforc.csv <-function(file = shud.filein()['md.forc'], id=NULL){
+readforc.csv <-function(file = shud.filein()['md.forc'], id=NULL, prefix=NULL){
   msg='readforc.csv::'
   xf = readforc.fn(file=file)
-  fns = xf$Sites[, ncol(xf$Sites)]
+  fns = file.path(prefix, xf$Sites[, ncol(xf$Sites)])
   tstr = xf$StartTime
   t0 = as.POSIXct(tstr, format = '%Y%m%d')
   if( is.null(id)){
@@ -204,10 +204,11 @@ readforc.csv <-function(file = shud.filein()['md.forc'], id=NULL){
   xl = list()
   for(i in 1:nf){
     message(msg, i, '/', nf,'\t', fn[i])
-    x=read.df(fns[RID[i]]) 
-    y=x[[1]]
-    xt = t0+y[,1]*86400
-    tsd=zoo::zoo(y[,-1], xt)
+    # x=read.df(fns[RID[i]]) 
+    # y=x[[1]]
+    # xt = t0+y[,1]*86400
+    # tsd=zoo::zoo(y[,-1], xt)
+    tsd = read.tsd(fns[RID[i]])[[1]]
     xl[[i]] = tsd
   }
   names(xl) = basename(fns[RID])

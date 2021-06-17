@@ -5,18 +5,32 @@
 #' @return Index of downstream for each segements
 #' @export
 sp.RiverDown <- function(sp, coord = extractCoords(sp)){
+  msg = 'sp.RiverDown::'
   ft = FromToNode(sp, coord = coord)[, 2:3]
   nsp = length(sp)
   idown = rep(-3, nsp)
   for(i in 1:nsp){
     pto = ft[i,2]
     id = which(ft[,1] == pto)
-    if(length(id) == 1){
+    nid = length(id)
+    if(nid == 1){
       idown[i] = id
+    }else if(length(id) > 1){
+      message(msg, i, '/', nsp, '\t', nid, ' DOWNSTEAM found')
+      print(id)
+      idown[i] = id[1]
+      # xid = c(id, i)
+      # plot(sp[xid, ]); points(coord[ft[i, ], ], col=1:2);
+      # points(coord[ft[id[1],], ], col=1:2, pch=2)
+      # points(coord[ft[id[2],], ], col=1:2, pch=3)
+    }else{
+      # VOID
     }
   }
   idown
 }
+# sp.slt = spr
+# rivdown = sp.RiverDown(sp.slt)
 #' determine River path, disolve the river network based on downstream-relationship.
 #' \code{sp.RiverPath}
 #' @param sp SpatialLines*

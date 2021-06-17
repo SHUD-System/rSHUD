@@ -204,22 +204,25 @@ days_in_year <- function(years){
 
 #' Convert the time-series data to daily data.
 #' @param x xts,zoo data.
+#' @param FUN function.
+#' @param ... more options in xts::apply.daily()
 #' @return xts data whose time index is daily.
 #' @export
 #' @examples 
 #' library(xts)
 #' x=as.xts(rnorm(100), order.by = as.POSIXct('2000-01-01')+ 1:100 * 3600*24)
-#' xd = xts2Daily(x)
+#' xd = ts2Daily(x)
 #' class(time(x))
 #' class(time(xd))
-xts2Daily <- function(x){
+ts2Daily <- function(x, FUN=mean, ...){
   msg = 'xts2Daily:: '
   if(any(class(x) %in% c('xts', 'zoo'))){
-    t0 = time(x)
-    time(x) = as.Date(t0)
+    y = xts::apply.daily(x, FUN = FUN, ...)
+    t0 = time(y)
+    time(y) = as.Date(t0)
   }else{
     # message(xts2Daily, 'ERROR: require xts or zoo data class.')
     stop(paste0(msg, 'ERROR: require xts or zoo data class.'));
   }
-  return(x)
+  return(y)
 }
