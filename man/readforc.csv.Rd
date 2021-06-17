@@ -5,7 +5,7 @@
 \title{Read the .csv files in .forc file
 \code{readlc}}
 \usage{
-readforc.csv(file = shud.filein()["md.forc"], id = NULL)
+readforc.csv(file = shud.filein()["md.forc"], id = NULL, prefix = NULL)
 }
 \arguments{
 \item{file}{full path of file}

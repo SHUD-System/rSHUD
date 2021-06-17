@@ -43,7 +43,7 @@ readout <- function(keyword,
   tmove = diff(mat[,1])
   tmove = c(tmove, tmove[length(tmove)])
   tsec =   ( mat[,1]) * 60 
-  xt = as.POSIXct(as.character(st), format='%Y%m%d', format='UTC') + tsec
+  xt = as.POSIXct(as.character(st), format='%Y%m%d', tz='UTC') + tsec
   if(nc<=1){
     tsd = xts::as.xts(cbind(mat[,-1]), order.by = xt)
   }else{
