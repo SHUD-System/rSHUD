@@ -729,17 +729,71 @@ grid.subset <- function(ext, res,
 #' @param xy matrix
 #' @param df attribute table
 #' @param crs projection parameters
-#' @return SpatialPointsDataFrame
+#' @param shape Shape of the result in points, lines or polygons
+#' @return SpatialPointsDataFrame, SpatialLinesDataFrame, or SpatialPolygonsDataFrame
 #' @export
 #' @examples 
-xy2shp <- function(xy, df=data.frame('ID'=1:nrow(xy), xy), crs=NULL ){
-  s1= paste0('POINT(', paste(xy[,2], xy[,1]), ')' )
-  s2= paste('GEOMETRYCOLLECTION(', paste(s1, collapse = ','), ')')
-  sp.xy=rgeos::readWKT(s2)
-  spd=sp::SpatialPointsDataFrame(sp.xy, 
-                             data=df)
+#' library(raster)
+#' xy=list(cbind(c(0, 2, 1), c(0, 0, 2)),  cbind(c(0, 2, 1), c(0, 0, 2))+2)
+#' sp1 = xy2shp(xy=xy, shape = 'polygon')
+#' raster::plot(sp1, axes=TRUE, col='gray')
+#' 
+#' sp2 = xy2shp(xy=xy, shape = 'lines')
+#' raster::plot(sp2, add=TRUE, lty=2, lwd=3,col='red')
+#' sp3 = xy2shp(xy=xy, shape = 'POINTS')
+#' raster::plot(sp3, add=TRUE, pch=1, cex=2)
+#' 
+xy2shp <- function(xy, df=NULL, crs=NULL, shape='points'){
+  if(grepl('point', tolower(shape))){
+    if(!is.list(xy)){
+      xy = list(xy)
+    }
+    xy = do.call(rbind, xy)
+    if(is.null(df)){
+      df = data.frame('ID'= 1:nrow(xy))
+    }
+    s1= paste0('POINT(', paste(xy[,1], xy[,2]), ')' )
+    s2= paste('GEOMETRYCOLLECTION(', paste(s1, collapse = ','), ')')
+    sp.xy=rgeos::readWKT(s2)
+    spd=sp::SpatialPointsDataFrame(sp.xy, data=df, match.ID = FALSE)
+  }else if(grepl('line', tolower(shape))){
+    if(!is.list(xy)){
+      xy = list(xy)
+    }
+    if(is.null(df)){
+      df = data.frame('ID'= 1:length(xy))
+    }
+    nl = length(xy)
+    fx <- function(x){
+      # x=rbind(x, x[1, ])
+      paste0('(', paste(paste(x[,1], x[,2]), collapse = ','), ')')
+    }
+    s1 = paste0('LINESTRING', unlist(lapply(xy, FUN = fx)), '')
+    s2= paste('GEOMETRYCOLLECTION(', paste(s1, collapse = ','), ')')
+    sp.xy=rgeos::readWKT(s2)
+    
+    spd=sp::SpatialLinesDataFrame(sp.xy, data=df, match.ID = FALSE)
+  }else if(grepl('polygon', tolower(shape))){
+    if(!is.list(xy)){
+      xy = list(xy)
+    }
+    if(is.null(df)){
+      df = data.frame('ID'= 1:length(xy))
+    }
+    nl = length(xy)
+    fx <- function(x){
+      x=rbind(x, x[1, ])
+      paste0('(', paste(paste(x[,1], x[,2]), collapse = ','), ')')
+    }
+    s1 = paste0('POLYGON(', unlist(lapply(xy, FUN = fx)), ')')
+    s2= paste('GEOMETRYCOLLECTION(', paste(s1, collapse = ','), ')')
+    sp.xy=rgeos::readWKT(s2)
+    
+    spd=sp::SpatialPolygonsDataFrame(sp.xy, data=df, match.ID = FALSE)
+  }
   if(!is.null(crs)){
     raster::crs(spd)=crs
   }
   return(spd)
 }
+

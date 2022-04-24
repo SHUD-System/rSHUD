@@ -26,8 +26,8 @@ Pedotransfer function to generate soil parameter
 \code{PTF.geol}
 }
 \examples{
-x=cbind(10,40, 1:20, 1.5)
-y=PTF.geol(x)
+x = cbind(10,40, 1:20, 1.5)
+y = PTF.geol(x)
 apply(y[,-1], 2, summary)
 plot(x[,3], y[,2])
 }

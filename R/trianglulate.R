@@ -3,51 +3,41 @@
 #' @param wb SpatialPolygon or SpatialLines which define the watershed boundary
 #' @param riv SpatialLines of river network, optional
 #' @param dem Elevation data.
-#' @param lk SpatialPolygon of lake.
+#' @param lake SpatialPolygon of lake.
 #' @param q minimum angle of triangle
 #' @param pts Extra pts to build triangular mesh.
 #' @param ... more options in RTriangle::triangulate()
 #' @return A object with class triangulation.
 #' @export
 shud.triangle <- function(wb, dem = NULL, 
-                                  riv=NULL, lk=NULL, 
-                                  pts=NULL,
-                                  q=30, ...){
-  #x is a spatialpolygons
-  # wb=wb$wb.simp
-  # riv=riv$Riv.simp
-  # wb=wb.simp
-  # lk=lk.sim
-  # plot(wb);plot(lk,add=T)
-  ps1 = sp2PSLG(wb)
+                          riv=NULL, hole=NULL, 
+                          pts=NULL,
+                          q=30, ...){
+  if(!is.null(hole)){
+    x = rgeos::gDifference(wb, hole)
+    # plot(wb, col='gray'); plot(add=T,  hole, col='darkred')
+  }else{
+    x = wb
+  }
+  ps = sp2PSLG(x)
   if(!is.null(dem)){
     raster::movingFun()
   }
-  # if(!is.null(lk)){
-  #   ps3 = sp2PSLG(lk)
-  #   n1 = nrow(ps1$P)
-  #   ps=RTriangle::pslg(P = rbind(ps1$P, ps3$P),
-  #           S = rbind(ps1$S, ps3$S + n1) )
-  # }else{
-  #   
-  # }
   if(!is.null(riv)){
     ps2 = sp2PSLG(riv)
     n1 = nrow(ps1$P)
-    ps=list('P' = rbind(ps1$P, ps2$P),
-            'S' = rbind(ps1$S, ps2$S + n1) )
-  }else{
-    ps = ps1
+    ps=list('P' = rbind(ps$P, ps2$P),
+            'S' = rbind(ps$S, ps2$S + n1) )
   }
   if(!is.null(pts) ){
     ps$P = rbind(ps$P, pts)
   }
   p = RTriangle::pslg(P=ps$P,
-           S = ps$S)
+                      S = ps$S, 
+                      H = ps$H)
   # tri <- RTriangle::triangulate(p, a=500000, q=20)
   # plot(tri, asp=1, type='n')
   # dim(tri$T)
-  
   if(q >35){
     q = 35;
   }
@@ -58,6 +48,7 @@ shud.triangle <- function(wb, dem = NULL,
   # plot(riv, add=TRUE, col=4)
   tri
 }
+
 
 #' Convert the .mesh file to shapefile.
 #' \code{sp.mesh2Shape} 

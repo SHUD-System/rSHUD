@@ -45,7 +45,7 @@ shud.mesh <- function(tri, dem, AqDepth = 10, r.aq = dem * 0 + AqDepth){
   zc=raster::extract(dem, cxy)
   
   m = data.frame(1:nrow(topo), tri$T, topo[,1:3], zc)
-  colnames(m) = c('ID', paste0('Node', 1:3), paste0('Nabr',1:3), 'Zmax' )
+  colnames(m) = c('ID', paste0('Node', 1:3), paste0('Nabr',1:3),'Zmax' )
   
   zs=raster::extract(dem, pt)
   aq=raster::extract(r.aq, pt)
@@ -76,17 +76,18 @@ Tri2Centroid <- function(tri){
 #' @param r.mf raster of melt factor
 #' @param r.BC raster of boundary condition
 #' @param r.SS raster of Source/Sink
+#' @param sp.lake SpatialPolygon of lake layers.
 #' @return data.frame of SHUD .att
 #' @export
 shud.att <- function(tri, r.soil =NULL, r.geol=NULL, r.lc=NULL, r.forc=NULL,
-                     r.mf = NULL, r.BC = NULL, r.SS =NULL){
+                     r.mf = NULL, r.BC = NULL, r.SS =NULL, sp.lake=NULL){
   p.centroids = Tri2Centroid(tri)
   ncell = nrow(p.centroids)
   atthead=c( "INDEX",  "SOIL", "GEOL", "LC", 
-             'FORC', 'MF', 'BC', 'SS')
+             'FORC', 'MF', 'BC', 'SS', 'LAKE')
   nh = length(atthead)
-  att = cbind(1:ncell, 1, 1, 1, 
-              1, 1, 0, 0)
+  att = data.frame(cbind(1:ncell, 1, 1, 1, 
+              1, 1, 0, 0, 0) )
   extract.id <- function(r, p.centroids){
     id = raster::extract(r, p.centroids)
     if(is.matrix(id) | is.data.frame(id)){
@@ -105,16 +106,18 @@ shud.att <- function(tri, r.soil =NULL, r.geol=NULL, r.lc=NULL, r.forc=NULL,
         xv = extract.id(rr, pxy)
       }
     }
+    xv[is.na(xv)] = v0
     return(xv)
   }
   colnames(att) = atthead;
   nx = nrow(p.centroids)
-  att[, 2] = apply.raster(r.soil, p.centroids, v0=1)
-  att[, 3] = apply.raster(r.geol, p.centroids, v0=1)
-  att[, 4] = apply.raster(r.lc, p.centroids, v0=1)
-  att[, 5] = apply.raster(r.forc, p.centroids, v0=1)
-  att[, 6] = apply.raster(r.mf, p.centroids, v0=1)
-  att[, 7] = apply.raster(r.BC, p.centroids, v0=0)
-  att[, 8] = apply.raster(r.SS, p.centroids, v0=0)
-  return( data.frame(att) )
+  att$SOIL = apply.raster(r.soil, p.centroids, v0=1)
+  att$GEOL = apply.raster(r.geol, p.centroids, v0=1)
+  att$LC = apply.raster(r.lc, p.centroids, v0=1)
+  att$FORC = apply.raster(r.forc, p.centroids, v0=1)
+  att$MF = apply.raster(r.mf, p.centroids, v0=1)
+  att$BC = apply.raster(r.BC, p.centroids, v0=0)
+  att$SS = apply.raster(r.SS, p.centroids, v0=0)
+  att$LAKE = apply.raster(sp.lake, p.centroids, v0=0)
+  return(att)
 }

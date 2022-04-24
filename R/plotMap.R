@@ -58,12 +58,13 @@ compareMaps <- function(r, mfrow, contour=FALSE, ...){
 #' @param zcol The column to plot
 #' @param col.fun Functions of coloring.
 #' @param ncol Number of colors in color function.
+#' @param ... more options in raster::plot()
 #' @export
-plot_sp <-function(x, zcol, col.fun = topo.colors, ncol = 20){
+plot_sp <-function(x, zcol, col.fun = topo.colors, ncol = 20, ...){
   z = x@data[, zcol]
   col = col.fun(length(z))
   ord = order(z)
-  raster::plot(x[ord, ], col=col)
+  raster::plot(x[ord, ], col=col, ...)
 }
 
 #' Plot animation maps

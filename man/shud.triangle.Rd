@@ -5,7 +5,7 @@
 \title{Generate triangle mesh domain
 \code{shud.triangle}}
 \usage{
-shud.triangle(wb, dem = NULL, riv = NULL, lk = NULL, pts = NULL, q = 30, ...)
+shud.triangle(wb, dem = NULL, riv = NULL, hole = NULL, pts = NULL, q = 30, ...)
 }
 \arguments{
 \item{wb}{SpatialPolygon or SpatialLines which define the watershed boundary}
@@ -14,13 +14,13 @@ shud.triangle(wb, dem = NULL, riv = NULL, lk = NULL, pts = NULL, q = 30, ...)
 
 \item{riv}{SpatialLines of river network, optional}
 
-\item{lk}{SpatialPolygon of lake.}
-
 \item{pts}{Extra pts to build triangular mesh.}
 
 \item{q}{minimum angle of triangle}
 
 \item{...}{more options in RTriangle::triangulate()}
+
+\item{lake}{SpatialPolygon of lake.}
 }
 \value{
 A object with class triangulation.

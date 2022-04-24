@@ -6,6 +6,8 @@
 #' @export
 sp.RiverDown <- function(sp, coord = extractCoords(sp)){
   msg = 'sp.RiverDown::'
+  ext = raster::extent(sp)
+  sp = rgeos::gSimplify(sp, tol = (ext[2] - ext[1] )*0.01)
   ft = FromToNode(sp, coord = coord)[, 2:3]
   nsp = length(sp)
   idown = rep(-3, nsp)
@@ -16,7 +18,7 @@ sp.RiverDown <- function(sp, coord = extractCoords(sp)){
     if(nid == 1){
       idown[i] = id
     }else if(length(id) > 1){
-      message(msg, i, '/', nsp, '\t', nid, ' DOWNSTEAM found')
+      message(msg, i, '/', nsp, '\t', nid, ' Downstream found')
       print(id)
       idown[i] = id[1]
       # xid = c(id, i)
@@ -36,6 +38,7 @@ sp.RiverDown <- function(sp, coord = extractCoords(sp)){
 #' @param sp SpatialLines*
 #' @param idown downstream index of \code{sp}.
 #' @param coord coordinates of \code{sp}.
+#' @param tol.simplify tolerance for simplification of river lines.
 #' @return List of River Path(SegIDs, PointIDs, sp)
 #' @export
 #' @examples 
@@ -47,7 +50,13 @@ sp.RiverDown <- function(sp, coord = extractCoords(sp)){
 # px(xx$sp)
 sp.RiverPath <- function(sp, 
                          coord = extractCoords(sp, unique = TRUE), 
-                         idown = sp.RiverDown(sp, coord = coord)){
+                         idown = sp.RiverDown(sp, coord = coord),
+                         tol.simplify = 0){
+  msg = 'sp.RiverPath::'
+  ext = raster::extent(sp)
+  if(tol.simplify > 0){
+    sp = rgeos::gSimplify(sp, tol = tol.simplify)
+  }
   pt.list <- unlist(coordinates(sp), recursive = FALSE)
   id.list<-lapply(pt.list, function(x) { xy2ID(xy = x, coord = coord)})
 
@@ -71,10 +80,12 @@ sp.RiverPath <- function(sp,
     }
     ret
   }
+  message(msg, 'to Upstream')
   StreamPath = lapply(riv.keyid, function(x) goUp(updown, x))
   #========Point ID==========
   nstr = length(StreamPath)
   pl = list()
+  message(msg, 'searching from/to nodes')
   for(i in 1:nstr){
     sid = StreamPath[[i]]
     pid = unique(unlist(lapply(1:length(sid), function(x) id.list[[sid[x]]])))
@@ -84,6 +95,7 @@ sp.RiverPath <- function(sp,
   }
   #=========Spatial Lines===============
   ll = list()
+  message(msg, 'build new spatialLines')
   for(i in 1:nstr){
     sid = StreamPath[[i]]
     pid = unique(unlist(lapply(1:length(sid), function(x) id.list[[sid[x]]])))
@@ -94,14 +106,27 @@ sp.RiverPath <- function(sp,
               PointIDs= pl,
               sp = spx)
 }
+
+
 #' calculate river order
 #' \code{sp.RiverOrder}
 #' @param sp SpatialLines*
 #' @param coord coordinates of \code{sp}.
 #' @return Stream Order of SpatialLines*
 #' @export
+#' @examples 
+#' library(rgdal)
+#' data(sac)
+#' riv=sac$riv
+#' ord = sp.RiverOrder(riv)
+#' print(ord)
+#' idx = sort(unique(ord))
+#' raster::plot(riv, col=ord)
+#' legend('topleft', legend=idx, col=idx, lwd=1, lty=1)
 sp.RiverOrder <- function(sp, coord = extractCoords(sp)){
   msg='sp.RiverOrder::'
+  ext = raster::extent(sp)
+  sp = rgeos::gSimplify(sp, tol = (ext[2] - ext[1] )*0.01)
   get1st <- function(x){
     fr = x[,2]
     to = x[,3]
@@ -169,16 +194,21 @@ sp.RiverOrder <- function(sp, coord = extractCoords(sp)){
 #' @return list of Index of each SpatialData, line or polygon
 #' @export
 NodeIDList <- function(sp, coord = extractCoords(sp, unique = TRUE) ){
-  pt.list <- unlist(coordinates(sp), recursive = FALSE)
+  pt.list <- unlist(sp::coordinates(sp), recursive = FALSE)
   id.list<-lapply(pt.list, function(x) { xy2ID(x, coord = coord)})
 }
 #' return the FROM and TO nodes index of the SpatialLines
 #' \code{FromToNode}
 #' @param sp SpatialLines*
 #' @param coord Coordinate of vertex in \code{sp}
+#' @param simplify whether simplify the spatialLines
 #' @return FROM and TO nodes index of the SpatialLines
 #' @export
-FromToNode <- function(sp, coord = extractCoords(sp, unique = TRUE) ){
+FromToNode <- function(sp, coord = extractCoords(sp, unique = TRUE), simplify=TRUE){
+  if(simplify){
+    ext = raster::extent(sp)
+    sp = rgeos::gSimplify(sp, tol = (ext[2] - ext[1] )*0.01)
+  }
   id.list = NodeIDList(sp, coord=coord)
   frto = cbind(
     unlist(lapply(id.list, function(x) x[1])),

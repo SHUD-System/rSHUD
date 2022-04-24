@@ -13,7 +13,8 @@ shud.att(
   r.forc = NULL,
   r.mf = NULL,
   r.BC = NULL,
-  r.SS = NULL
+  r.SS = NULL,
+  sp.lake = NULL
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ shud.att(
 \item{r.BC}{raster of boundary condition}
 
 \item{r.SS}{raster of Source/Sink}
+
+\item{sp.lake}{SpatialPolygon of lake layers.}
 }
 \value{
 data.frame of SHUD .att

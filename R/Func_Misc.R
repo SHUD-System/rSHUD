@@ -134,22 +134,51 @@ which_outliers <- function(x, na.rm = TRUE, probs=c(.5, .95),...) {
 #' @export
 #' @examples
 #' library(rgeos)
-#' sl = readWKT("MULTIPOLYGON(((1 1,5 1,5 5,1 5,1 1),(2 2,2 3,3 3,3 2,2 2)),((6 3,9 2,9 4,6 3)))")
+#' sl = readWKT("MULTIPOLYGON(((1 1,5 1,5 5,1 5,1 1),(2 2,2 3,3 3,3 2,2 2)))")
 #' x = sp2PSLG(sl)
 sp2PSLG<-function(sp){
+  msg = 'sp2PSLG:: '
   if(methods::is(sp, 'sf')){
     sp=methods::as(sp, 'Spatial')
   }
   sl = methods::as(sp, 'SpatialLines')
   nsl = length(sl)
   P = extractCoords(sl, unique = TRUE)
-  S=NULL
+  H=S=NULL
+  maketb <- function(x, pts){
+    # Handel the Holes
+    tb = table(x)
+    idx = which(tb > 1)
+    keyval = as.numeric(names(tb)[idx])
+    nk = length(keyval)
+    if(nk > 2){
+      message(msg, nk, 'polygons exist in your file. Only ONE hole is allowed. ')
+      stop('rSHUD')
+    }
+    CB = NULL
+    for(i in 1:nk){
+      ky = keyval[i]
+      nid = which(x == ky)
+      xr = nid[1]:(nid[2]-1)
+      if(i==2){
+        H = cbind(mean(pts[x[xr], 1], na.rm=TRUE), mean(pts[x[xr+1], 2], na.rm=TRUE))
+      }
+      CB = rbind(CB, cbind(x[xr], x[xr+1]))
+    }
+    list(CB=CB, H=H)
+  }
   for(i in 1:nsl){
     cc = extractCoords(sl[i,], unique = FALSE)
     e = xy2ID(cc,P)
-    S = rbind(S, cbind(e[-length(e)], e[-1]))
+    tb = maketb(x = e, pts = P)
+    S = rbind(S, tb$CB)
+    H = rbind(H, tb$H)
   }
-  ret <- RTriangle::pslg(P=P,S=unique(S) )
+  if(is.null(H)){
+    ret <- RTriangle::pslg(P=P,S=unique(S))
+  }else{
+    ret <- RTriangle::pslg(P=P,S=unique(S), H=H)
+  }
 }
 
 #' Find the common coordinates in two groups of coordinates.
@@ -226,3 +255,25 @@ ts2Daily <- function(x, FUN=mean, ...){
   }
   return(y)
 }
+#' Identify whether every row of x is same as m;
+#' @param x Row vector
+#' @param m Matrix
+#' @return TRUE/FALSE of matching
+#' @export
+#' @examples 
+#' rowMatch(c(1, 1), cbind(1:10, 1:10))
+rowMatch <-function(x, m){
+  n = length(x)
+  nc = ncol(m)
+  nr = nrow(m)
+  if(n != nc){
+    return(FALSE)
+  }
+  y = m * 1
+  for( i in 1:nc){
+    y[, i] = (m[, i] - x[i])
+  }
+  out = apply(y, 1, FUN = function(x){all(x == 0)})
+  return(out)
+}
+

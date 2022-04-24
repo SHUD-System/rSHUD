@@ -6,9 +6,9 @@
 \code{wb.ele}}
 \usage{
 wb.ele(
-  xl = BasicPlot(varname = c(paste0("elev", c("prcp", "etic", "ettr", "etev")),
+  xl = loaddata(varname = c(paste0("elev", c("prcp", "etic", "ettr", "etev")),
     paste0("eleq", c("surf", "sub")), paste0("eley", c("surf", "unsat", "gw")))),
-  fun = xts::apply.yearly,
+  fun = NULL,
   period = "years",
   plot = TRUE
 )
@@ -16,7 +16,7 @@ wb.ele(
 \arguments{
 \item{xl}{List of data. Five variables are included:}
 
-\item{fun}{function to process the time-series data. Default = apply.daily.}
+\item{fun}{function to process the time-series data. Default = NULL}
 
 \item{period}{Period of the waterbalance}
 

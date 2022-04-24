@@ -23,6 +23,16 @@ getAquiferDepth <- function(pm = readmesh()){
   return(ret)
 }
 #============
+#' Get the Lake Element Index
+#' \code{getLakeEleID} 
+#' @param pa \code{shud.att}
+#' @return index of lake element index
+#' @export
+getLakeEleID <-function(pa = readatt() ){
+  id = which(pa$LAKE > 0)
+  return(id)
+}
+#============
 #' Calculate the area of the cells
 #' \code{getArea} 
 #' @param pm \code{shud.mesh}

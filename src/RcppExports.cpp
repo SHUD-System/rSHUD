@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // polygonArea
 double polygonArea(NumericVector X, NumericVector Y);
 RcppExport SEXP _rSHUD_polygonArea(SEXP XSEXP, SEXP YSEXP) {
@@ -14,18 +19,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type X(XSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type Y(YSEXP);
     rcpp_result_gen = Rcpp::wrap(polygonArea(X, Y));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rowMatch
-LogicalVector rowMatch(NumericVector x, NumericMatrix m);
-RcppExport SEXP _rSHUD_rowMatch(SEXP xSEXP, SEXP mSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type m(mSEXP);
-    rcpp_result_gen = Rcpp::wrap(rowMatch(x, m));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -43,7 +36,6 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rSHUD_polygonArea", (DL_FUNC) &_rSHUD_polygonArea, 2},
-    {"_rSHUD_rowMatch", (DL_FUNC) &_rSHUD_rowMatch, 2},
     {"_rSHUD_triTopology", (DL_FUNC) &_rSHUD_triTopology, 1},
     {NULL, NULL, 0}
 };

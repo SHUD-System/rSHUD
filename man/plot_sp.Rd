@@ -5,7 +5,7 @@
 \title{Plot SpatialPolygons maps
 \code{plot.sp}}
 \usage{
-plot_sp(x, zcol, col.fun = topo.colors, ncol = 20)
+plot_sp(x, zcol, col.fun = topo.colors, ncol = 20, ...)
 }
 \arguments{
 \item{x}{Spatial*}
@@ -15,6 +15,8 @@ plot_sp(x, zcol, col.fun = topo.colors, ncol = 20)
 \item{col.fun}{Functions of coloring.}
 
 \item{ncol}{Number of colors in color function.}
+
+\item{...}{more options in raster::plot()}
 }
 \description{
 Plot SpatialPolygons maps

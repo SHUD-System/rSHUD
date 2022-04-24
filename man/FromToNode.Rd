@@ -5,12 +5,14 @@
 \title{return the FROM and TO nodes index of the SpatialLines
 \code{FromToNode}}
 \usage{
-FromToNode(sp, coord = extractCoords(sp, unique = TRUE))
+FromToNode(sp, coord = extractCoords(sp, unique = TRUE), simplify = TRUE)
 }
 \arguments{
 \item{sp}{SpatialLines*}
 
 \item{coord}{Coordinate of vertex in \code{sp}}
+
+\item{simplify}{whether simplify the spatialLines}
 }
 \value{
 FROM and TO nodes index of the SpatialLines

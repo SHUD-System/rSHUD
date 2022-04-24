@@ -52,6 +52,44 @@ readout <- function(keyword,
   tsd
 }
 
+#' Read multiply SHUD model output files
+#' @param varname vector of output keywords 
+#' @param rdsfile Save RDS file. NULL=do not save rds file.
+#' @keywords read output.
+#' @return A list of TimeSeries data. 
+#' @export  
+loaddata <- function(
+  varname=c(paste0('eley',c( 'surf','unsat', 'gw', 'snow') ), 
+            paste0('elev',c('prcp','infil', 'rech') ),
+            paste0('elev',c('etp', 'eta', 'etev', 'ettr', 'etic') ),
+            paste0('rivq',c('down', 'sub', 'surf')),
+            paste0('rivy','stage')
+  ) ,  rdsfile = NULL){
+  msg='loaddata::'
+  varname = tolower(varname)
+  print(varname)
+  nv=length(varname)
+  prjname = get('PRJNAME', envir = .shud)
+  
+  vtype = substr(varname,4,4)
+  att=cbind(varname, vtype, unit='')
+  att[vtype %in% 'y', 3] = 'm'
+  att[vtype %in% 'v', 3] = 'm/d'
+  att[vtype %in% 'q', 3] = 'm3/d'
+  
+  ret=list()
+  for(i in 1:nv){
+    vn=varname[i]
+    message(msg, i, '/', nv, '\t', vn)
+    x=readout(vn);
+    ret[[i]] = x
+  }
+  names(ret) = varname;
+  if(!is.null(rdsfile)){
+    saveRDS(ret, file = rdsfile)
+  }
+  return(ret)
+}
 #' Read multiply SHUD model output files and do time-series plot
 #' @param varname vector of output keywords 
 #' @param plot Whether do the time-series plot
@@ -72,21 +110,19 @@ BasicPlot <- function(
             paste0('rivy','stage')
   ) ,
   sp.riv=NULL,
-  rdsfile = file.path(get('outpath', envir = .shud), 'BasicPlot.RDS'),
-  plot=TRUE, imap=FALSE, iRDS = TRUE,
-  return=T, w.focal=matrix(1/9, 3, 3)){
+  rdsfile = NULL,
+  plot=TRUE, imap=FALSE, 
+  w.focal=matrix(1/9, 3, 3), path=file.path(get('anapath', envir = .shud), 'BasicPlot')
+  ){
   msg='BasicPlot::'
   graphics.off()
   varname = tolower(varname)
   print(varname)
   nv=length(varname)
   prjname = get('PRJNAME', envir = .shud)
-  if(plot || imap){
-    path = file.path(get('anapath', envir = .shud), 'BasicPlot')
-    if(!dir.exists(path)){
-      dir.create(path, recursive = T, showWarnings = F)
-    }
-  }
+  xl=loaddata(varname = varname, rdsfile = rdsfile)
+  
+  dir.create(path, recursive = TRUE, showWarnings = FALSE)
   
   vtype = substr(varname,4,4)
   att=cbind(varname, vtype, unit='')
@@ -99,11 +135,8 @@ BasicPlot <- function(
     vn=varname[i]
     fn= paste0(prjname,'_', vn, '.png')
     message(msg, i, '/', nv, '\t', vn, '\t', fn)
-    x=readout(vn);
+    x=xl[[i]];
     xm = xts::as.xts(apply(x, 1, mean), order.by=time(x))
-    if(return){
-      ret[[i]] = x;
-    }
     if(plot){
       time =time(x)
       t0=min(time)
@@ -134,11 +167,5 @@ BasicPlot <- function(
       }
     }
   }
-  if(return){
-    names(ret) = varname;
-    if(iRDS){
-    saveRDS(ret, file = rdsfile)
-    }
-  }
-  ret <- ret
+  ret <- xl
 }

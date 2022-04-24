@@ -6,8 +6,8 @@
 #' @param plot Whether plot the result
 #' @return A matrix, contains the colums of water balance factors
 #' @export
-wb.all <-function(xl=BasicPlot(varname=c(paste0('elev', c('prcp', 'eta', 'etp') ), 'rivqdown', 
-                                         paste0('eley', c('surf', 'unsat', 'gw') ) ), plot = FALSE, return = TRUE), 
+wb.all <-function(xl=loaddata(varname=c(paste0('elev', c('prcp', 'eta', 'etp') ), 'rivqdown', 
+                                         paste0('eley', c('surf', 'unsat', 'gw') ) )), 
                   ic=readic(), fun = xts::apply.monthly, plot=TRUE ){
   func <-function(x, w){
     aa= sum(ia)
@@ -31,7 +31,7 @@ wb.all <-function(xl=BasicPlot(varname=c(paste0('elev', c('prcp', 'eta', 'etp') 
   x=cbind(dh, P, Q, AET, PET)
   # colnames(x)=c('P', 'PET','Q','ET_IC', 'ET_TR','ET_EV')
   # y = cbind(dh, x)
-  colnames(x)=c('DH', 'P', 'Q','AET','PET')
+  colnames(x)=c('D_pqe', 'P', 'Q','AET','PET')
   if(plot){
       hydrograph(x)
   }
@@ -58,14 +58,13 @@ ts2df <- function(x){
 #' Calculate the water balance
 #' \code{wb.riv}
 #' @param xl List of data. Five variables are included: prcp (eleqprcp),and discharge ()
-#' @param fun function to process the time-series data. Default = apply.daily.
+#' @param fun function to process the time-series data. Default = NULL
 #' @param plot Whether plot the result
 #' @return A matrix, contains the colums of water balance factors
 #' @export
 wb.riv <-function(
-  xl=BasicPlot(varname=paste0('rivq', c('sub', 'surf', 'down') ),
-               plot = FALSE, return = TRUE),
-  fun = xts::apply.yearly, plot=TRUE
+  xl=loaddata(varname=paste0('rivq', c('sub', 'surf', 'down') )),
+  fun = NULL, plot=TRUE
 ){
   fun.read <- function(xx, val){
     cn=names(xx)
@@ -90,9 +89,15 @@ wb.riv <-function(
   qsf = fun.read(xl, 'rivqsurf')[,]
   qsb = fun.read(xl, 'rivqsub')[,]
 
-  Qo = fun(qr, FUN=sum)
-  Qsf = fun(qsf, FUN=sum)
-  Qsub = fun(qsb, FUN=sum)
+  if(is.null(fun)){
+    Qo = as.xts(rowSums(qr), order.by=time(qr))
+    Qsub = as.xts(rowSums(qsb), order.by=time(qr))
+    Qsf = as.xts(rowSums(qsf), order.by=time(qr))
+  }else{
+    Qo = fun(qr, FUN=sum)
+    Qsf = fun(qsf, FUN=sum)
+    Qsub = fun(qsb, FUN=sum)
+  }
   q3=cbind(Qo, -Qsf, -Qsub)  / aa
   # plot(q3)
 
@@ -110,16 +115,16 @@ wb.riv <-function(
 #' Calculate the water balance
 #' \code{wb.ele}
 #' @param xl List of data. Five variables are included: 
-#' @param fun function to process the time-series data. Default = apply.daily.
+#' @param fun function to process the time-series data. Default = NULL
 #' @param period Period of the waterbalance
 #' @param plot Whether plot the result
 #' @return A matrix, contains the colums of water balance factors
 #' @export
 wb.ele <-function(
-  xl=BasicPlot(varname=c(paste0('elev', c('prcp', 'etic', 'ettr', 'etev') ),
+  xl=loaddata(varname=c(paste0('elev', c('prcp', 'etic', 'ettr', 'etev') ),
                          paste0('eleq', c('surf', 'sub') ),
                          paste0('eley', c('surf', 'unsat', 'gw')  ) ) ),
-  fun = xts::apply.yearly, period = 'years', plot=TRUE ){
+  fun = NULL, period = 'years', plot=TRUE ){
   # xl=BasicPlot(varname=c(paste0('elev', c('prcp', 'etic', 'ettr', 'etev')),
   #                        paste0('eleq', c('surf', 'sub') ),
   #                        paste0('eley', c('surf', 'unsat', 'gw') )  ) )
@@ -145,15 +150,27 @@ wb.ele <-function(
       return(readout(val))
     }
   }
-  P = fun(fun.read(xl, 'elevprcp'), FUN=mean)
-  IC = fun( fun.read(xl, 'elevetic'), FUN=mean)
-  ET = fun( fun.read(xl, 'elevettr'), FUN=mean)
-  EV = fun( fun.read(xl, 'elevetev'), FUN=mean)
-  QS = fun( fun.read(xl, 'eleqsurf'), FUN=mean)
-  Qg = fun( fun.read(xl, 'eleqsub'), FUN=mean)
-  dys = fun(xts::diff.xts(xl$eleysurf), FUN=colSums, na.rm=T)
-  dyg = fun(xts::diff.xts(xl$eleygw), FUN=colSums, na.rm=T)
-  dyu = fun(xts::diff.xts(xl$eleyunsat), FUN=colSums, na.rm=T)
+  if(is.null(fun)){
+    P = fun.read(xl, 'elevprcp')
+    IC =  fun.read(xl, 'elevetic')
+    ET =  fun.read(xl, 'elevettr')
+    EV =  fun.read(xl, 'elevetev')
+    QS =  fun.read(xl, 'eleqsurf')
+    Qg =  fun.read(xl, 'eleqsub')
+    dys = xts::diff.xts(xl$eleysurf)
+    dyg = xts::diff.xts(xl$eleygw)
+    dyu = xts::diff.xts(xl$eleyunsat)
+  }else{
+    P = fun(fun.read(xl, 'elevprcp'), FUN=mean)
+    IC = fun( fun.read(xl, 'elevetic'), FUN=mean)
+    ET = fun( fun.read(xl, 'elevettr'), FUN=mean)
+    EV = fun( fun.read(xl, 'elevetev'), FUN=mean)
+    QS = fun( fun.read(xl, 'eleqsurf'), FUN=mean)
+    Qg = fun( fun.read(xl, 'eleqsub'), FUN=mean)
+    dys = fun(xts::diff.xts(xl$eleysurf), FUN=colSums, na.rm=T)
+    dyg = fun(xts::diff.xts(xl$eleygw), FUN=colSums, na.rm=T)
+    dyu = fun(xts::diff.xts(xl$eleyunsat), FUN=colSums, na.rm=T)
+  }
   arr=abind::abind(P, IC, ET, EV, QS/aa, Qg/aa, dys, dyu, dyg, along=3)
   dimnames(arr)[[3]] = c('P','ET_IC', 'ET_TR','ET_EV', 'qs', 'qg','dys','dyu', 'dyg')
   arr
@@ -161,7 +178,7 @@ wb.ele <-function(
 
 #' Calculate the Change of Storage.
 #' \code{DeltaS}
-#' @param x Time-Serres Matrix
+#' @param x Time-Series Matrix
 #' @param x0 Intial condition or the values of first time-step
 #' @param t1 Time-step one, default = 1
 #' @param t2 Time-step two, default = nrow(x)
@@ -178,8 +195,8 @@ DeltaS<-function(x, x0=x[t1, ], t1=1, t2=nrow(x)){
 #' @param ic Initial Condition.
 #' @return A list. list(Ele, Riv)
 #' @export
-wb.DS<-function(xl=BasicPlot(varname = c(paste0('eley', c('surf', 'unsat', 'gw')),
-                                         paste0('rivy', 'stage')),plot = FALSE, return = TRUE),
+wb.DS<-function(xl=loaddata(varname = c(paste0('eley', c('surf', 'unsat', 'gw')),
+                                         paste0('rivy', 'stage'))),
                 ic=readic() ){
   ic=readic()
   g=readgeol()
@@ -199,3 +216,50 @@ wb.DS<-function(xl=BasicPlot(varname = c(paste0('eley', c('surf', 'unsat', 'gw')
   )
   return(r)
 }
+
+
+
+#' Calculate the Change of Storage.
+#' \code{wb.lake}
+#' @param xl List of data. 
+#' @param lakeid Index of the lake for waterbalance calculation.
+#' @return A list of water balance by each lake; a matrix in each list-item
+#' @export
+wb.lake<- function(xl = loaddata(varname =
+                                paste0('lak', 
+                                       c('ystage', 'atop', 'qrivin', 'qrivout','qsub', 'qsurf', 'vevap', 'vprcp') )), 
+                   lakeid = NULL){
+  nt=nrow(xl[[1]])
+  nc = ncol(xl[[1]])
+  ma= MeshAtt()
+  ia = getArea()
+  yl = list()
+  if(is.null(lakeid)){
+    lakeid = 1:nc
+  }
+  nx = length(lakeid)
+  for(i in 1:nx){
+    ilake = lakeid[i]
+    aa.lake = sum(ia[ma$ATT.LAKE == ilake])
+    dstage = xl$lakystage[, ilake] - as.numeric(xl$lakystage[1, ilake])
+    toparea = xl$lakatop[, ilake]
+    dv = dstage * toparea
+    dh = dv/aa.lake
+    prcp = xl$lakvprcp[, ilake]
+    evap = xl$lakvevap[, ilake]
+    qin = xl$lakqrivin[, ilake]/aa.lake
+    qout = xl$lakqrivout[, ilake]/aa.lake
+    dhh = prcp - evap - qout + qin
+    mt = cbind(dstage, toparea, dv, dh, 
+               prcp, evap, qin, qout, 
+               dhh, dh-dhh)
+    colnames(mt) = c('dstage', 'toparea', 'dv', 'dh', 
+                     'prcp', 'evap', 'qhin', 'qhout', 
+                     'qhh', 'DIFF')
+    head(mt)
+    yl[[i]] = mt[, c(4, 5, 6, 7,8)]
+  }
+  names(yl) = paste0('lake', lakeid)
+  return(yl)
+}
+

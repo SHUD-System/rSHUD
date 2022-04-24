@@ -9,12 +9,11 @@ BasicPlot(
     c("prcp", "infil", "rech")), paste0("elev", c("etp", "eta", "etev", "ettr", "etic")),
     paste0("rivq", c("down", "sub", "surf")), paste0("rivy", "stage")),
   sp.riv = NULL,
-  rdsfile = file.path(get("outpath", envir = .shud), "BasicPlot.RDS"),
+  rdsfile = NULL,
   plot = TRUE,
   imap = FALSE,
-  iRDS = TRUE,
-  return = T,
-  w.focal = matrix(1/9, 3, 3)
+  w.focal = matrix(1/9, 3, 3),
+  path = file.path(get("anapath", envir = .shud), "BasicPlot")
 )
 }
 \arguments{
@@ -28,11 +27,11 @@ BasicPlot(
 
 \item{imap}{Whether do the raster plot for Element data. Only works for element data}
 
-\item{iRDS}{Whether save RDS file.}
+\item{w.focal}{forcal matrix}
 
 \item{return}{Whether return the data. Some the results are too huge to load in memoery at once.}
 
-\item{w.focal}{forcal matrix}
+\item{iRDS}{Whether save RDS file.}
 }
 \value{
 A list of TimeSeries data.

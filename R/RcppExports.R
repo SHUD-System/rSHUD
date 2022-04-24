@@ -10,16 +10,6 @@ polygonArea <- function(X, Y) {
     .Call('_rSHUD_polygonArea', PACKAGE = 'rSHUD', X, Y)
 }
 
-#' Identify whether every row of x is same as m;
-#' @param x Row vector
-#' @param m Matrix
-#' @return TRUE/FALSE of matching
-#' @useDynLib rSHUD
-#' @export
-rowMatch <- function(x, m) {
-    .Call('_rSHUD_rowMatch', PACKAGE = 'rSHUD', x, m)
-}
-
 #' Determine the topological relation among triangles. 
 #' @param tri triangle defination, m x 3
 #' @return topological relation of triangles. m x 4; cols = c(ID, Nabor1, Nabor2, Nabor3)

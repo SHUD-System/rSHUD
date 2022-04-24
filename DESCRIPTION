@@ -8,8 +8,8 @@ Maintainer: Lele Shu <lele.shu@gmail.com>
 Description: The Simulator for Hydrologic Unstructured Domains (SHUD) is a multiprocess, multi-scale hydrologic model 
   where the major hydrological processes are fully coupled using the finite volume method. 
   This toolbox is to convert the geospatial data into SHUD format, read/write input files; read SHUD output files; hydrological analysis and spatial visualize the SHUD results. 
-URL: https://shud-system.github.io/
-License: GPL (>= 3)
+URL: https://www.shud.xyz/
+License: LGPL (>= 3)
 BugReports: https://shud-system.github.io/
 LazyData: TRUE
 Depends: R (>= 3.5.0)
@@ -26,9 +26,7 @@ Imports: Rcpp,
   raster (>= 2.1.0), 
   sp, 
   rgeos, 
-  rgdal,
   RTriangle,
-  deldir,
   proj4,
   gstat,
   abind,
@@ -36,14 +34,14 @@ Imports: Rcpp,
   lubridate,
   interp,
   geometry,
-  methods,
-  ncdf4,
-  GGally,
-  doParallel
+  doParallel,
+  methods
 LinkingTo: Rcpp, sp
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Remotes: shulele/RTriangle/pkg
 Suggests: testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
+  deldir,
+  ncdf4
 VignetteBuilder: knitr

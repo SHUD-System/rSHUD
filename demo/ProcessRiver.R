@@ -45,7 +45,7 @@ id2Line <- function(id, key){
     return(c(key, cn[pto]) )
   }
 }
-library(PIHMgisR);
+library(rSHUD);
 # rm(list=ls())
 library(raster); library(sp); library(rgeos)
 riv = readRDS(file = 'Experiments/River.rda')

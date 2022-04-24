@@ -6,8 +6,8 @@
 \code{wb.DS}}
 \usage{
 wb.DS(
-  xl = BasicPlot(varname = c(paste0("eley", c("surf", "unsat", "gw")), paste0("rivy",
-    "stage")), plot = FALSE, return = TRUE),
+  xl = loaddata(varname = c(paste0("eley", c("surf", "unsat", "gw")), paste0("rivy",
+    "stage"))),
   ic = readic()
 )
 }

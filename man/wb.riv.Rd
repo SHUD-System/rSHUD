@@ -6,16 +6,15 @@
 \code{wb.riv}}
 \usage{
 wb.riv(
-  xl = BasicPlot(varname = paste0("rivq", c("sub", "surf", "down")), plot = FALSE,
-    return = TRUE),
-  fun = xts::apply.yearly,
+  xl = loaddata(varname = paste0("rivq", c("sub", "surf", "down"))),
+  fun = NULL,
   plot = TRUE
 )
 }
 \arguments{
 \item{xl}{List of data. Five variables are included: prcp (eleqprcp),and discharge ()}
 
-\item{fun}{function to process the time-series data. Default = apply.daily.}
+\item{fun}{function to process the time-series data. Default = NULL}
 
 \item{plot}{Whether plot the result}
 }

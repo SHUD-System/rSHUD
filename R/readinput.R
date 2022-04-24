@@ -181,16 +181,15 @@ readforc.fn <-function( file = shud.filein()['md.forc']){
 }
 #============ 
 #' Read the .csv files in .forc file
-#' \code{readlc} 
+#' \code{readforc.csv} 
 #' @param file full path of file
 #' @param id  Index of the forcing sites.  default = NULL, which return average values of all sites.
 #' @return forcing data, list.
 #' @export
-
-readforc.csv <-function(file = shud.filein()['md.forc'], id=NULL, prefix=NULL){
+readforc.csv <-function(file = shud.filein()['md.forc'], id=NULL){
   msg='readforc.csv::'
   xf = readforc.fn(file=file)
-  fns = file.path(prefix, xf$Sites[, ncol(xf$Sites)])
+  fns = xf$Sites[, ncol(xf$Sites)]
   tstr = xf$StartTime
   t0 = as.POSIXct(tstr, format = '%Y%m%d')
   if( is.null(id)){

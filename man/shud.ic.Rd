@@ -5,7 +5,15 @@
 \title{extract Coordinates of SpatialLines or  SpatialPolygons
 \code{shud.ic}}
 \usage{
-shud.ic(ncell, nriv, AqD = 10, stage = 0.1, p1 = 0.4, p2 = p1)
+shud.ic(
+  ncell,
+  nriv,
+  AqD = 10,
+  stage = 0.1,
+  p1 = 0.4,
+  p2 = p1,
+  lakestage = NULL
+)
 }
 \arguments{
 \item{ncell}{Number of triangles in SHUD.MESH domain}
@@ -19,6 +27,8 @@ shud.ic(ncell, nriv, AqD = 10, stage = 0.1, p1 = 0.4, p2 = p1)
 \item{p1}{Fraction of unsat zone, [0,1]}
 
 \item{p2}{Fraction of Groundwater, [0,1]}
+
+\item{lakestage}{Lake Stages. Null=No lake.}
 }
 \value{
 List of initial condition

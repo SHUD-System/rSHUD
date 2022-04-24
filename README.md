@@ -1,6 +1,6 @@
 # rSHUD --- A toolbox for SHUD modeling system
 
-- Lele Shu (lele.shu@gmail.com)
+- Lele Shu (shulele@lzb.ac.cn)
 - www.shud.xyz
 
 ## SHUD
@@ -19,15 +19,30 @@ This package can be used with the AutoSHUD project, that can build modeling doma
 
 
 ## Installation
-```
-install.packages("devtools")
-devtools::install_github("SHUD-System/rSHUD")
-```
 
-## Note:
-Current rSHUD requires different version of RTriangle package. you must install that via github(Dec 2019):
+We suggest user install the dependant packages before install rSHUD.
 ```
+libs = c('reshape2','xts','hydroGOF','zoo','RTriangle','proj4','gstat','abind','lubridate','interp','geometry',
+         'testthat', 'rmarkdown', 'ncdf4', 'blogdown', 'doParallel', 'knitr', 'rmarkdown', 'deldir',
+         'ncdf4', 'devtools')
+nx = length(libs)
+for(i in 1:nx){
+  message(i, '/', nx, '\t',  libs[i])
+  if(require(libs[i], character.only = TRUE)){
+  }else{
+    install.packages(libs[i])
+  }
+}
+
+if(!require(devtools)){
 install.packages("devtools")
+}
 devtools::install_github("shulele/RTriangle", subdir="pkg")
+
+```
+Then you may install the rSHUD directly from github.
+```
+if(!require(devtools)){ install.packages("devtools") }
+devtools::install_github("SHUD-System/rSHUD")
 ```
 

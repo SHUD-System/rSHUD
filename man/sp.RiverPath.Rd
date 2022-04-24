@@ -8,7 +8,8 @@
 sp.RiverPath(
   sp,
   coord = extractCoords(sp, unique = TRUE),
-  idown = sp.RiverDown(sp, coord = coord)
+  idown = sp.RiverDown(sp, coord = coord),
+  tol.simplify = 0
 )
 }
 \arguments{
@@ -17,6 +18,8 @@ sp.RiverPath(
 \item{coord}{coordinates of \code{sp}.}
 
 \item{idown}{downstream index of \code{sp}.}
+
+\item{tol.simplify}{tolerance for simplification of river lines.}
 }
 \value{
 List of River Path(SegIDs, PointIDs, sp)

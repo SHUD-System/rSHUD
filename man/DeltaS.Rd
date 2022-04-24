@@ -8,7 +8,7 @@
 DeltaS(x, x0 = x[t1, ], t1 = 1, t2 = nrow(x))
 }
 \arguments{
-\item{x}{Time-Serres Matrix}
+\item{x}{Time-Series Matrix}
 
 \item{x0}{Intial condition or the values of first time-step}
 

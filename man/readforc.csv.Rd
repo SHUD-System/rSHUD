@@ -3,9 +3,9 @@
 \name{readforc.csv}
 \alias{readforc.csv}
 \title{Read the .csv files in .forc file
-\code{readlc}}
+\code{readforc.csv}}
 \usage{
-readforc.csv(file = shud.filein()["md.forc"], id = NULL, prefix = NULL)
+readforc.csv(file = shud.filein()["md.forc"], id = NULL)
 }
 \arguments{
 \item{file}{full path of file}
@@ -17,5 +17,5 @@ forcing data, list.
 }
 \description{
 Read the .csv files in .forc file
-\code{readlc}
+\code{readforc.csv}
 }
