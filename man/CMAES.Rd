@@ -10,7 +10,7 @@ CMAES(
   cmd,
   objfunc,
   Call_Model,
-  lambda = CV$method$LAMBDA,
+  NumPop = CV$method$NUMPOP,
   maxstep = CV$method$MAXGEN,
   sigma = CV$method$SIGMA,
   stopfitness = CV$method$STOPFITNESS,
@@ -27,7 +27,7 @@ CMAES(
 
 \item{Call_Model}{Function that calls model simulation.}
 
-\item{lambda}{Number of children in each generation}
+\item{NumPop}{Number of children in each generation}
 
 \item{maxstep}{Maximum generations}
 

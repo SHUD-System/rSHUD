@@ -20,7 +20,7 @@ shud.river <- function(sl, dem, AREA=NULL){
   message(msg, '\nIdentify the downstream ...')
   rivdown = sp.RiverDown(sp.slt)
   message(msg, '\nFrom/To nodes ...') 
-  ft = FromToNode(sp.slt, simplify=TRUE)[, 2:3]
+  ft = rbind(FromToNode(sp.slt, simplify=TRUE)[, 2:3])
   message(msg, '\nSlope and length of river ...')
   zf = raster::extract(dem, xy[ft[,1], ])
   zt = raster::extract(dem, xy[ft[,2], ])

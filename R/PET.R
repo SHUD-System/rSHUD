@@ -78,6 +78,15 @@ VaporPressure_Act  <- function(esat,  rh){
 #' @param VON_KARMAN von Karman's constant. Default = 0.41 [-]
 #' @return Aerodynamic resistance [s m-1]
 #' @export 
+#' #Page 4.13, Aerodynamic Resistance. in David R Maidment, Handbook of Hydrology
+#' # Grass(Hc=0.1m, ra = 45 s/m), 
+#' # Agriculture crop(Hc=1m, ra = 18 s/m) and
+#' # tree (Hc=10m, ra = 6.5 s/m)
+#' hc=cbind(0.1, 1, 10)
+#' uz=5
+#' zu=2
+#' ze = 2
+#' AerodynamicResistance(uz, hc, zu, ze)
 AerodynamicResistance <- function( Uz,  hc,  Z_u,  Z_e, 
                                    VON_KARMAN = 0.4){
   # Allen, R. G., S, P. L., Raes, D., & Martin, S. (1998).
@@ -95,7 +104,6 @@ AerodynamicResistance <- function( Uz,  hc,  Z_u,  Z_e,
   # uz wind speed at height z [m s-1].
   #  Or:
   #     Eq 4.2.25 in David R Maidment, Handbook of Hydrology
-  # 
   # #     r_a = 12 * 4.72 * log(Ele[i].WindHeight / rl) / (0.54 * Vel / UNIT_C / 60 + 1) / UNIT_C / 60;    return r_a;
   d = 0.67 * hc
   Z_om = 0.123 * hc;
@@ -103,7 +111,18 @@ AerodynamicResistance <- function( Uz,  hc,  Z_u,  Z_e,
   r_a = log( abs(Z_u - d) / Z_om ) * log( abs(Z_e - d) / (Z_ov)) / (VON_KARMAN * VON_KARMAN* Uz);
   return(r_a)
 }
-
+# hc=cbind(0, 0.1, 1, 10)
+# uz=5
+# zu=2
+# ze = 2
+# lai = seq(0.01, 10, 0.1)
+# hc = LAI2hc(lai)
+# ra =AerodynamicResistance(uz, hc, zu, ze)
+# rs =BulkSurfaceResistance(lai)
+# par(mfrow=c(2, 1))
+# plot(lai,hc)
+# matplot(type='l', hc, cbind(ra,rs), log='y')
+# stop()
 
 #' Air Density, Eq 4.2.4 in David R Maidment, Handbook of Hydrology
 #' \code{shud.ic} 
@@ -143,16 +162,23 @@ CanopyResistance <- function( rmin,  lai){
 }
 
 
-#' Calculate windspeed at 2 meters.
-#' \code{WindSpeed2m} 
-#' @param wind Windspeed [m s-1]
-#' @param z Elevation that the windspeed was measured [m]
-#' @return windspeed at 2 meters
+#' Calculate vegetation height from Leaf Area Index (LAI), Eq 4.2.23 in David R Maidment, Handbook of Hydrology
+#' \code{LAI2hc} 
+#' @param lai Leaf Area Index (LAI) [m2 m-2]
+#' @return Height of crop [m]
 #' @export
-WindSpeed2m <- function(wind, z){
-  wind * 4.87/log(67.8*z - 5.42)
+#' @examples 
+#' lai = seq(0, 10, length.out=100)
+#' hc = LAI2hc(lai)
+#' # lai=5.5+log(hc)*1.5
+#' plot(lai, hc)
+LAI2hc <- function(lai){
+  hc = exp( (lai - 5.5)/1.5)
+  # idx = which(lai < 1)
+  # hc[idx] = lai[idx]
+  hc
 }
-#' extract Coordinates of SpatialLines or  SpatialPolygons
+#' Potential Evapotranspiration with Pennmann-Monteith equation.
 #' \code{PET_PM} 
 #' @param Wind Windspeed [m s-1]
 #' @param Temp Air temperature, [C]
@@ -163,11 +189,15 @@ WindSpeed2m <- function(wind, z){
 #' @param Veg_height Height of vegetation [m]
 #' @param albedo Albedo [-]
 #' @param Res_surf Aerodynamic surface resistance [s m-1]
-#' @return 
+#' @param Elevation Elevation [m]
+#' @return PET at [mm m-2 s-1] or [kg m-2 s-1]
 #' @export
 PET_PM <- function(Wind, Temp, RH, RadNet, Press, 
                    WindHeight=10, 
-                   Veg_height=0.12, albedo= 0.23, Res_surf=70){
+                   Veg_height=0.12, 
+                   albedo= 0.23, 
+                   Res_surf=70, 
+                   Elevation = NULL){
   # FA056:
   # Veg_height = 0.12 By defining the reference crop as a hypothetical crop 
   # with an assumed height of 0.12 m having a surface resistance of 70 s m-1 and
@@ -190,45 +220,58 @@ PET_PM <- function(Wind, Temp, RH, RadNet, Press,
     U2 = WindSpeed2m(Wind, WindHeight)
     # r_a = 208/U2
     Cp = 1.013e-3    # cp specific heat at constant pressure, 1.013E-3 [MJ kg-1 °C-1] Allen(1998) eq(8) 
+    gm = Gamma * (1+0.33 * U2)
+    Rad_MJ =  Rad*1e-6 * (1-albedo)
+    method1 <- function(){
+      ETp = (Delta * Rad  / lambda + rho * Cp * ed / r_a / lambda) /
+        (Delta + Gamma * (1 + r_s / r_a)); # eq 4.2.27 [ ]
+      x = ETp / lambda; # [ kg/s = 0.001 m3/m2/s=0.001 m/s ]
+      message('\n x1: ')
+      message('Delta * Rad  / lambda\t', Delta * Rad  / lambda)
+      message('rho * Cp * ed / r_a  / lambda\t' , rho * Cp * ed / r_a/ lambda)
+      message('Delta + Gamma * (1 + r_s / r_a)  \t' ,Delta + Gamma * (1 + r_s / r_a) )
+      
+      x
+    }
+    method2 <- function(){
+      tsec = 24*3600
+      Rad = RadNet * 24*3600 * 1e-6  # [W m-2] to [MJ m-2 day-1]  24hour daylight
+      ETp1 = Delta*(Rad)  / lambda / (Delta + Gamma)
+      ETp2 = Gamma * (6.43 * (1+0.536 * U2) * ed) /(Delta + Gamma)
+      x = (ETp1 + ETp2)
+      # x2 = x2* tsec #4.2.30
+      message('\n x2: ')
+      message('Etp1\t',ETp1, '\tETP2', ETp2)
+      message(' Delta*(Rad)  / lambda  \t' ,  Delta*(Rad)  / lambda )
+      message('(Delta + Gamma) \t' , (Delta + Gamma))
+      x
+    }
+
+    method3 <- function(){
+      x = (Delta*Rad / lambda + Gamma * (900 / (Temp + 275)) * ed * U2 ) / (Delta + gm)  # 4.2.31
+      # x3=x3 * tsec
+      message('\n x3: ')
+      message(' x3 (Delta*Rad / lambda + Gamma * (900 / (Temp + 275)) * ed * U2 ) \t' ,
+              (Delta*Rad / lambda + Gamma * (900 / (Temp + 275)) * ed * U2 )  )
+      message(' (Delta + gm)\t' , (Delta + gm))
+      x
+    }
+
+    method4 <-function(){
+      x = (0.408*Delta*Rad + Gamma*900/(T+273)*U2 * ed ) / (Delta + gm)  # FAO (6)
+      # x4 = x4 * tsec
+      message('\n x4: ')
+      message('(0.408*Delta*Rad /lambda + Gamma*900/(T+273)*U2 * ed )  \t' ,
+              (0.408*Delta*Rad /lambda + Gamma*900/(T+273)*U2 * ed ) )
+      message(' (Delta + gm)\t' , (Delta + gm))
+      x
+    }
+    x1=method1()
+    x2=method2()
+    x3=method3()
+    x4=method4()
+    print(c(x1, x2, x3, x4))
     
-    RadNet = RadNet * (1-albedo)
-    Rad = RadNet *1e-6
-    ETp = (Delta * Rad  / lambda + rho * Cp * ed / r_a / lambda) /
-      (Delta + Gamma * (1 + r_s / r_a)); # eq 4.2.27 [ ]
-    # x1 = ETp *86400
-    # # ETp = ETp / lambda; # [ kg/s = 0.001 m3/m2/s=0.001 m/s ]
-    # message('\n x1: ')
-    # message('Delta * Rad  / lambda\t', Delta * Rad  / lambda)
-    # message('rho * Cp * ed / r_a  / lambda\t' , rho * Cp * ed / r_a/ lambda)
-    # message('Delta + Gamma * (1 + r_s / r_a)  \t' ,Delta + Gamma * (1 + r_s / r_a) )
-    # gm = Gamma * (1+0.33 * U2)
-    # tsec = 24*3600
-    # Rad = RadNet * 24*3600 * 1e-6  # [W m-2] to [MJ m-2 day-1]  24hour daylight
-    # ETp1 = Delta*(Rad)  / lambda / (Delta + Gamma) 
-    # ETp2 = Gamma * (6.43 * (1+0.536 * U2) * ed) /(Delta + Gamma) 
-    # x2 = (ETp1 + ETp2)
-    # # x2 = x2* tsec #4.2.30
-    # message('\n x2: ')
-    # message('Etp1\t',ETp1, '\tETP2', ETp2)
-    # message(' Delta*(Rad)  / lambda  \t' ,  Delta*(Rad)  / lambda )
-    # message('(Delta + Gamma) \t' , (Delta + Gamma))
-    # 
-    # x3 = (Delta*Rad / lambda + Gamma * (900 / (Temp + 275)) * ed * U2 ) / (Delta + gm)  # 4.2.31
-    # # x3=x3 * tsec
-    # message('\n x3: ')
-    # message(' x3 (Delta*Rad / lambda + Gamma * (900 / (Temp + 275)) * ed * U2 ) \t' ,
-    #         (Delta*Rad / lambda + Gamma * (900 / (Temp + 275)) * ed * U2 )  )
-    # message(' (Delta + gm)\t' , (Delta + gm))
-    # 
-    # 
-    # x4 = (0.408*Delta*Rad + Gamma*900/(T+273)*U2 * ed ) / (Delta + gm)  # FAO (6)
-    # # x4 = x4 * tsec
-    # message('\n x4: ')
-    # message('(0.408*Delta*Rad /lambda + Gamma*900/(T+273)*U2 * ed )  \t' ,
-    #         (0.408*Delta*Rad /lambda + Gamma*900/(T+273)*U2 * ed ) )
-    # message(' (Delta + gm)\t' , (Delta + gm))
-    # print(c(x1, x2, x3, x4))
-    # ETp = ETp * 0.001;  # [kg s-1] to [m s-1] */
     return (ETp)
   }
   CONST_RC = 0.01
@@ -249,9 +292,47 @@ PET_PM <- function(Wind, Temp, RH, RadNet, Press,
   ra = AerodynamicResistance(Wind, Veg_height, WindHeight, 2.);     #  eq 4.2.25  [s m-1]
   RG = RadNet * 0.9;  # R - G in the PM equation.*/
   etp = eqn(Press, RG, rho, ed, Delta, ra, rs, Gamma, lambda);  # [m/s]
-  xx=cbind(Press, RG, rho, ed, Delta, ra, rs, Gamma, lambda, etp); 
-  colnames(xx) = c('Press', 'RG', 'rho', 'ed', 'Delta', 'ra', 'rs', 'Gamma', 'lambda', 'ETP_mm-day'); 
+  # xx=cbind(Press, RG, rho, ed, Delta, ra, rs, Gamma, lambda, etp);
+  # colnames(xx) = c('Press', 'RG', 'rho', 'ed', 'Delta', 'ra', 'rs', 'Gamma', 'lambda', 'ETP_mm-day');
   # View(xx)
   # print(xx[1, ])
   return(etp)
 }
+
+#' Calculate windspeed at Zx heights.
+#' \code{WindProfile} 
+#' @param zx Desired height [m]
+#' @param Um Windspeed at measured height [m s-1]
+#' @param zm Measured height [m s-1]
+#' @param d Zero plane [m]
+#' @param roughness roughness [m]
+#' @return windspeed at any desired heights.
+#' @export
+WindProfile <- function( zx, Um,zm = 10,  
+                         d = 0.12,  roughness=0.012){
+  # /* Equation 2.3 in [@abtew2012evaporation] */
+  if(any((zx - d) < 0) ){
+    message('Warning: ZERO plane (', d, ' m) is below desired height')
+    print(zx)
+  }
+  if(any((zx - roughness) < 0 )){
+    message('Warning: roughness (', roughness, ' m) is below desired height')
+    print(roughness)
+  }
+  if(any((d - roughness) < 0 )){
+    message('Warning: ZERO plane (', d, ' m) is below roughness (', roughness, ' m)')
+    print(roughness)
+  }
+    return (Um * log( (zx - d) / roughness ) / log ((zm - d) /  roughness))
+}
+# zm = seq(0.2, 20, 0.01)
+# U2 = WindProfile(2, Um = 2, zm = zm, d=0.12, roughness = 0.06)
+# plot(U2, zm)
+# head(cbind(U2, zm))
+# # PET_PM(Wind=1, Temp = 25, RH = 0.5, RadNet = 400, Press = pp, WindHeight = 10)*86400
+# 
+# WindProfile(2, Um = 1.8, zm = 10, d=0, roughness = 0.06)
+
+x=seq(0, 11, 0.01)
+hc = LAI2hc(x)
+plot(x, hc)

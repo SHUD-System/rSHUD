@@ -198,14 +198,19 @@ PTF.geol <- function(x=t(matrix(c(33, 33, 2, 1.4), ncol=5, nrow=4) ),
 #' Generate the default melt factor
 #' \code{MeltFactor} 
 #' @param years Years.
-#' @return Default default melt factor.
+#' @param mf Default monthly melting factors.
+#' @return Multiple years monthly melting factor.
 #' @export
 #' @examples 
 #' years = 2000:2001
 #' x = MeltFactor(years=years)
 #' plot(x)
-MeltFactor <- function(years){
-  mf=c(0.001308019, 0.001633298,  0.002131198, 0.002632776, 0.003031171,  0.003197325, 0.003095839, 0.00274524,     0.002260213, 0.001759481, 0.001373646,  0.001202083);
+MeltFactor <- function(years,   mf=c(0.001308019, 0.001633298,  0.002131198, 
+                                     0.002632776, 0.003031171, 0.003197325, 
+                                     0.003095839, 0.00274524, 0.002260213,
+                                     0.001759481, 0.001373646,  0.001202083)
+                       ){
+
   years=sort(c(years,max(years)+1))
   yrlim=range(years);
   ny = length(years)

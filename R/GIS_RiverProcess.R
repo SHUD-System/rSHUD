@@ -8,7 +8,7 @@ sp.RiverDown <- function(sp, coord = extractCoords(sp)){
   msg = 'sp.RiverDown::'
   ext = raster::extent(sp)
   sp = rgeos::gSimplify(sp, tol = (ext[2] - ext[1] )*0.01)
-  ft = FromToNode(sp, coord = coord)[, 2:3]
+  ft = rbind(FromToNode(sp, coord = coord)[, 2:3])
   nsp = length(sp)
   idown = rep(-3, nsp)
   for(i in 1:nsp){
@@ -167,7 +167,7 @@ sp.RiverOrder <- function(sp, coord = extractCoords(sp)){
   # ext=raster::extent(sp)
   # sp.tmp =  rgeos::gSimplify(sp, tol=max(diff(ext[1:2] ), diff(ext[3:4])) )
   ft0 = FromToNode(sp, coord)
-  ft = unique(ft0[, 2:3])
+  ft = rbind(unique(ft0[, 2:3]))
   if(length(sp) != nrow(ft)){
     message(msg, 'ERROR: duplicated river reches extis.')
     stop('STOP WITH ERROR')
@@ -216,7 +216,8 @@ FromToNode <- function(sp, coord = extractCoords(sp, unique = TRUE), simplify=TR
   )
   frto = cbind(1:length(sp), frto)
   colnames(frto)=c('ID', 'FrNode', 'ToNode')
-  frto
+  ret = rbind(frto)
+  return(ret)
 }
 
 #' parameters for river types

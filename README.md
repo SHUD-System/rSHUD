@@ -30,12 +30,12 @@ for(i in 1:nx){
   message(i, '/', nx, '\t',  libs[i])
   if(require(libs[i], character.only = TRUE)){
   }else{
-    install.packages(libs[i])
+    install.packages(libs[i], dependencies = TRUE, INSTALL_opts = '--no-lock')
   }
 }
 
 if(!require(devtools)){
-install.packages("devtools")
+install.packages("devtools", dependencies = TRUE, INSTALL_opts = '--no-lock')
 }
 devtools::install_github("shulele/RTriangle", subdir="pkg")
 

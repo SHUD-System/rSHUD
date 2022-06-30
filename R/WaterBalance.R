@@ -241,25 +241,33 @@ wb.lake<- function(xl = loaddata(varname =
   for(i in 1:nx){
     ilake = lakeid[i]
     aa.lake = sum(ia[ma$ATT.LAKE == ilake])
-    dstage = xl$lakystage[, ilake] - as.numeric(xl$lakystage[1, ilake])
+    dstage = cbind(xl$lakystage[, ilake], c(0, diff(as.numeric(xl$lakystage[, ilake]) ) ) )[, 2]
+    # - as.numeric(xl$lakystage[1, ilake])
     toparea = xl$lakatop[, ilake]
     dv = dstage * toparea
     dh = dv/aa.lake
     prcp = xl$lakvprcp[, ilake]
     evap = xl$lakvevap[, ilake]
-    qin = xl$lakqrivin[, ilake]/aa.lake
-    qout = xl$lakqrivout[, ilake]/aa.lake
-    dhh = prcp - evap - qout + qin
+    qr_in = xl$lakqrivin[, ilake]/aa.lake
+    qr_out = xl$lakqrivout[, ilake]/aa.lake
+    qsurf = xl$lakqsurf[,ilake]/aa.lake
+    qsub = xl$lakqsub[,ilake]/aa.lake
+    dhh = prcp - evap - qr_out + qr_in
     mt = cbind(dstage, toparea, dv, dh, 
-               prcp, evap, qin, qout, 
+               prcp, evap, qr_in, qr_out, 
+               qsurf, qsub,
                dhh, dh-dhh)
-    colnames(mt) = c('dstage', 'toparea', 'dv', 'dh', 
-                     'prcp', 'evap', 'qhin', 'qhout', 
-                     'qhh', 'DIFF')
+    colnames(mt) = c('dstage', 'toparea', 'dV', 'dh.V_A', 
+                     'prcp', 'evap', 
+                     'qhin', 'qhout', 
+                     'qsurf', 'qsub',
+                     'dh.per', 'DIFF')
     head(mt)
-    yl[[i]] = mt[, c(4, 5, 6, 7,8)]
+    # yl[[i]] = mt[, c(4, 5, 6, 7,8)]
+    yl[[i]] = mt
   }
   names(yl) = paste0('lake', lakeid)
   return(yl)
 }
+
 

@@ -74,7 +74,6 @@ pre.files <- function(iGen, pop, CV){
   for(i in 1:ncol(pop)){
     calibmat=rbind(calibmat, Pop2Calib(pop[,i], calib, calibrange))
   }
-  # calibmat = apply(pop, 2, function(x) Pop2Calib(x, calib, calibrange))
   message(msg, 'Calibration Matrix:')
   print(calibmat)
   fn.mat = file.path(dir.gen, paste0('Generation_', iGen, '.csv') )
@@ -124,6 +123,10 @@ EXEC <- function(CV, CMD.EXE, calibfile, outpath, fn.log){
   msg = paste0('EXEC::')
   calibfile=as.character(calibfile)
   outpath=as.character(outpath)
+  if(is.na(calibfile) | is.na(outpath)){
+    message('ERROR: NA of [calibration] file or [outpath]')
+    stop('rSHUD::EXEC()')
+  }
   dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
   fn.log=as.character(fn.log)
   CMD.EXE=as.character(CMD.EXE)

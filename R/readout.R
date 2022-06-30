@@ -20,10 +20,10 @@ readout <- function(keyword,
   # nc=readBin(fid, what=integer(), n=1, size = 4)
   # st=readBin(fid, what=integer(), n=1, size = 8) #Long integer
   tmp=readBin(fid, what=numeric(), n=1e9, size=8)
+  close(fid)
   dat=tmp[-1 * (1:2)]
   nc=tmp[1]
   st=tmp[2]
-  close(fid)
   
   nrr = length(dat)/(nc+1)
   nr = round(nrr)
@@ -92,6 +92,7 @@ loaddata <- function(
 }
 #' Read multiply SHUD model output files and do time-series plot
 #' @param varname vector of output keywords 
+#' @param xl list of data returned from loaddata()
 #' @param plot Whether do the time-series plot
 #' @param imap Whether do the raster plot for Element data. Only works for element data
 #' @param return Whether return the data. Some the results are too huge to load in memoery at once.
@@ -109,6 +110,7 @@ BasicPlot <- function(
             paste0('rivq',c('down', 'sub', 'surf')),
             paste0('rivy','stage')
   ) ,
+  xl = NULL,
   sp.riv=NULL,
   rdsfile = NULL,
   plot=TRUE, imap=FALSE, 
@@ -116,11 +118,18 @@ BasicPlot <- function(
   ){
   msg='BasicPlot::'
   graphics.off()
-  varname = tolower(varname)
-  print(varname)
-  nv=length(varname)
   prjname = get('PRJNAME', envir = .shud)
-  xl=loaddata(varname = varname, rdsfile = rdsfile)
+  if(is.null(xl)){
+    varname = tolower(varname)
+    print(varname)
+    nv=length(varname)
+    xl=loaddata(varname = varname, rdsfile = rdsfile)
+  }else{
+    varname = names(xl)
+    print(varname)
+    nv=length(varname)
+    xl=xl
+  }
   
   dir.create(path, recursive = TRUE, showWarnings = FALSE)
   

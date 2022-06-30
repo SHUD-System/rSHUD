@@ -2,7 +2,7 @@
 % Please edit documentation in R/PET.R
 \name{PET_PM}
 \alias{PET_PM}
-\title{extract Coordinates of SpatialLines or  SpatialPolygons
+\title{Potential Evapotranspiration with Pennmann-Monteith equation.
 \code{PET_PM}}
 \usage{
 PET_PM(
@@ -14,7 +14,8 @@ PET_PM(
   WindHeight = 10,
   Veg_height = 0.12,
   albedo = 0.23,
-  Res_surf = 70
+  Res_surf = 70,
+  Elevation = NULL
 )
 }
 \arguments{
@@ -35,11 +36,13 @@ PET_PM(
 \item{albedo}{Albedo [-]}
 
 \item{Res_surf}{Aerodynamic surface resistance [s m-1]}
+
+\item{Elevation}{Elevation [m]}
 }
 \value{
-
+PET at [mm m-2 s-1] or [kg m-2 s-1]
 }
 \description{
-extract Coordinates of SpatialLines or  SpatialPolygons
+Potential Evapotranspiration with Pennmann-Monteith equation.
 \code{PET_PM}
 }

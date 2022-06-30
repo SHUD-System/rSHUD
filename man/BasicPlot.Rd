@@ -8,6 +8,7 @@ BasicPlot(
   varname = c(paste0("eley", c("surf", "unsat", "gw", "snow")), paste0("elev",
     c("prcp", "infil", "rech")), paste0("elev", c("etp", "eta", "etev", "ettr", "etic")),
     paste0("rivq", c("down", "sub", "surf")), paste0("rivy", "stage")),
+  xl = NULL,
   sp.riv = NULL,
   rdsfile = NULL,
   plot = TRUE,
@@ -18,6 +19,8 @@ BasicPlot(
 }
 \arguments{
 \item{varname}{vector of output keywords}
+
+\item{xl}{list of data returned from loaddata()}
 
 \item{sp.riv}{River SpatialLine*}
 

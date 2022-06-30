@@ -138,13 +138,20 @@ xyz2Raster <- function(x, y=NULL, arr=NULL,
     # multiple layers
     rl = list()
     for(i in 1:dims[3]){
-      rl[[i]] = xyz2Raster(x = x, y = y, arr=nc$arr[, , i])
+      rl[[i]] = xyz2Raster(x = x, y = y, 
+                           arr=matrix(nc$arr[, , i], nrow=dim(nc$arr)[1], ncol=dim(nc$arr)[2]) )
     }
     rs = raster::stack(rl)
   }else{
     # single layer
-    val = arr[ , ]
-    dx = abs(mean(diff(x))); dy = abs(mean(diff(y)))
+    # val = matrix(arr, nrow=nrow(arr), ncol=ncol(arr))
+    val = arr
+    dx = abs(mean(diff(x))); 
+    if(length(y) ==1) {
+      dy=dx
+    }else{
+      dy = abs(mean(diff(y)))
+    }
     nx = length(x);   ny = length(y)
     r = raster::raster(ncols=nx, nrows=ny)
     raster::extent(r) = c(min(x), max(x), min(y), max(y)) + c(-dx, dx, -dy, dy)/2

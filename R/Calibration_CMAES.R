@@ -7,7 +7,7 @@
 #' @export
 write.cmaes <- function(x=NULL, file, backup = TRUE){
   if(is.null(x)){
-    cn = c('lambda',
+    cn = c('NumPop',
            'ncores',
            'maxgen',
            'stopfitness',
@@ -34,7 +34,7 @@ write.cmaes <- function(x=NULL, file, backup = TRUE){
 #' @param cmd Command to run the model.
 #' @param objfunc  User-defined objective function which return the objective values.
 #' @param Call_Model Function that calls model simulation.
-#' @param lambda Number of children in each generation
+#' @param NumPop Number of children in each generation
 #' @param maxstep Maximum generations
 #' @param sigma Sigma Value to sample (0, 1)
 #' @param stopfitness The optimal value. When the objective value is smaller than stopfitness, calibration success.
@@ -43,7 +43,7 @@ write.cmaes <- function(x=NULL, file, backup = TRUE){
 #' @importFrom doParallel registerDoParallel
 #' @export
 CMAES<- function (CV, cmd, objfunc,  Call_Model, 
-                  lambda = CV$method$LAMBDA,
+                  NumPop = CV$method$NUMPOP,
                   maxstep = CV$method$MAXGEN,
                   # ncores = max(CV$method$NCORES, 1),
                   sigma = CV$method$SIGMA,
@@ -72,7 +72,7 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
   message('CMAES::Calibration on parameters: ')
   print(CV$range[,para.id])
   
-  if(is.null(lambda) ){ lambda = 4 + floor(3 * log(N))}
+  if(is.null(NumPop) ){ NumPop = 4 + floor(3 * log(N))}
   if (sigma < 0.1 || sigma > 0.9){
     sigma <- max(min(sigma, 0.9), 0.1) }
   sigma = rep(sigma, N)
@@ -83,7 +83,7 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
   
   xmean <- rep(0, N)
   
-  mu <- lambda/2
+  mu <- NumPop/2
   weights <- log(mu + 0.5) - log(1:mu)
   mu <- floor(mu)
   weights <- weights/sum(weights)
@@ -107,12 +107,12 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
     return(M)
   }
   iGen <- 1
-  arr = array(0, dim=c(N, lambda, maxstep))
+  arr = array(0, dim=c(N, NumPop, maxstep))
   BestOBJ = numeric(maxstep)
-  arx <- matrix(0, nrow = N, ncol = lambda)
-  colnames(arx) = paste0('sample', 1:lambda)
+  arx <- matrix(0, nrow = N, ncol = NumPop)
+  colnames(arx) = paste0('sample', 1:NumPop)
   rownames(arx) = rownames(para.name[para.id])
-  arfitness <- numeric(lambda)
+  arfitness <- numeric(NumPop)
   
   write.config(CV$range, file=file.path(dir.out, paste0(CV$prjname,'.range.txt')), backup = FALSE)
   for(iGen in 1:maxstep) {
@@ -121,7 +121,7 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
     message('CMAES::', iGen, '/', maxstep)
     message('\t========================')
     arx = arx * 0;
-    for (k in 1:lambda) {
+    for (k in 1:NumPop) {
       arxk <- xmean + sigma * B %*% (D * rnorm(N, sd=sigma))
       arxk <- ifelse(arxk > lower, ifelse(arxk < upper, arxk, upper),lower)
       arx[, k] <- arxk
@@ -173,12 +173,12 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
     xold <- xmean
     xmean <- arx[, SortID[1:mu]] %*% weights
     ps <- (1 - cs) * ps + sqrt(cs * (2 - cs) * mueff) * invsqrtC %*% (xmean - xold)/sigma
-    hsig <- norm(ps, "F")/sqrt(1 - (1 - cs)^(2 * iGen/lambda))/chiN < 1.4 + 2/(N + 1)
+    hsig <- norm(ps, "F")/sqrt(1 - (1 - cs)^(2 * iGen/NumPop))/chiN < 1.4 + 2/(N + 1)
     pc <- (1 - cc) * pc + hsig * sqrt(cc * (2 - cc) * mueff) * (xmean - xold)/sigma
     artmp <- (1/sigma) * (arx[, SortID[1:mu]] - matrix(1, 1, mu) %x% xold)
     C <- (1 - c1 - cmu) * C + c1 * (pc %*% t(pc) + (1 - hsig) * cc * (2 - cc) * C) + cmu * artmp %*% diag(weights) %*% t(artmp)
     sigma <- sigma * exp((cs/damps) * (norm(ps, "F")/chiN - 1))
-    if (iGen - eigeneval > lambda/(c1 + cmu)/N/10) {
+    if (iGen - eigeneval > NumPop/(c1 + cmu)/N/10) {
       eigeneval <- iGen
       C <- ml.triu(C) + t(ml.triu(C, 1))
       if (any(is.nan(C)))
@@ -196,7 +196,8 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
       print(bestcalib)
       break
     }
-    if( diff(range(arfitness, na.rm=TRUE)) / mean(arfitness, na.rm=TRUE) < 0.01){
+    if( diff(range(arfitness, na.rm=TRUE)) / mean(arfitness, na.rm=TRUE) < 0.01 &
+        mean(arfitness, na.rm=TRUE) < 10 ){
       message('CMAES::','The POSSIBLE best fitness is reached: ', arfitness[1], '.')
       message('CMAES::','Current Generation = ', iGen)
       message('CMAES::','Best Calib:')
@@ -211,4 +212,9 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
               BestOBJ  = BestOBJ[1:iGen])
   )
 }
+
+
+# sol1 <- CMAES(CV=CV, cmd='./shud ', debug = FALSE,
+#               objfunc=Obj.Func,  Call_Model=Call_Model,
+#               oid=rivID)
 
