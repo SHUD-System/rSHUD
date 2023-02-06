@@ -20,7 +20,16 @@ This package can be used with the AutoSHUD project, that can build modeling doma
 
 ## Installation
 
+
+*If you work on Ubuntu platform, you must install software below before installing rSHUD and packages.*
+
+```
+sudo apt -y install gdal-bin libgdal-dev  gcc g++ gfortran
+sudo apt -y install r-cran-systemfonts r-cran-textshaping
+```
+
 We suggest user install the dependant packages before install rSHUD.
+
 ```
 libs = c('reshape2','xts','hydroGOF','zoo','RTriangle','proj4','gstat','abind','lubridate','interp','geometry',
          'testthat', 'rmarkdown', 'ncdf4', 'blogdown', 'doParallel', 'knitr', 'rmarkdown', 'deldir',
@@ -41,8 +50,12 @@ devtools::install_github("shulele/RTriangle", subdir="pkg")
 
 ```
 Then you may install the rSHUD directly from github.
+
 ```
 if(!require(devtools)){ install.packages("devtools") }
 devtools::install_github("SHUD-System/rSHUD")
 ```
+
+
+
 
