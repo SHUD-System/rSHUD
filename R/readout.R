@@ -1,7 +1,8 @@
 #' Read output file from SHUD model
 #' @param keyword keyword of the output file. File name format is: projectname.keyword.dat
 #' @param file  Full path of output file. 
-#' @param path path of the outputfile
+#' @param path path of the output file
+#' @param ver Version of output file. Ver = 1.0, 2.0
 #' @param ASCII If TRUE, convert the binary file to ASCII format (.csv)
 #' @keywords read output. Could be used for reading mesh and river format.
 #' @importFrom grDevices dev.off graphics.off png rgb topo.colors 
@@ -9,21 +10,31 @@
 #' @importFrom methods as 
 #' @importFrom stats dist rnorm time 
 #' @importFrom utils read.table 
-#' @return A TimeSeries data. This list require support of xts packages.
+#' @return A Time-Series data. This list require support of xts packages.
 #' @export  
 readout <- function(keyword,
                     path=get('outpath', envir=.shud) , ASCII=FALSE,
-                    file = file.path(path, paste0(get('PRJNAME', envir=.shud),'.', keyword,'.dat') ) 
-){
+                    ver = 2.0,
+                    file = file.path(path, paste0(get('PRJNAME', envir=.shud),'.', keyword,'.dat') ) ){
   msg='readout::'
   fid=file(file, 'rb');
   # nc=readBin(fid, what=integer(), n=1, size = 4)
   # st=readBin(fid, what=integer(), n=1, size = 8) #Long integer
   tmp=readBin(fid, what=numeric(), n=1e9, size=8)
   close(fid)
-  dat=tmp[-1 * (1:2)]
-  nc=tmp[1]
-  st=tmp[2]
+  if(ver > 1.0){
+    # header is new version
+    hd=tmp[(1:128)]  # header is 1024char = 128 double
+    st=tmp[129]
+    nc=tmp[130]
+    idx = tmp[130 + (1:nc) ]
+    dat=tmp[-1 * (1:(130+nc))]
+  }else{
+    dat=tmp[-1 * (1:2)]
+    nc=tmp[1]
+    st=tmp[2]
+    idx = 1:nc
+  }
   
   nrr = length(dat)/(nc+1)
   nr = round(nrr)
@@ -49,9 +60,26 @@ readout <- function(keyword,
   }else{
     tsd = xts::as.xts(rbind(mat[,-1]), order.by = xt)
   }
-  tsd
+  colnames(tsd) = paste(idx)
+  return(tsd)
 }
-
+#' Read header information of output file
+#' @param keyword keyword of the output file. File name format is: projectname.keyword.dat
+#' @param file  Full path of output file. 
+#' @param path path of the output file
+#' @keywords read output. Could be used for reading mesh and river format.
+#' @return Header information 
+#' @export  
+readout.header <- function(keyword,
+                    path=get('outpath', envir=.shud) , 
+                    file = file.path(path, paste0(get('PRJNAME', envir=.shud),'.', keyword,'.dat') ) ){
+  msg='readout.header::'
+  fid=file(file, 'rb');
+  tmp=readBin(fid, what=character(), n=1024, size=1)
+  close(fid)
+  hd=paste(tmp, collapse = '')  # header is 1024char = 128 double
+  return(hd)
+}
 #' Read multiply SHUD model output files
 #' @param varname vector of output keywords 
 #' @param rdsfile Save RDS file. NULL=do not save rds file.
