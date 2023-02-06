@@ -2,10 +2,9 @@
 #' \code{write.cmaes} 
 #' @param x Configuration of CMA-ES calibration method.
 #' @param file full path of file
-#' @param backup TRUE/FALSE
 #' @return Parameters for CMA-ES configuration
 #' @export
-write.cmaes <- function(x=NULL, file, backup = TRUE){
+write.cmaes <- function(x=NULL, file){
   if(is.null(x)){
     cn = c('NumPop',
            'ncores',
@@ -24,7 +23,7 @@ write.cmaes <- function(x=NULL, file, backup = TRUE){
     names(x)=cn
     write.cmaes(x, file)
   }else{
-    write.config(x, file=file, backup = backup)
+    write.config(x, file=file)
   }
   return(x)
 }
@@ -114,7 +113,7 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
   rownames(arx) = rownames(para.name[para.id])
   arfitness <- numeric(NumPop)
   
-  write.config(CV$range, file=file.path(dir.out, paste0(CV$prjname,'.range.txt')), backup = FALSE)
+  write.config(CV$range, file=file.path(dir.out, paste0(CV$prjname,'.range.txt')))
   for(iGen in 1:maxstep) {
     message('\n\n')
     message('\t========================')
@@ -164,7 +163,7 @@ CMAES<- function (CV, cmd, objfunc,  Call_Model,
     print(gof.tab)
     message('================================')
     # CV$calib = bestcalib # UPDATE THE CALIB into the CV
-    write.config(bestcalib, file=file.path(dir.out, paste0('calib_Gen.', iGen, '.calib') ), backup = FALSE)
+    write.config(bestcalib, file=file.path(dir.out, paste0('calib_Gen.', iGen, '.calib') ))
     # vlist = pre.files(iGen = iGen, pop = pop, CV=CV);
     # Obj.Func(jobid = SortID[1], CV = CV, vlist = )
     # if( arfitness < 1) { #if the simulation is good enough.
