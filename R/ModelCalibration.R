@@ -81,7 +81,7 @@ pre.files <- function(iGen, pop, CV){
   
   for(i in 1:njob){
     icb = calibmat[i, ]
-    write.config(icb, file = fn.calib[i], backup = FALSE)
+    write.config(icb, file = fn.calib[i])
   }
   
   fn.pop = file.path(dir.gen, paste0('DataPop', '.csv') )
@@ -92,11 +92,11 @@ pre.files <- function(iGen, pop, CV){
   x1=pop
   x2=calibmat
   if(iGen <= 1){
-    write.df(x=x1, file=fn.pop, append = FALSE, header = iGen, quite = TRUE, backup = FALSE)
-    write.df(x=x2, file=fn.cal, append = FALSE, header = iGen, quite = TRUE, backup = FALSE)
+    write.df(x=x1, file=fn.pop, append = FALSE, header = iGen, quite = TRUE)
+    write.df(x=x2, file=fn.cal, append = FALSE, header = iGen, quite = TRUE)
   }else{
-    write.df(x=x1, file=fn.pop, append = TRUE, header = iGen, quite = TRUE, backup = FALSE)
-    write.df(x=x2, file=fn.cal, append = TRUE, header = iGen, quite = TRUE, backup = FALSE)
+    write.df(x=x1, file=fn.pop, append = TRUE, header = iGen, quite = TRUE)
+    write.df(x=x2, file=fn.cal, append = TRUE, header = iGen, quite = TRUE)
   }
   ret <- list(att=
                 data.frame(
