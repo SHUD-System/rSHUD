@@ -1,3 +1,66 @@
+#' Build an Albers Equal Area projection based on the spatial data or extent.
+#' \code{crs.Albers}
+#' @param spx Spatial Data
+#' @param ext  extent of the data.
+#' @return CRS in Albers Equal Area projection.
+#' @export
+#' @examples
+#' crs.Albers(ext=c(90, 100, 35, 40))
+crs.Albers <- function(spx, ext=NULL){
+  if(is.null(ext)){
+    crs0 = sp::CRS('+init=epsg:4326')
+    sp.gcs = sp::spTransform(spx, crs0)
+    ext= raster::extent(sp.gcs)
+  }
+  x0 = round(mean(ext[1:2]), 1)
+  y0 = round(mean(ext[1:2+2]), 1)
+  dx = round(diff(ext[1:2]), 2)
+  dy = round(diff(ext[1:2+2]), 2)
+  if(dx < 1){
+    my = 0.25
+  }else{
+    my=round(dy/4, 2)
+  }
+  lat1 = y0 + my
+  lat2 = y0 - my
+  str = paste0(' +proj=', 'aea',
+               ' +lat_1=', lat1,
+               ' +lat_2=', lat2,
+               ' +lon_0=', x0,
+               ' +datum=', 'WGS84',
+               " +units=", "m"
+  )
+  print(str)
+  ret = sp::CRS(str)
+  return(ret)
+}
+#' Build a Lambert Equal Area projection based on the spatial data or extent.
+#' \code{crs.Lambert}
+#' @param spx Spatial Data
+#' @param ext  extent of the data.
+#' @return CRS in Lambert
+#' @export
+#' @examples
+#' crs.Lambert(ext=c(90, 100, 35, 40))
+crs.Lambert <- function(spx, ext=NULL){
+  if(is.null(ext)){
+    crs0 = sp::CRS('+init=epsg:4326')
+    sp.gcs = sp::spTransform(spx, crs0)
+    ext= raster::extent(sp.gcs)
+  }
+  x0 = round(mean(ext[1:2]), 1)
+  y0 = round(mean(ext[1:2+2]), 1)
+  dx = round(diff(ext[1:2]), 2)
+  dy = round(diff(ext[1:2+2]), 2)
+  
+  ret = sp::CRS(paste0('+proj=', 'leac',
+                       ' +lat_1=', y0,
+                       ' +lon_0=', x0,
+                       ' +datum=', 'WGS84',
+                       " +units=", "m"))
+  return(ret)
+}
+
 #' Get UTM zone frome longitutde
 #' \code{crs.long2utmZone} 
 #' @param  lon Longitude in degree
