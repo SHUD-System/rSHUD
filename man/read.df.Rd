@@ -5,12 +5,14 @@
 \title{Read the matrix or data.frame file which has (nrow, ncol) in header
 \code{read.df}}
 \usage{
-read.df(file, text = readLines(file))
+read.df(file, text = readLines(file), sep = "\\t")
 }
 \arguments{
 \item{file}{full path of file}
 
 \item{text}{text return from readLines(file)}
+
+\item{sep}{seperator of the table.}
 }
 \value{
 a list of matrix

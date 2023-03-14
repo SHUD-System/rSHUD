@@ -32,16 +32,18 @@ Imports: Rcpp,
   abind,
   utils,
   lubridate,
-  interp,
-  geometry,
   doParallel,
+  geometry,
   methods
 LinkingTo: Rcpp, sp
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 Remotes: shulele/RTriangle/pkg
 Suggests: testthat,
     knitr,
     rmarkdown,
+    terra,
   deldir,
+  interp,
+  whitebox,
   ncdf4
 VignetteBuilder: knitr

@@ -4,7 +4,7 @@
 \alias{xyz2Raster}
 \title{Read the time tage from (x, y, matrix).}
 \usage{
-xyz2Raster(x, y = NULL, arr = NULL, flip = TRUE, plot = TRUE)
+xyz2Raster(x, y = NULL, arr = NULL, Dxy = NULL, flip = TRUE, plot = TRUE)
 }
 \arguments{
 \item{x}{list(x, y, arr) or x coordinates}
@@ -12,6 +12,8 @@ xyz2Raster(x, y = NULL, arr = NULL, flip = TRUE, plot = TRUE)
 \item{y}{y coordinates}
 
 \item{arr}{array. dim = (nx, ny)}
+
+\item{Dxy}{Resolution}
 
 \item{flip}{Whether flip the matrix.}
 

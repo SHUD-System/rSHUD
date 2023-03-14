@@ -5,14 +5,12 @@
 \title{Write  .mesh file
 \code{write.mesh}}
 \usage{
-write.mesh(pm, file, backup = TRUE)
+write.mesh(pm, file)
 }
 \arguments{
 \item{pm}{SHUD.MESH class}
 
 \item{file}{file name}
-
-\item{backup}{TRUE/FALSE, if backup the existing file}
 }
 \description{
 Write  .mesh file

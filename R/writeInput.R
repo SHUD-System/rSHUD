@@ -1,14 +1,14 @@
-#' Write a backup file if the file exist
-#' \code{filebackup}
-#' @param file file name
-#' @param backup if backup, TRUE/FALSE
-#' @export
-filebackup <- function(file, backup = TRUE){
-  if(file.exists(file) & backup){
-    bakFile <- paste0(file,format(Sys.time(), '%Y%m%d.%H%M%S'),'-',round(rnorm(1),2));
-    file.copy(file,bakFile)
-  }
-}
+# #' Write a backup file if the file exist
+# #' \code{filebackup}
+# #' @param file file name
+# #' @param backup if backup, TRUE/FALSE
+# #' @export
+# filebackup <- function(file, backup = FALSE){
+#   if(file.exists(file) & backup){
+#     bakFile <- paste0(file,format(Sys.time(), '%Y%m%d.%H%M%S'),'-',round(rnorm(1),2));
+#     file.copy(file,bakFile)
+#   }
+# }
 #' Write xts data out into file
 #' \code{write.xts}
 #' @param x xts data
@@ -30,11 +30,10 @@ write.xts <- function(x, file, append = F){
 #' @param append whether append
 #' @param header Header of the file. Default is the dimension of data.frame.
 #' @param quite TRUE/FALSE, if quiet mode
-#' @param backup TRUE/FALSE, if backup the existing file
 #' @export
-write.tsd <- function(x, file, append = F, quite=F, header = NULL, backup=TRUE){
+write.tsd <- function(x, file, append = F, quite=F, header = NULL){
     msg='write.tsd::'
-  filebackup(file, backup = backup)
+  
    # x=lr$LAI
   mat = as.matrix(rbind(x))
   nr = nrow(x)
@@ -63,11 +62,11 @@ write.tsd <- function(x, file, append = F, quite=F, header = NULL, backup=TRUE){
 #' @param append whether append
 #' @param header Header of the file. Default is the dimension of data.frame.
 #' @param quite TRUE/FALSE, if quiet mode
-#' @param backup TRUE/FALSE, if backup the existing file
+#' 
 #' @export
-write.df <- function(x, file, append = F, quite=F, header = NULL, backup=TRUE){
+write.df <- function(x, file, append = F, quite=F, header = NULL){
     msg='write.df::'
-  filebackup(file, backup = backup)
+  
   x=as.matrix(rbind(x))
   nr = nrow(x)
   nc = ncol(x)
@@ -85,16 +84,16 @@ write.df <- function(x, file, append = F, quite=F, header = NULL, backup=TRUE){
 #' \code{write.mesh}
 #' @param pm SHUD.MESH class
 #' @param file file name
-#' @param backup TRUE/FALSE, if backup the existing file
+#' 
 #' @export
-write.mesh <- function(pm, file,backup = TRUE){
+write.mesh <- function(pm, file){
     msg='writemesh::'
-  filebackup(file, backup = backup)
+  
   ncell= nrow(pm@mesh)
   np = nrow(pm@point)
   message(msg, 'Writing to file ', file)
-  write.df(pm@mesh, file=file, append=F, quite = T, backup = F)
-  write.df(pm@point, file=file, append=T, quite = T, backup = F)
+  write.df(pm@mesh, file=file, append=F, quite = T)
+  write.df(pm@point, file=file, append=T, quite = T)
   # write(c(ncell, np),file = file, append = F)
   # write.table(pm@mesh, file = file, append = T, quote = F, row.names = F)
   # write.table(pm@point, file = file, append = T, quote = F, row.names = F)
@@ -103,40 +102,39 @@ write.mesh <- function(pm, file,backup = TRUE){
 #' \code{writemesh}
 #' @param pr SHUDmesh class
 #' @param file file name
-#' @param backup TRUE/FALSE, if backup the existing file
+#' 
 #' @export
-write.riv <- function(pr, file,backup = TRUE){
+write.riv <- function(pr, file){
     msg='writeriv::'
-  filebackup(file, backup = backup)
+  
   message(msg, 'Writing to file ', file)
-  write.df(pr@river, file=file, append=F, quite = T, backup = F)
-  write.df(pr@rivertype, file=file, append=T, quite = T, backup = F)
+  write.df(pr@river, file=file, append=F, quite = T)
+  write.df(pr@rivertype, file=file, append=T, quite = T)
   if(length(pr@point) >0 ){
-    write.df(pr@point, file=file, append=T, quite = T, backup = F)
+    write.df(pr@point, file=file, append=T, quite = T)
   }
 }
 #' Write SHUD .ic file
 #' \code{writeinit}
 #' @param x Initial condition, list()
 #' @param file file name
-#' @param backup TRUE/FALSE, if backup the existing file
+#' 
 #' @export
-write.ic <- function(x, file, backup = TRUE){
+write.ic <- function(x, file){
     msg='writeinit::'
-  filebackup(file, backup = backup)
+  
   message(msg, 'Writing to file', file)
-  write.df(x[[1]], file=file, append=F, quite = T, backup = F)
-  write.df(x[[2]], file=file, append=T, quite = T, backup = F)
+  write.df(x[[1]], file=file, append=F, quite = T)
+  write.df(x[[2]], file=file, append=T, quite = T)
 }
 #' Write SHUD configuration files (.para, .calib, etc.)
 #' @param x SHUD model configure parameter or calibration
 #' @param file file name
-#' @param backup TRUE/FALSE
 #' @importFrom utils type.convert write.table
 #' @export
-write.config <-function(x, file, backup=TRUE){
+write.config <-function(x, file){
     msg='write.config::'
-  filebackup(file, backup = backup)
+  
   message(msg, 'Writing to file ', file)
   out=cbind(names(x), t(x))
   write.table(out, file, append = F, sep = '\t', quote = F, 
@@ -149,11 +147,11 @@ write.config <-function(x, file, backup=TRUE){
 #' @param path Common path of the files.
 #' @param startdate Start Date. Character. e.g. 20000101
 #' @param file file name
-#' @param backup TRUE/FALSE, if backup the existing file
+#' 
 #' @export
-write.forc <- function(x, file, path='', startdate='20000101', backup=TRUE){
+write.forc <- function(x, file, path='', startdate='20000101'){
     msg='writeforc::'
-  filebackup(file, backup = backup)
+  
   nf=nrow(x)
   nc=ncol(x)
   message(msg, 'Writing to file ', file)

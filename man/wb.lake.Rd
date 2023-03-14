@@ -6,8 +6,8 @@
 \code{wb.lake}}
 \usage{
 wb.lake(
-  xl = loaddata(varname = paste0("lak", c("ystage", "atop", "qrivin", "qrivout",
-    "qsub", "qsurf", "vevap", "vprcp"))),
+  xl = loaddata(varname = paste0("lak", c("ystage", "atop", "qrivin", "qrivout", "qsub",
+    "qsurf", "vevap", "vprcp"))),
   lakeid = NULL
 )
 }

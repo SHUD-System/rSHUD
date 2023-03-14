@@ -5,7 +5,7 @@
 \title{Write xts data out into file
 \code{write.tsd}}
 \usage{
-write.tsd(x, file, append = F, quite = F, header = NULL, backup = TRUE)
+write.tsd(x, file, append = F, quite = F, header = NULL)
 }
 \arguments{
 \item{x}{xts data}
@@ -17,8 +17,6 @@ write.tsd(x, file, append = F, quite = F, header = NULL, backup = TRUE)
 \item{quite}{TRUE/FALSE, if quiet mode}
 
 \item{header}{Header of the file. Default is the dimension of data.frame.}
-
-\item{backup}{TRUE/FALSE, if backup the existing file}
 }
 \description{
 Write xts data out into file

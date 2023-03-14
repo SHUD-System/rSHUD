@@ -5,7 +5,7 @@
 \title{Write data.frame out into file
 \code{write.df}}
 \usage{
-write.df(x, file, append = F, quite = F, header = NULL, backup = TRUE)
+write.df(x, file, append = F, quite = F, header = NULL)
 }
 \arguments{
 \item{x}{data.frame}
@@ -17,8 +17,6 @@ write.df(x, file, append = F, quite = F, header = NULL, backup = TRUE)
 \item{quite}{TRUE/FALSE, if quiet mode}
 
 \item{header}{Header of the file. Default is the dimension of data.frame.}
-
-\item{backup}{TRUE/FALSE, if backup the existing file}
 }
 \description{
 Write data.frame out into file

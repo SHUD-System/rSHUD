@@ -12,9 +12,6 @@ SlopeSatVaporPressure(Temp, ES)
 
 \item{ES}{}
 }
-\value{
-
-}
 \description{
 Slope of saturated vapor pressure, Eq 4.2.3 in David R Maidment, Handbook of Hydrology
 \code{SlopeSatVaporPressure}

@@ -15,7 +15,6 @@
 #' @param clean Whether clean the existing model files in output directory.
 #' @param cfg.para  model configuration, parameter
 #' @param cfg.calib model calibration
-#' @param backup Whether to write backup files.
 #' @param rm.outlier Whether to remove the outlier in soil/geol;
 #' @param mf Meltfactor
 #' @param quiet Whether to ask confirmation when multiple outlets exist.
@@ -50,8 +49,7 @@ autoBuildModel <- function(
   cfg.calib = shud.calib(),
   mf = MeltFactor(years = years),
   rm.outlier = TRUE, 
-  quiet = FALSE,
-  backup=TRUE
+  quiet = FALSE
 ){
   msg = paste0('autoBuildModel(', prjname, '):: ')
   message(msg, 'Automatic build the SHUD model.')
@@ -152,7 +150,7 @@ autoBuildModel <- function(
   }
   pa=shud.att(tri, r.soil = xsoil, r.geol = xgeol, r.lc = rlc, r.forc = sp.forc )
   
-  write.forc(forcfiles,  file=fin['md.forc'], startdate = paste0(min(years), '0101'), backup = backup)
+  write.forc(forcfiles,  file=fin['md.forc'], startdate = paste0(min(years), '0101'))
   
   # generate SHUD .riv
   AA = rgeos::gArea(wbd) * 1e-6
@@ -255,24 +253,24 @@ autoBuildModel <- function(
   graphics::legend('top', paste0(lc), col=col, lwd=1)
   dev.off()
   message(msg, 'Write SHUD model input files.')
-  write.tsd(backup=backup,lr$LAI, file = fin['md.lai'])
-  write.tsd(backup=backup,lr$RL, file = fin['md.rl'])
+  write.tsd(lr$LAI, file = fin['md.lai'])
+  write.tsd(lr$RL, file = fin['md.rl'])
   
-  write.tsd(backup=backup,mf, file=fin['md.mf'])
+  write.tsd(mf, file=fin['md.mf'])
   
   # write SHUD input files.
-  write.mesh(backup=backup,pm, file = fin['md.mesh'])
-  write.riv(backup=backup,pr, file=fin['md.riv'])
-  write.ic(backup=backup,pic, file=fin['md.ic'])
+  write.mesh(pm, file = fin['md.mesh'])
+  write.riv(pr, file=fin['md.riv'])
+  write.ic(pic, file=fin['md.ic'])
   
-  write.df(backup=backup,pa, file=fin['md.att'])
-  write.df(backup=backup,prs, file=fin['md.rivseg'])
-  write.df(backup=backup,para.lc, file=fin['md.lc'])
-  write.df(backup=backup,para.soil, file=fin['md.soil'])
-  write.df(backup=backup,para.geol, file=fin['md.geol'])
+  write.df(pa, file=fin['md.att'])
+  write.df(prs, file=fin['md.rivseg'])
+  write.df(para.lc, file=fin['md.lc'])
+  write.df(para.soil, file=fin['md.soil'])
+  write.df(para.geol, file=fin['md.geol'])
   
-  write.config(backup=backup,cfg.para, fin['md.para'])
-  write.config(backup=backup,cfg.calib, fin['md.calib'])
+  write.config(cfg.para, fin['md.para'])
+  write.config(cfg.calib, fin['md.calib'])
   message(msg, 
           'Ncell=', nrow(pm@mesh), '\t',
           'Nriv=', nrow(pr@river), '\t',
@@ -291,5 +289,4 @@ autoBuildModel <- function(
 #                   tol.len = 0,
 #                   tol.riv = 0,
 #                   tol.wb = sqrt(a.max)/3,
-#                   quiet = TRUE,
-#                   backup=FALSE)
+#                   quiet = TRUE)

@@ -22,8 +22,7 @@ autoBuildModel(
   cfg.calib = shud.calib(),
   mf = MeltFactor(years = years),
   rm.outlier = TRUE,
-  quiet = FALSE,
-  backup = TRUE
+  quiet = FALSE
 )
 }
 \arguments{
@@ -60,8 +59,6 @@ autoBuildModel(
 \item{rm.outlier}{Whether to remove the outlier in soil/geol;}
 
 \item{quiet}{Whether to ask confirmation when multiple outlets exist.}
-
-\item{backup}{Whether to write backup files.}
 }
 \value{
 \code{SHUD.mesh}

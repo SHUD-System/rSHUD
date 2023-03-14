@@ -5,14 +5,12 @@
 \title{write the configuration for CMA-ES method
 \code{write.cmaes}}
 \usage{
-write.cmaes(x = NULL, file, backup = TRUE)
+write.cmaes(x = NULL, file)
 }
 \arguments{
 \item{x}{Configuration of CMA-ES calibration method.}
 
 \item{file}{full path of file}
-
-\item{backup}{TRUE/FALSE}
 }
 \value{
 Parameters for CMA-ES configuration

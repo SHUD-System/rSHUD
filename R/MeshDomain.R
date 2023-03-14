@@ -121,3 +121,11 @@ shud.att <- function(tri, r.soil =NULL, r.geol=NULL, r.lc=NULL, r.forc=NULL,
   att$LAKE = apply.raster(sp.lake, p.centroids, v0=0)
   return(att)
 }
+
+# 
+# pa=shud.att(tri, 
+#             r.soil = r.soil, r.geol = r.geol, 
+#             r.lc = rlc.idx, 
+#             r.forc = sp.forc, 
+#             r.BC = 0, 
+#             sp.lake = sp.lake)

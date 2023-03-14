@@ -12,9 +12,6 @@ VaporPressure_Act(esat, rh)
 
 \item{rh}{Relative Humidity [-] 0~1}
 }
-\value{
-
-}
 \description{
 Actual vapor pressure 
 \code{VaporPressure_Act}

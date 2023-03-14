@@ -4,14 +4,12 @@
 \alias{write.config}
 \title{Write SHUD configuration files (.para, .calib, etc.)}
 \usage{
-write.config(x, file, backup = TRUE)
+write.config(x, file)
 }
 \arguments{
 \item{x}{SHUD model configure parameter or calibration}
 
 \item{file}{file name}
-
-\item{backup}{TRUE/FALSE}
 }
 \description{
 Write SHUD configuration files (.para, .calib, etc.)

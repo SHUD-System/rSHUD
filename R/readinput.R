@@ -2,9 +2,10 @@
 #' \code{read.df} 
 #' @param file full path of file
 #' @param text text return from readLines(file)
+#' @param sep seperator of the table.
 #' @return a list of matrix
 #' @export
-read.df <-function(file, text = readLines(file)){
+read.df <-function(file, text = readLines(file), sep='\t'){
   # fn=fin['md.mesh']
   # text=readLines(fn)
   r0 = 1
@@ -18,7 +19,8 @@ read.df <-function(file, text = readLines(file)){
       nr = nrow-2
     }else{
     }
-    xl[[i]] = utils::read.table(text = text[0:nr + 1 + r0], header = T)
+    # print(text[0:nr + 1 + r0])
+    xl[[i]] = utils::read.table(text = text[0:nr + 1 + r0], header = T, sep = sep)
     # xl[[i]] = as.matrix(utils::read.table(text = text[0:nr + 1 + r0], header = T))
     r0 = r0 + nr + 2;
     if(r0 + 1 > nrow){
@@ -27,6 +29,7 @@ read.df <-function(file, text = readLines(file)){
   }
   xl
 }
+
 #' Read the .mesh file
 #' \code{readmesh} 
 #' @param file full path of .mesh file

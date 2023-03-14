@@ -5,14 +5,12 @@
 \title{Write SHUD .ic file
 \code{writeinit}}
 \usage{
-write.ic(x, file, backup = TRUE)
+write.ic(x, file)
 }
 \arguments{
 \item{x}{Initial condition, list()}
 
 \item{file}{file name}
-
-\item{backup}{TRUE/FALSE, if backup the existing file}
 }
 \description{
 Write SHUD .ic file

@@ -341,6 +341,7 @@ lc.UMD <- function(){
   cn = toupper(c('INDEX', 'LAIMAX', 'RMIN', 'RSREF', 'ALBEDO',
                  'VEGFRAC', 'ROUGH', 'RZD', 'SOILDGRD', 'IMPAF') )
   colnames(dtab) = cn
+  dtab = dtab[, -1 * (2:4)]
   return(dtab)
 }
 
@@ -353,7 +354,7 @@ lc.NLCD <- function(lc){
   dtab = lc.UMD()
   y= t(lc_EQ( t(dtab), lc))
   y[,1] = 1:nrow(y)
-  colnames(y) = toupper(c('INDEX', 'LAIMAX', 'RMIN', 'RSREF', 'ALBEDO',
+  colnames(y) = toupper(c('INDEX', 'ALBEDO',
                           'VEGFRAC', 'ROUGH', 'RZD', 'SOILDGRD', 'IMPAF') )
   rownames(y)=lc
   return(y)
@@ -364,9 +365,7 @@ lc.NLCD <- function(lc){
 #' @return Default land cover parameters
 #' @export
 lc.GLC <- function(){
-  cn = toupper(c('INDEX', 'LAIMAX', 'RMIN', 'RSREF', 'ALBEDO',
-                 'VEGFRAC', 'ROUGH', 'RZD', 'SOILDGRD', 'IMPAF') )
-  
+  cn = toupper(c('INDEX', 'ALBEDO', 'VEGFRAC', 'ROUGH', 'RZD', 'SOILDGRD', 'IMPAF') )
   mapid = c(1:11, 1, 12, 14, 12, 1, 13)
   v = lc.UMD()[mapid, ]
   v[, 1] = 1:nrow(v)-1

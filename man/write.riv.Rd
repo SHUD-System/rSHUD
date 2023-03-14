@@ -5,14 +5,12 @@
 \title{Write SHUD .mesh file
 \code{writemesh}}
 \usage{
-write.riv(pr, file, backup = TRUE)
+write.riv(pr, file)
 }
 \arguments{
 \item{pr}{SHUDmesh class}
 
 \item{file}{file name}
-
-\item{backup}{TRUE/FALSE, if backup the existing file}
 }
 \description{
 Write SHUD .mesh file

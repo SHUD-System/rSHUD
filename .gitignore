@@ -8,3 +8,5 @@ src/*.dll
 experiments
 ^.DS_Store
 *.swp
+.DS_Store
+Rplots.pdf

@@ -31,39 +31,51 @@ shud.ic <- function(ncell, nriv, AqD = 10, stage = 0.1, p1=0.4, p2 = p1,
 #' @return model configureation, Vector
 #' @export
 shud.para <- function( nday = 10){
-  dts = c(
-    paste0('dt_',
-           c(paste0('ye_', c('snow', 'surf', 'unsat', 'gw') ), 
-             paste0('Qe_', c('surf', 'sub') ),
-             paste0('qe_et'), 
-             paste0('qe_', c('prcp', 'infil', 'rech') ),
-             paste0('yr_', c('stage')),
-             paste0('Qr_', c('down', 'surf', 'sub', 'up')),
-             paste0('lake')
-           ))
-  )
-  
-  vdt = rep(1440, length(dts))
-  
+  dts = c(paste0('dt_',
+                 c(paste0('ye_', c('snow', 'surf', 'unsat', 'gw') ), 
+                   paste0('Qe_', c('surf', 'sub') ),
+                   paste0('qe_et'), 
+                   paste0('qe_', c('prcp', 'infil', 'rech') ),
+                   paste0('yr_', c('stage')),
+                   paste0('Qr_', c('down', 'surf', 'sub', 'up')),
+                   paste0('lake')
+                 ))  )
+  vdt = rep(0, length(dts))
   vn = c('VERBOSE', 'INIT_MODE', 'CloseBoundary', 
          'ASCII_OUTPUT', 'Binary_OUTPUT', 'cryosphere',
          'SpinupDay', 'NUM_OPENMP', 'SCR_INTV',
          'ABSTOL', 'RELTOL', 
          'INIT_SOLVER_STEP', 'MAX_SOLVER_STEP', 'LSM_STEP', 
-         'START', 'END', 
-         dts)
+         'START', 'END',  dts)
   val = c(0,  3, 1,
-        0, 1, 0,
-        0, 8, 1440,
-        1e-4, 1e-4,
-        1e-2, 2, 60,
-        0, nday,
-        vdt
-  )
+          0, 1, 0,
+          0, 8, 1440,
+          1e-4, 1e-4,
+          1e-2, 2, 60,
+          0, nday,
+          vdt )
   val=data.frame(rbind(val))
-  names(val) = toupper( vn )
-  val
+  names(val) = toupper( vn )    
+  val$DT_YE_SNOW = 0
+  val$DT_YE_SURF = 0
+  val$DT_YE_UNSAT = 0
+  val$DT_YE_GW = 1440
+  val$DT_QE_SURF = 0
+  val$DT_QE_SUB = 0
+  val$DT_QE_ET = 1440
+  val$DT_QE_PRCP = 1440
+  val$DT_QE_INFIL = 0
+  val$DT_QE_RECH = 0
+  val$DT_YR_STAGE = 0
+  val$DT_QR_DOWN = 1440
+  val$DT_QR_SURF = 0
+  val$DT_QR_SUB = 0
+  val$DT_QR_UP = 0
+  val$DT_LAKE = 1440
+  
+  return(val)
 }
+
 #' Generate the default model calibration
 #' \code{shud.calib} 
 #' @return Default calibration values for model

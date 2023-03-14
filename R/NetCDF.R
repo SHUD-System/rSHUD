@@ -120,11 +120,12 @@ readnc<-function(ncid, varid=NULL,  ext = NULL){
 #' @param x  list(x, y, arr) or x coordinates
 #' @param y y coordinates
 #' @param arr array. dim = (nx, ny)
+#' @param Dxy Resolution
 #' @param flip Whether flip the matrix.
 #' @param plot Whether plot the raster.
 #' @return a Raster/RasterStack
 #' @export
-xyz2Raster <- function(x, y=NULL, arr=NULL,
+xyz2Raster <- function(x, y=NULL, arr=NULL,Dxy=NULL,
                        flip=TRUE, plot=TRUE){
   if(is.null(y) | is.null(arr)){
     nc = x;
@@ -134,11 +135,17 @@ xyz2Raster <- function(x, y=NULL, arr=NULL,
   dims = dim(nc$arr)
   ndims = length(dims)
   x = nc$x; y = nc$y
+  
+  if(is.null(Dxy) & (length(x) == 1 | length(y) == 1) ){
+    message('Dxy cannot be NULL. Dxy MUST be given.')
+    stop()
+  }
+  
   if( ndims > 2){
     # multiple layers
     rl = list()
     for(i in 1:dims[3]){
-      rl[[i]] = xyz2Raster(x = x, y = y, 
+      rl[[i]] = xyz2Raster(x = x, y = y, Dxy=Dxy,
                            arr=matrix(nc$arr[, , i], nrow=dim(nc$arr)[1], ncol=dim(nc$arr)[2]) )
     }
     rs = raster::stack(rl)
@@ -146,10 +153,15 @@ xyz2Raster <- function(x, y=NULL, arr=NULL,
     # single layer
     # val = matrix(arr, nrow=nrow(arr), ncol=ncol(arr))
     val = arr
-    dx = abs(mean(diff(x))); 
-    if(length(y) ==1) {
-      dy=dx
+    if(!is.null(Dxy)){
+      dx = Dxy[1]
+      if(length(Dxy)==1){
+        dy = Dxy[1]
+      }else{
+        dy = Dxy[2]
+      }
     }else{
+      dx = abs(mean(diff(x)));
       dy = abs(mean(diff(y)))
     }
     nx = length(x);   ny = length(y)
