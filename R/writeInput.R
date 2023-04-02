@@ -27,11 +27,12 @@ write.xts <- function(x, file, append = F){
 #' \code{write.tsd}
 #' @param x xts data
 #' @param file file name
+#' @param dt_units Time interval of the 1 unit change in time column.
 #' @param append whether append
 #' @param header Header of the file. Default is the dimension of data.frame.
 #' @param quite TRUE/FALSE, if quiet mode
 #' @export
-write.tsd <- function(x, file, append = F, quite=F, header = NULL){
+write.tsd <- function(x, file, dt_units='days', append = F, quite=F, header = NULL){
     msg='write.tsd::'
   
    # x=lr$LAI
@@ -42,18 +43,24 @@ write.tsd <- function(x, file, append = F, quite=F, header = NULL){
     message(msg, 'Writing to file ', file)
   }
   tt = stats::time(x)
-  tday = as.numeric( difftime(tt, tt[1], units = 'days') )
+  if(grepl('minute', dt_units)){
+    dt_sec = 60 #  60 sec
+  }else if(grepl('second', dt_units)){
+    dt_sec = 1
+  }else{
+    dt_sec = 3600*24
+  }
+  # time_tag = as.numeric( difftime(tt, tt[1], units = 'days') )
+  time_tag = as.numeric(tt - tt[1]) / dt_sec
   if(is.null(header)){
     t0 = format(time(x)[1], '%Y%m%d')
     t1 = format(time(x)[nrow(x)], '%Y%m%d')
-    header = c(nr, nc+1, t0, t1)
+    header = c(nr, nc+1, t0, t1, dt_sec)
   }
-  dd = data.frame('Time_Day' = tday, mat)
+  dd = data.frame('Time_interval' = time_tag, mat)
   write(header,file = file, ncolumns = length(header), append = append, sep = '\t')
   write(colnames(dd), file = file, ncolumns = nc+1, append = TRUE, sep = '\t')
-  suppressWarnings(
-    write.table(dd, file = file, append = TRUE, sep = '\t', col.names = FALSE, row.names = FALSE) 
-    )
+  suppressWarnings(write.table(dd, file = file, append = TRUE, sep = '\t', col.names = FALSE, row.names = FALSE) )
 }
 #' Write data.frame out into file
 #' \code{write.df}
