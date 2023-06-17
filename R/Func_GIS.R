@@ -651,8 +651,10 @@ voronoipolygons = function(x, pts = x@coords, rw=NULL, crs=NULL) {
 #' @param enlarge enlarge factor for the boundary.
 #' @return ShapePolygon*
 #' @export
-ForcingCoverage <- function(sp.meteoSite=NULL, pcs, gcs=sp::CRS('+init=epsg:4326'), 
-                            dem, wbd, enlarge = 10000){
+ForcingCoverage <- function(sp.meteoSite=NULL, filenames=paste0(sp.meteoSite@data$ID, '.csv'),
+                            pcs, gcs=sp::CRS('+init=epsg:4326'), 
+                            dem, wbd, enlarge = 10000
+                            ){
   if( is.null(sp.meteoSite) ){
     sp.meteoSite = rgeos::gCentroid(wbd)
   }
@@ -663,7 +665,7 @@ ForcingCoverage <- function(sp.meteoSite=NULL, pcs, gcs=sp::CRS('+init=epsg:4326
   xy = sp::coordinates(x.pcs)
   z = raster::extract(dem, x.pcs)
   
-  att = data.frame(1:length(sp.meteoSite), ll, xy, z, paste0(sp.meteoSite@data$ID, '.csv'))
+  att = data.frame(1:length(sp.meteoSite), ll, xy, z, filenames)
   colnames(att) = c('ID', 'Lon', 'Lat', 'X', 'Y','Z', 'Filename')
   
   e1 = raster::extent(wbd)

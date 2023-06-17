@@ -5,12 +5,14 @@
 \title{Write xts data out into file
 \code{write.tsd}}
 \usage{
-write.tsd(x, file, append = F, quite = F, header = NULL)
+write.tsd(x, file, dt_units = "days", append = F, quite = F, header = NULL)
 }
 \arguments{
 \item{x}{xts data}
 
 \item{file}{file name}
+
+\item{dt_units}{Time interval of the 1 unit change in time column.}
 
 \item{append}{whether append}
 

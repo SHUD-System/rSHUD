@@ -51,7 +51,7 @@ write.tsd <- function(x, file, dt_units='days', append = F, quite=F, header = NU
     dt_sec = 3600*24
   }
   # time_tag = as.numeric( difftime(tt, tt[1], units = 'days') )
-  time_tag = as.numeric(tt - tt[1]) / dt_sec
+  time_tag = as.numeric( difftime(tt, tt[1], units = 'secs')) / dt_sec
   if(is.null(header)){
     t0 = format(time(x)[1], '%Y%m%d')
     t1 = format(time(x)[nrow(x)], '%Y%m%d')

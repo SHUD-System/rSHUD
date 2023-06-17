@@ -11,7 +11,7 @@
 #' apply(y[,-1], 2, summary)
 #' plot(x[,3], y[,2])
 PTF <- function (x=t(matrix(c(33, 33, 2, 1.4), ncol=5, nrow=4) ), topsoil=TRUE, 
-                 xmin=c(.1, .1, 1.2, 1.3) ){
+                 xmin=c(.1, .1, .8, 1.2) ){
   msg='PTF:: '
   #Wösten, J. H. M., Pachepsky, Y. a., & Rawls, W. J. (2001). Pedotransfer functions: Bridging the gap between available basic soil data and missing soil hydraulic characteristics. Journal of Hydrology, 251(3–4), 123–150. https://doi.org/10.1016/S0022-1694(01)00464-4
   if(is.matrix(x) || is.data.frame(x)){
@@ -210,6 +210,12 @@ MeltFactor <- function(years,   mf=c(0.001308019, 0.001633298,  0.002131198,
                                      0.003095839, 0.00274524, 0.002260213,
                                      0.001759481, 0.001373646,  0.001202083)
                        ){
+  
+  fun.mf = function(nday, x.max, x.min){
+    x = (x.min+x.max)*.5 + sin(2*pi*nday/366)*(x.max - x.min)*.5 
+    x = x*.4
+  }
+  
 
   years=sort(c(years,max(years)+1))
   yrlim=range(years);

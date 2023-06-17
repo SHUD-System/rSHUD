@@ -10,3 +10,6 @@ experiments
 *.swp
 .DS_Store
 Rplots.pdf
+test*.R
+test2*.R
+nosync
