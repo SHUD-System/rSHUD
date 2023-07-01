@@ -1,8 +1,8 @@
 Package: rSHUD
 Type: Package
 Title: Toolbox For SHUD Model System
-Version: 2.0.0
-Date: 2019-12-25
+Version: 2.0.1
+Date: 2023-06-24
 Author: Lele Shu <lele.shu@gmail.com>
 Maintainer: Lele Shu <lele.shu@gmail.com>
 Description: The Simulator for Hydrologic Unstructured Domains (SHUD) is a multiprocess, multi-scale hydrologic model 

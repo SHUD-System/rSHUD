@@ -5,12 +5,16 @@
 \title{calculate river order, downstream, slope and length
 \code{shud.river}}
 \usage{
-shud.river(sl, dem, AREA = NULL)
+shud.river(sl, dem, rivord = NULL, rivdown = NULL, AREA = NULL)
 }
 \arguments{
 \item{sl}{SpatialLines*}
 
 \item{dem}{Raster of elevation}
+
+\item{rivord}{Order of each river reach}
+
+\item{rivdown}{Downstream Index of each river reach.}
 
 \item{AREA}{Area of the watershed, for estimating the width/depth of river.}
 }

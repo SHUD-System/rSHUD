@@ -2,10 +2,12 @@
 #' \code{shud.river}
 #' @param sl SpatialLines*
 #' @param dem Raster of elevation
+#' @param rivord Order of each river reach
+#' @param rivdown Downstream Index of each river reach.
 #' @param AREA Area of the watershed, for estimating the width/depth of river.
 #' @return SHUD.RIVER
 #' @export
-shud.river <- function(sl, dem, AREA=NULL){
+shud.river <- function(sl, dem, rivord  = NULL, rivdown=NULL, AREA=NULL){
   msg='shud.river::'
   # sp.slt = sp.Polylines2Lines(sp)
   sp.slt = sl
@@ -14,11 +16,14 @@ shud.river <- function(sl, dem, AREA=NULL){
   # z = raster::extract(dem, xy)
   # pt = cbind(1:nrow(xy), xy, z)
   # colnames(pt) = c('Index','X', 'Y', 'Zmax')
-  message(msg, '\nCalculate river order ...')
-
-  rivord = sp.RiverOrder(sp.slt)
-  message(msg, '\nIdentify the downstream ...')
-  rivdown = sp.RiverDown(sp.slt)
+  if(is.null(rivord)){
+    message(msg, '\nCalculate river order ...')
+    rivord = sp.RiverOrder(sp.slt)
+  }
+  if(is.null(rivdown)){
+    message(msg, '\nIdentify the downstream ...')
+    rivdown = sp.RiverDown(sp.slt)
+  }
   message(msg, '\nFrom/To nodes ...') 
   ft = rbind(FromToNode(sp.slt, simplify=TRUE)[, 2:3])
   message(msg, '\nSlope and length of river ...')

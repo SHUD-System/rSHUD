@@ -7,6 +7,7 @@
 \usage{
 ForcingCoverage(
   sp.meteoSite = NULL,
+  filenames = paste0(sp.meteoSite@data$ID, ".csv"),
   pcs,
   gcs = sp::CRS("+init=epsg:4326"),
   dem,

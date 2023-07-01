@@ -8,7 +8,7 @@
 PTF(
   x = t(matrix(c(33, 33, 2, 1.4), ncol = 5, nrow = 4)),
   topsoil = TRUE,
-  xmin = c(0.1, 0.1, 1.2, 1.3)
+  xmin = c(0.1, 0.1, 0.8, 1.2)
 )
 }
 \arguments{
