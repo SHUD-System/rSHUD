@@ -19,23 +19,23 @@ Cut sptialLines with threshold.
 \examples{
 library(rSHUD)
 library(sp)
-x=1:1000/100
-l1 = Lines(Line(cbind(x, sin(x)) ), ID='a' )
+x = 1:1000 / 100
+l1 = Lines(Line(cbind(x, sin(x)) ), ID = 'a' )
 sl = SpatialLines( list(l1) )
-tol1=5;
-tol2 =2
+tol1 = 5;
+tol2 = 2
 sl1 = sp.CutSptialLines(sl, tol1)
 sl2 = sp.CutSptialLines(sl, tol2)
-par(mfrow=c(1,2))
-plot(sl1, col=1:length(sl1));title(paste0('Tol=', tol1))
-plot(sl2, col=1:length(sl2));title(paste0('Tol=', tol2))
+par(mfrow = c(1, 2))
+plot(sl1, col = 1:length(sl1)); title(paste0('Tol=', tol1))
+plot(sl2, col = 1:length(sl2)); title(paste0('Tol=', tol2))
 
 data(sh)
-riv=sh$riv
-x = sp.CutSptialLines(riv, tol=5)
-par(mfrow=c(2,1))
-plot(riv, col=1:length(riv), lwd=3);
+riv = sh$riv
+x = sp.CutSptialLines(riv, tol = 5)
+par(mfrow = c(2, 1))
+plot(riv, col = 1:length(riv), lwd = 3);
 
-plot(riv, col='gray', lwd=3);
-plot(add=TRUE, x, col=1:length(x))
+plot(riv, col = 'gray', lwd = 3);
+plot(add = TRUE, x, col = 1:length(x))
 }

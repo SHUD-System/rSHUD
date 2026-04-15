@@ -8,9 +8,12 @@
 SlopeSatVaporPressure(Temp, ES)
 }
 \arguments{
-\item{Temp}{Tempearture [C]}
+\item{Temp}{Temperature in C.}
 
-\item{ES}{}
+\item{ES}{Saturated vapor pressure in kPa.}
+}
+\value{
+Slope of the saturated vapor pressure curve in kPa C^-1.
 }
 \description{
 Slope of saturated vapor pressure, Eq 4.2.3 in David R Maidment, Handbook of Hydrology

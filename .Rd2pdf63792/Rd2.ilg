@@ -1,0 +1,45 @@
+This is makeindex, version 2.17 [TeX Live 2025] (kpathsea + Thai support).
+Scanning input file Rd2.idx....done (817 entries accepted, 0 rejected).
+Sorting entries.........done (8730 comparisons).
+Generating output file Rd2.ind....
+## Warning (input = Rd2.idx, line = 194; output = Rd2.ind, line = 298):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 217; output = Rd2.ind, line = 302):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 263; output = Rd2.ind, line = 310):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 286; output = Rd2.ind, line = 314):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 401; output = Rd2.ind, line = 338):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 431; output = Rd2.ind, line = 351):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 453; output = Rd2.ind, line = 354):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 499; output = Rd2.ind, line = 362):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 632; output = Rd2.ind, line = 454):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 685; output = Rd2.ind, line = 485):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 731; output = Rd2.ind, line = 493):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 754; output = Rd2.ind, line = 497):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 806; output = Rd2.ind, line = 508):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+done (518 lines written, 13 warnings).
+Output written in Rd2.ind.
+Transcript written in Rd2.ilg.

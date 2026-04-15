@@ -2,22 +2,24 @@
 % Please edit documentation in R/GIS_Projection.R
 \name{crs.long2utmZone}
 \alias{crs.long2utmZone}
-\title{Get UTM zone frome longitutde
-\code{crs.long2utmZone}}
+\title{Get UTM zone from longitude}
 \usage{
 crs.long2utmZone(lon)
 }
 \arguments{
-\item{lon}{Longitude in degree}
+\item{lon}{Numeric vector of longitude values in degrees (-180 to 180)}
 }
 \value{
-Zone number
+Integer vector of UTM zone numbers (1-60)
 }
 \description{
-Get UTM zone frome longitutde
-\code{crs.long2utmZone}
+Calculates the UTM zone number from longitude coordinate(s).
 }
 \examples{
-long = seq(-180, 179, 6)+1
-crs.long2utmZone(long)
+# Single longitude
+crs.long2utmZone(-75)  # Returns 18
+
+# Multiple longitudes
+lons <- seq(-180, 179, 6) + 1
+zones <- crs.long2utmZone(lons)
 }

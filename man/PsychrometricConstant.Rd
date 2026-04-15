@@ -8,12 +8,12 @@
 PsychrometricConstant(Pressure, lambda)
 }
 \arguments{
-\item{Pressure}{Air pressure [kPa]}
+\item{Pressure}{Air pressure in kPa.}
 
-\item{lambda}{Latent heat of vaporized water. [MJ/kg]}
+\item{lambda}{Latent heat of vaporized water in MJ/kg.}
 }
 \value{
-γ psychrometric constant [kPa °C-1]
+gamma psychrometric constant in kPa C^-1
 }
 \description{
 Psychrometric Constant, Eq 4.2.1 in David R Maidment, Handbook of Hydrology

@@ -2,24 +2,28 @@
 % Please edit documentation in R/Func_GIS.R
 \name{extractRaster}
 \alias{extractRaster}
-\title{Extract values on Raster map. The line is a straight line between (0,1). 
+\title{Extract values on Raster map along a normalized line from 0 to 1.
 \code{extractRaster}}
 \usage{
-extractRaster(r, xy = NULL, ext = raster::extent(r), plot = T)
+extractRaster(r, xy = NULL, ext = raster::extent(r), plot = TRUE)
 }
 \arguments{
 \item{r}{Raster}
 
-\item{xy}{coordinates of the line, dim=(Npoints, 2); x and y must be in [0, 1]}
+\item{xy}{Coordinates of the line, dim = (Npoints, 2); x and y must be in
+the range 0 to 1.}
 
 \item{ext}{extension of value xy.}
 
 \item{plot}{Whether plot result.}
 }
 \description{
-Extract values on Raster map. The line is a straight line between (0,1). 
+Extract values on Raster map along a normalized line from 0 to 1.
 \code{extractRaster}
 }
 \examples{
 library(raster)
+r <- raster(ncol = 36, nrow = 18)
+r[] <- 1:ncell(r)
+extractRaster(r)
 }

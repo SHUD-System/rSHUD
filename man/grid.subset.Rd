@@ -16,20 +16,46 @@ grid.subset(
 )
 }
 \arguments{
-\item{ext}{txtent of the grid}
+\item{ext}{Numeric vector. Full extent c(xmin, xmax, ymin, ymax)}
 
-\item{res}{resolution of the grid}
+\item{res}{Numeric. Resolution (single value or c(dx, dy))}
 
-\item{ext.sub}{the extent of subset}
+\item{ext.sub}{Numeric vector. Subset extent c(xmin, xmax, ymin, ymax)}
 
-\item{x}{x coordinates of the grids}
+\item{dx}{Numeric. X resolution (default: first element of \code{res})}
 
-\item{y}{y coordinates of the grids}
+\item{dy}{Numeric. Y resolution (default: second element of \code{res})}
+
+\item{x}{Numeric vector. X coordinates (auto-generated from ext and dx)}
+
+\item{y}{Numeric vector. Y coordinates (auto-generated from ext and dy)}
 }
 \value{
-list, list(xid, yid, x, y)
+List with components: xid, yid, x, y
 }
 \description{
-Find the subset of a extent in a grid.
-\code{grid.subset}
+\strong{This function is deprecated.} Use \code{terra::crop()} or
+\code{terra::ext()} for raster subsetting instead.
+
+This function provides grid subsetting functionality that is better handled
+by modern spatial packages like terra, which offer more robust and efficient
+extent-based operations.
+}
+\section{Deprecated}{
+
+\code{grid.subset()} is deprecated. Use \code{terra::crop()} or
+\code{terra::ext()} instead.
+}
+
+\examples{
+\dontrun{
+# Deprecated usage
+result <- grid.subset(ext = c(0, 100, 0, 100), res = 1, 
+                      ext.sub = c(20, 80, 20, 80))
+
+# Recommended usage with terra
+library(terra)
+r <- rast(xmin = 0, xmax = 100, ymin = 0, ymax = 100, res = 1)
+r_sub <- crop(r, ext(20, 80, 20, 80))
+}
 }

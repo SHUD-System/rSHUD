@@ -19,28 +19,28 @@ PET_PM(
 )
 }
 \arguments{
-\item{Wind}{Windspeed [m s-1]}
+\item{Wind}{Windspeed in m s^-1.}
 
-\item{Temp}{Air temperature, [C]}
+\item{Temp}{Air temperature in C.}
 
-\item{RH}{Relative Humidity [-] 0~1.}
+\item{RH}{Relative humidity as a fraction from 0 to 1.}
 
-\item{RadNet}{Net Solar Radiation [w m-2]}
+\item{RadNet}{Net solar radiation in W m^-2.}
 
-\item{Press}{Pressure [kPa]}
+\item{Press}{Pressure in kPa.}
 
-\item{WindHeight}{Height that wind was measured [m]}
+\item{WindHeight}{Height that wind was measured in m.}
 
-\item{Veg_height}{Height of vegetation [m]}
+\item{Veg_height}{Height of vegetation in m.}
 
-\item{albedo}{Albedo [-]}
+\item{albedo}{Albedo as a fraction.}
 
-\item{Res_surf}{Aerodynamic surface resistance [s m-1]}
+\item{Res_surf}{Aerodynamic surface resistance in s m^-1.}
 
-\item{Elevation}{Elevation [m]}
+\item{Elevation}{Elevation in m.}
 }
 \value{
-PET at [mm m-2 s-1] or [kg m-2 s-1]
+Potential evapotranspiration in mm m^-2 s^-1 or kg m^-2 s^-1.
 }
 \description{
 Potential Evapotranspiration with Pennmann-Monteith equation.

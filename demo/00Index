@@ -1,7 +1,7 @@
-demo_sh    R script for Shall Hill in Pennsylvania
-demo_waerma    R script for Waerma Watershed in Maqu, China
-demo_sac    R script for Sacramento Watershed in Califronia
-demo_sac_ana    R script for Sacramento Watershed in Califronia
-demo_Sunapee    R script for Sunapee Lake
-demo_autoBuild   R script to call automatic build SHUD model
-ProcessRiver   R script process river network
+demo_sh             Run SHUD model demo - sh
+demo_sh_ana         Analysis for SHUD model demo - sh
+demo_sac            Run SHUD model demo - sac
+demo_sac_ana        Analysis for SHUD model demo - sac
+demo_waerma         Run SHUD model demo - waerma
+demo_waerma_ana     Analysis for SHUD model demo - waerma
+demo_autoBuild      Run auto build demo

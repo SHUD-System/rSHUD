@@ -8,10 +8,10 @@
 VaporPressure_Sat(Temp)
 }
 \arguments{
-\item{Temp}{Air temperature, [C]}
+\item{Temp}{Air temperature in C.}
 }
 \value{
-Saturated vapor pressure [kPa]
+Saturated vapor pressure in kPa.
 }
 \description{
 Saturated vapor pressure, Eq 4.2.2 in David R Maidment, Handbook of Hydrology

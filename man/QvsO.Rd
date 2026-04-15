@@ -21,7 +21,7 @@ Default Comparison of the observation and simulation
 \code{QvsO}
 }
 \examples{
-obs=rnorm(100)
-sim=obs+rnorm(100)/2
-QvsO(cbind(obs,sim))
+obs = rnorm(100)
+sim = obs + rnorm(100) / 2
+QvsO(cbind(obs, sim))
 }

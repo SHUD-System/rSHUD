@@ -8,7 +8,7 @@
 https://stackoverflow.com/questions/38700246/how-do-i-split-divide-polyline-shapefiles-into-equally-length-smaller-segments
 }
 \usage{
-SimplifybyLen(sp, split_length = 20, plot.results = F)
+SimplifybyLen(sp, split_length = 20, plot.results = FALSE)
 }
 \arguments{
 \item{sp}{a SpatialLines or SpatialPoygons object}

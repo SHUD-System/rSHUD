@@ -7,29 +7,31 @@
 \usage{
 ForcingCoverage(
   sp.meteoSite = NULL,
-  filenames = paste0(sp.meteoSite@data$ID, ".csv"),
+  filenames = paste0(sp.meteoSite$ID, ".csv"),
   pcs,
-  gcs = sp::CRS("+init=epsg:4326"),
+  gcs = sf::st_crs(4326),
   dem,
   wbd,
   enlarge = 10000
 )
 }
 \arguments{
-\item{sp.meteoSite}{ShapePoints* in PCS}
+\item{sp.meteoSite}{sf POINT object or SpatialPoints*}
 
-\item{pcs}{Projected Coordinate System}
+\item{filenames}{Output filenames associated with the forcing sites.}
 
-\item{gcs}{Geographic Coordinate System}
+\item{pcs}{Projected Coordinate System (crs object)}
 
-\item{dem}{DEM raster}
+\item{gcs}{Geographic Coordinate System (crs object)}
 
-\item{wbd}{watershed boundary}
+\item{dem}{DEM raster (SpatRaster or RasterLayer)}
+
+\item{wbd}{watershed boundary (sf or SpatialPolygons*)}
 
 \item{enlarge}{enlarge factor for the boundary.}
 }
 \value{
-ShapePolygon*
+sf object
 }
 \description{
 Generate the coverage map for forcing sites.

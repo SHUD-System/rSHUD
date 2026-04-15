@@ -2,24 +2,32 @@
 % Please edit documentation in R/GIS_Projection.R
 \name{crs.long2utm}
 \alias{crs.long2utm}
-\title{Get UTM projection parameters in CRS, from longtitude and latitude.
-\code{crs.long2utm}}
+\title{Get UTM projection from longitude and latitude}
 \usage{
 crs.long2utm(lon, lat = 30)
 }
 \arguments{
-\item{lon}{Longitude in degree}
+\item{lon}{Numeric, longitude in degrees (-180 to 180)}
 
-\item{lat}{Latitude in degree, default = 30, North.}
+\item{lat}{Numeric, latitude in degrees (-90 to 90). Default is 30 (Northern
+Hemisphere). Use negative values for Southern Hemisphere.}
 }
 \value{
-UTM projection parameters in CRS
+Character string with PROJ.4 CRS definition for UTM projection.
+If lon is a vector, returns a list of CRS strings.
 }
 \description{
-Get UTM projection parameters in CRS, from longtitude and latitude.
-\code{crs.long2utm}
+Creates a UTM (Universal Transverse Mercator) projection CRS string based
+on longitude and latitude coordinates.
 }
 \examples{
-long = seq(-180, 179, 6)+1
-x =crs.long2utm(long)
+# Single location (Northern Hemisphere)
+crs_utm <- crs.long2utm(-75, 40)
+
+# Southern Hemisphere
+crs_utm_south <- crs.long2utm(150, -30)
+
+# Multiple longitudes
+lons <- seq(-180, 179, 6) + 1
+crs_list <- crs.long2utm(lons)
 }

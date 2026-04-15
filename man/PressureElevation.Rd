@@ -8,10 +8,10 @@
 PressureElevation(z)
 }
 \arguments{
-\item{z}{Elevation [m]}
+\item{z}{Elevation in m.}
 }
 \value{
-Air pressure at the elevation [kPa]
+Air pressure at the elevation in kPa.
 }
 \description{
 Air pressure at the elevation, Allen(1998) Eq(7)

@@ -23,11 +23,11 @@ Generate the default LAI and Roughness Length for USGS GLC
 }
 \examples{
 lc = 1:14
-lr=LaiRf.GLC(lc, years=2000:2001)
-par(mfrow=c(2,1))
-col=1:length(lc)
-plot(lr$LAI, col=col, main='LAI');
-legend('top', paste0(lc), col=col, lwd=1)
-plot(lr$RL, col=col, main='Roughness Length');
-legend('top', paste0(lc), col=col, lwd=1)
+lr = LaiRf.GLC(lc, years = 2000:2001)
+par(mfrow = c(2, 1))
+col = 1:length(lc)
+plot(lr$LAI, col = col, main = 'LAI');
+legend('top', paste0(lc), col = col, lwd = 1)
+plot(lr$RL, col = col, main = 'Roughness Length');
+legend('top', paste0(lc), col = col, lwd = 1)
 }

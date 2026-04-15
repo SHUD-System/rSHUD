@@ -11,8 +11,6 @@ LaiRf.NLCD(lc, years = 2000)
 \item{lc}{land classe codes}
 
 \item{years}{numeric years.}
-
-\item{class}{The classification of the Landuse of NLCD}
 }
 \value{
 Default LaiRf.NLCD parameters, a list $LAI, $RL
@@ -23,11 +21,11 @@ Generate the default LAI and Roughness Length
 }
 \examples{
 lc = c(43, 23, 81, 11)
-lr=LaiRf.NLCD(lc, years=2000:2001)
-par(mfrow=c(2,1))
-col=1:length(lc)
-plot(lr$LAI, col=col, main='LAI');
-legend('top', paste0(lc), col=col, lwd=1)
-plot(lr$RL, col=col, main='Roughness Length');
-legend('top', paste0(lc), col=col, lwd=1)
+lr = LaiRf.NLCD(lc, years = 2000:2001)
+par(mfrow = c(2, 1))
+col = 1:length(lc)
+plot(lr$LAI, col = col, main = 'LAI');
+legend('top', paste0(lc), col = col, lwd = 1)
+plot(lr$RL, col = col, main = 'Roughness Length');
+legend('top', paste0(lc), col = col, lwd = 1)
 }

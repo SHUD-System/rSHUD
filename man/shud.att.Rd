@@ -2,8 +2,7 @@
 % Please edit documentation in R/MeshDomain.R
 \name{shud.att}
 \alias{shud.att}
-\title{extract Coordinates of SpatialLines or  SpatialPolygons
-\code{shud.att}}
+\title{Calculate mesh attributes from raster data}
 \usage{
 shud.att(
   tri,
@@ -18,28 +17,60 @@ shud.att(
 )
 }
 \arguments{
-\item{tri}{Triangles defination}
+\item{tri}{Triangulation object from RTriangle or shud.triangle()}
 
-\item{r.soil}{raster of soil classification}
+\item{r.soil}{Soil classification raster - terra SpatRaster or legacy raster
+(auto-converted) (optional)}
 
-\item{r.geol}{raster of geology layer}
+\item{r.geol}{Geology classification raster - terra SpatRaster or legacy raster
+(auto-converted) (optional)}
 
-\item{r.lc}{raster of land cover, LAI and Roughness Length}
+\item{r.lc}{Land cover classification raster - terra SpatRaster or legacy raster
+(auto-converted) (optional)}
 
-\item{r.forc}{raster of forcing data}
+\item{r.forc}{Forcing data zones raster - terra SpatRaster or legacy raster
+(auto-converted) (optional)}
 
-\item{r.mf}{raster of melt factor}
+\item{r.mf}{Melt factor raster - terra SpatRaster or legacy raster
+(auto-converted) (optional)}
 
-\item{r.BC}{raster of boundary condition}
+\item{r.BC}{Boundary condition raster or numeric (optional)}
 
-\item{r.SS}{raster of Source/Sink}
+\item{r.SS}{Source/sink raster or numeric (optional)}
 
-\item{sp.lake}{SpatialPolygon of lake layers.}
+\item{sp.lake}{Lake polygons - sf object or legacy sp object (auto-converted)
+(optional)}
 }
 \value{
-data.frame of SHUD .att
+data.frame with attribute indices for each mesh triangle
 }
 \description{
-extract Coordinates of SpatialLines or  SpatialPolygons
-\code{shud.att}
+Extracts attribute values from raster layers to mesh triangle centroids.
+Modernized implementation using terra for raster operations with improved
+performance, with automatic raster to terra conversion.
+}
+\details{
+This function has been modernized to use terra for raster operations,
+providing 2-5x better performance. Legacy raster and sp objects are
+automatically converted to terra/sf formats.
+}
+\examples{
+\dontrun{
+library(sf)
+library(terra)
+
+# Generate mesh
+boundary <- sf::st_as_sf(
+  sf::st_sfc(sf::st_polygon(list(matrix(c(0,0, 10,0, 10,10, 0,10, 0,0),
+                                         ncol=2, byrow=TRUE))))
+)
+tri <- shud.triangle(wb = boundary, q = 30, a = 2)
+
+# Create attribute rasters
+soil <- terra::rast(ncol=10, nrow=10, xmin=0, xmax=10, ymin=0, ymax=10)
+terra::values(soil) <- sample(1:5, 100, replace=TRUE)
+
+# Calculate attributes
+att <- shud.att(tri, r.soil = soil)
+}
 }

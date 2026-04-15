@@ -8,19 +8,34 @@
 count(x, n = NULL)
 }
 \arguments{
-\item{x}{target value}
+\item{x}{Vector to count occurrences in}
 
-\item{n}{specific frequency}
+\item{n}{Optional filter for count values}
 }
 \value{
 count of specific frequency
+Count occurrences in a vector (DEPRECATED)
+
+Table of counts
 }
 \description{
-Count the frequency of numbers
-\code{count}
+\strong{This function is deprecated.} Use \code{table()} from base R instead.
+
+This function is a thin wrapper around \code{table()} and provides minimal
+added value. Users should use the standard \code{table()} function directly.
 }
+\section{Deprecated}{
+
+\code{count()} is deprecated. Use \code{table()} from base R instead.
+}
+
 \examples{
-x=c(round(rnorm(100, 2)+1), 0,0)
+\dontrun{
+# Deprecated usage
+x <- c(round(rnorm(100, 2)+1), 0, 0)
 count(x)
-count(x, sum(x==0))
+
+# Recommended usage
+table(x)
+}
 }

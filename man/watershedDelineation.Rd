@@ -27,6 +27,8 @@ watershedDelineation(
 \item{dirtemp}{dir for temporary data save. Default = tempdir()}
 
 \item{FlowAccCell.min}{Minimum number of cells for river generation. Default  = Number of DEM / 100}
+
+\item{plot}{Whether to generate diagnostic plots.}
 }
 \value{
 list of path to dem-filled, wbd, riv, outlet

@@ -2,23 +2,36 @@
 % Please edit documentation in R/GIS_Projection.R
 \name{crs.Lambert}
 \alias{crs.Lambert}
-\title{Build a Lambert Equal Area projection based on the spatial data or extent.
-\code{crs.Lambert}}
+\title{Build a Lambert Equal Area projection}
 \usage{
-crs.Lambert(spx, ext = NULL)
+crs.Lambert(spx = NULL, ext = NULL)
 }
 \arguments{
-\item{spx}{Spatial Data}
+\item{spx}{Spatial data object (sf, SpatVector, or SpatRaster). If NULL,
+must provide ext parameter.}
 
-\item{ext}{extent of the data.}
+\item{ext}{Numeric vector of extent: c(xmin, xmax, ymin, ymax) in
+longitude/latitude (EPSG:4326). If NULL, extracted from spx.}
 }
 \value{
-CRS in Lambert
+Character string with PROJ.4 CRS definition for Lambert projection
 }
 \description{
-Build a Lambert Equal Area projection based on the spatial data or extent.
-\code{crs.Lambert}
+Creates a Lambert Azimuthal Equal Area projection based on spatial data
+extent. This projection is suitable for areas with similar north-south and
+east-west extent and preserves area measurements.
 }
 \examples{
-crs.Lambert(ext=c(90, 100, 35, 40))
+# Create Lambert projection from extent
+crs_lambert <- crs.Lambert(ext = c(-120, -110, 35, 45))
+
+# Use with spatial data
+if (requireNamespace("sf", quietly = TRUE)) {
+  pts <- sf::st_as_sf(
+    data.frame(x = c(-115, -112), y = c(40, 42)),
+    coords = c("x", "y"),
+    crs = 4326
+  )
+  crs_lambert <- crs.Lambert(spx = pts)
+}
 }

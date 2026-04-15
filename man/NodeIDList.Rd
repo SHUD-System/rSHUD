@@ -5,7 +5,7 @@
 \title{return the Index of nodes in SpatialData
 \code{NodeIDList}}
 \usage{
-NodeIDList(sp, coord = extractCoords(sp, unique = TRUE))
+NodeIDList(sp, coord = get_coords(sp))
 }
 \arguments{
 \item{sp}{SpatialLines*}

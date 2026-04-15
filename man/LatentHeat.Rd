@@ -8,10 +8,10 @@
 LatentHeat(Temp)
 }
 \arguments{
-\item{Temp}{Air temperature, [C]}
+\item{Temp}{Air temperature in C.}
 }
 \value{
-Latent heat, lambda in [MJ/kg]
+Latent heat \code{lambda} in MJ/kg.
 }
 \description{
 Latent Heat, Eq 4.2.1 in David R Maidment, Handbook of Hydrology

@@ -31,7 +31,9 @@ readnc.time <- function(ncid) {
               minutes=lubridate::minutes, minute=lubridate::minutes, min=lubridate::minutes,
               hours=lubridate::hours,     hour=lubridate::hours,     h=lubridate::hours,
               days=lubridate::days,       day=lubridate::days,       d=lubridate::days,
-              months=lubridate::months,   month=lubridate::months,   m=lubridate::months,
+              months=function(x) lubridate::period(num = x, units = "month"),
+              month=function(x) lubridate::period(num = x, units = "month"),
+              m=function(x) lubridate::period(num = x, units = "month"),
               years=lubridate::years,     year=lubridate::years,     yr=lubridate::years,
               NA
   )
@@ -55,7 +57,7 @@ readnc<-function(ncid, varid=NULL,  ext = NULL){
   }else if(is.character(varid)){ # read VARID (character) by user
     if(!all(varid %in% vars)){ # validate the input chars.
       message(msg, 'ERROR:: some varid is missing in the dataset.\n')
-      print(varid[! (varid %in% vars)])
+      message('Missing varid: ', paste(varid[! (varid %in% vars)], collapse=', '))
       stop('Stop with error.')
     }
     varid = varid

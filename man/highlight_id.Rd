@@ -2,17 +2,47 @@
 % Please edit documentation in R/plotMap.R
 \name{highlight_id}
 \alias{highlight_id}
-\title{Highlight elements with id.
-\code{highlight_id}}
+\title{Highlight elements with id (DEPRECATED - INCOMPLETE)}
 \usage{
 highlight_id(EleID = NULL, RivID = NULL)
 }
 \arguments{
-\item{EleID}{Index of element}
+\item{EleID}{Index of element to highlight}
 
-\item{RivID}{Index of river reaches}
+\item{RivID}{Index of river reaches to highlight}
+}
+\value{
+NULL (plots to current device)
 }
 \description{
-Highlight elements with id.
-\code{highlight_id}
+\strong{This function is deprecated and incomplete.} It uses legacy spatial
+libraries (raster/sp) and has incomplete implementation. This function will
+be removed in a future version.
+
+Users should create custom highlighting plots using modern spatial packages:
+\itemize{
+\item Use \code{terra::plot()} for raster visualization
+\item Use \code{sf::plot()} or \code{ggplot2} for vector visualization
+}
+}
+\section{Deprecated}{
+
+This function is deprecated due to incomplete implementation and use of
+legacy spatial libraries. It will be removed in version 2.4.0.
+}
+
+\examples{
+\dontrun{
+# This function is deprecated
+# Use modern plotting instead:
+library(sf)
+library(terra)
+
+# Read and plot mesh
+mesh_sf <- st_read("mesh.shp")
+plot(mesh_sf)
+
+# Highlight specific elements
+plot(mesh_sf[EleID, ], col = "red", add = TRUE)
+}
 }

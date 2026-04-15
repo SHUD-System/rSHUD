@@ -5,7 +5,7 @@
 \title{determine index of downstream
 \code{sp.RiverOrder}}
 \usage{
-sp.RiverDown(sp, coord = extractCoords(sp))
+sp.RiverDown(sp, coord = get_coords(sp))
 }
 \arguments{
 \item{sp}{SpatialLines*}

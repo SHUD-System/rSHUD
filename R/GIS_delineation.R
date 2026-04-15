@@ -6,16 +6,16 @@
 #' @param dirout  dir for out data(dem_filled.tif, dem_stm.shp, dem_wbd.shp, dem_outlets.shp) saved. Default = tempdir()
 #' @param dirtemp  dir for temporary data save. Default = tempdir()
 #' @param FlowAccCell.min  Minimum number of cells for river generation. Default  = Number of DEM / 100
+#' @param plot Whether to generate diagnostic plots.
 #' @return list of path to dem-filled, wbd, riv, outlet
 #' @export
 watershedDelineation <- function(fn.wbd, 
                                  fnr.dem, 
-                                 fsp.outlets= NULL,
+                                 fsp.outlets = NULL,
                                  dirout = tempdir(),
                                  dirtemp = tempdir(),
                                  FlowAccCell.min = NULL, 
-                                 plot=FALSE
-){
+                                 plot = FALSE){
   # library(raster)
   # library(whitebox)
   # library(terra)
@@ -29,49 +29,55 @@ watershedDelineation <- function(fn.wbd,
   fnr.breached = file.path(dirtemp, "dem.breached.tif")
   fnr.d8fa = file.path(dirtemp, 'd8fa.tif')
   fnr.d8ptr = file.path(dirtemp, 'd8ptr.tif')
-  fnr.stm =  file.path(dirtemp, 'stream.tif')
-  fnr.stmclip =  file.path(dirtemp, 'stream_clip.tif')
-  fnr.subs =  file.path(dirtemp, 'subbasins.tif')
+  fnr.stm = file.path(dirtemp, 'stream.tif')
+  fnr.stmclip = file.path(dirtemp, 'stream_clip.tif')
+  fnr.subs = file.path(dirtemp, 'subbasins.tif')
   fnr.flood = file.path(dirtemp, 'flood.tif')
   fnr.wbd = file.path(dirtemp, 'wbd.tif')
   
-  plotr <- function(x, ...){raster::plot(raster(x), ...)}
-  plotv <- function(x, ...){raster::plot(rgdal::readOGR(x), ...)}
+  plotr <- function(x, ...){terra::plot(terra::rast(x), ...)}
+  plotv <- function(x, ...){plot(sf::st_geometry(sf::st_read(x, quiet = TRUE)), ...)}
   
   # # 1. Fill Pits
-  # writelog(paste0('1. Fill Pits'), caller=caller)
+  # writelog(paste0('1. Fill Pits'), caller = caller)
   whitebox::wbt_feature_preserving_smoothing(dem = fnr.dem, output = fnr.smoothing, filter = 9)
-  whitebox::wbt_breach_depressions_least_cost(dem = fnr.smoothing,  output = fnr.breached,  dist = 5,  fill = TRUE)
+  whitebox::wbt_breach_depressions_least_cost(dem = fnr.smoothing, output = fnr.breached, dist = 5, fill = TRUE)
   whitebox::wbt_fill_depressions_wang_and_liu(dem = fnr.breached, output = fnr.filled)
-  plot(raster(fnr.filled))
+  plot(terra::rast(fnr.filled))
   
   
   # # 2. Flow Accumulation and Pointer Grids
-  # writelog(paste0('2. Flow Accumulation and Pointer Grids'), caller=caller)
+  # writelog(paste0('2. Flow Accumulation and Pointer Grids'), caller = caller)
   whitebox::wbt_d8_flow_accumulation(input = fnr.filled, output = fnr.d8fa)
   whitebox::wbt_d8_pointer(dem = fnr.filled, output = fnr.d8ptr)
   # plot(raster(fnr.d8fa))
   
   # 3. Watershed.
-  # writelog(paste0('3. Watershed.'), caller=caller)
+  # writelog(paste0('3. Watershed.'), caller = caller)
   do_outlets <- function(){
-    r = raster(fnr.d8fa)
-    sp.wbd = rgdal::readOGR(fn.wbd)
-    spp = sp::spTransform(sp.wbd, CRSobj = crs(r))
-    r = raster::mask(r, spp)
+    r = terra::rast(fnr.d8fa)
+    wbd = sf::st_read(fn.wbd, quiet = TRUE)
+    wbd = sf::st_transform(wbd, crs = sf::st_crs(terra::crs(r, proj = TRUE)))
+    r = terra::mask(r, terra::vect(wbd))
     # plot(r)
-    maxval = cellStats(r, max, na.rm=TRUE)
-    idx = which.max(Which(r >= maxval))
-    # idx = which.max(r, na.rm=TRUE)
-    ll.outlets = xyFromCell(r,idx)
-    sp.outlets = rSHUD::xy2shp(ll.outlets)
-    rSHUD::writeshape(sp.outlets, file=fsp.outlets)
+    maxval = terra::global(r, "max", na.rm = TRUE)[1, 1]
+    vals = terra::values(r, mat = FALSE)
+    idx = which(vals >= maxval)[1]
+    # idx = which.max(r, na.rm = TRUE)
+    ll.outlets = terra::xyFromCell(r, idx)
+    outlets = rSHUD::xy2shp(
+      xy = ll.outlets,
+      crs = sf::st_crs(terra::crs(r, proj = TRUE)),
+      shape = "points",
+      output = "sf"
+    )
+    sf::st_write(outlets, fsp.outlets, delete_layer = TRUE, quiet = TRUE)
   }
-  if(is.null(fsp.outlets) ){
+  if(is.null(fsp.outlets)){
     fsp.outlets = file.path(dirout, 'dem_outlets.shp')
     do_outlets()
   }else{
-    if(file.exists(fsp.outlets) ){
+    if(file.exists(fsp.outlets)){
       #void
     }else{
       fsp.outlets = file.path(dirout, 'dem_outlets.shp')
@@ -79,26 +85,27 @@ watershedDelineation <- function(fn.wbd,
     }
   }
   # plotr(fnr.wbd)
-  # plotv(fsp.wbd, add=T)
+  # plotv(fsp.wbd, add = TRUE)
   
   whitebox::wbt_watershed(d8_pntr = fnr.d8ptr, pour_pts = fsp.outlets, output = fnr.wbd)
   whitebox::wbt_raster_to_vector_polygons(fnr.wbd, output = fsp.wbd)
   
-  # writelog(paste0('4. Extract Streams'), caller=caller)
+  # writelog(paste0('4. Extract Streams'), caller = caller)
   # # 4. Extract Streams
   if(is.null(FlowAccCell.min)){
-    r=raster::raster(fnr.dem)
-    FlowAccCell.min = max(10, round(length(r)/500) )
+    r = terra::rast(fnr.dem)
+    FlowAccCell.min = max(10, round(terra::ncell(r) / 500))
   }else{
     FlowAccCell.min = FlowAccCell.min
   }
   whitebox::wbt_extract_streams(flow_accum = fnr.d8fa, output = fnr.stm, 
-                                threshold = FlowAccCell.min, command_only=F)
-  whitebox::wbt_raster_streams_to_vector(streams=fnr.stm, d8_pntr = fnr.d8ptr, output = fsp.stm)
-  sp.wbd = rgdal::readOGR(fsp.wbd)
-  sp.stm = rgdal::readOGR(fsp.stm)
-  spx = raster::crop(sp.stm, sp.wbd)
-  writeshape(spx, fsp.stm)
+                                threshold = FlowAccCell.min, command_only = FALSE)
+  whitebox::wbt_raster_streams_to_vector(streams = fnr.stm, d8_pntr = fnr.d8ptr, output = fsp.stm)
+  wbd_sf = sf::st_read(fsp.wbd, quiet = TRUE)
+  stm_sf = sf::st_read(fsp.stm, quiet = TRUE)
+  wbd_union = sf::st_union(sf::st_make_valid(wbd_sf))
+  stm_crop = suppressWarnings(sf::st_intersection(sf::st_make_valid(stm_sf), wbd_union))
+  sf::st_write(stm_crop, fsp.stm, delete_layer = TRUE, quiet = TRUE)
   
   # writelog(paste0('Plot watershed_delineation.png'), caller=caller)
   if(plot){

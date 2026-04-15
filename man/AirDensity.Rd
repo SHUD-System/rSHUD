@@ -8,12 +8,12 @@
 AirDensity(P, Temp)
 }
 \arguments{
-\item{P}{Air pressure [kP]}
+\item{P}{Air pressure in kPa.}
 
-\item{Temp}{Air temperature [C]}
+\item{Temp}{Air temperature in C.}
 }
 \value{
-Density of Air. [kg m-3]
+Density of air in kg m^-3.
 }
 \description{
 Air Density, Eq 4.2.4 in David R Maidment, Handbook of Hydrology

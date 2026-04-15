@@ -31,24 +31,7 @@ Eudist <- function(p1,p2){
   d
 }
 
-#' extract Coordinates of SpatialLines or  SpatialPolygons
-#' \code{extractCoords}
-#' @param x SpatialLines or SpatialPolygons
-#' @param unique Whether return unique coordinates or duplicated coordinates
-#' @param aslist Whether return as list of coordinates
-#' @return coordinates of points, m x 2.
-#' @export
-extractCoords<-function(x, unique=TRUE, aslist = FALSE){
-  spl <- methods::as(x, "SpatialLines")
-  spp <- methods::as(spl, "SpatialPoints")
-  pts = sp::coordinates(spp)
-  if (unique){
-    ret = unique(pts)
-  }else{
-    ret = pts
-  }
-  return(ret)
-}
+
 
 #' Convert the \code{xy} (X,Y) into Index in \code{coords}
 #' \code{xy2ID}
@@ -82,17 +65,39 @@ xy2ID <- function(xy, coord){
 #' @param x target value
 #' @param n specific frequency
 #' @return count of specific frequency
+#' Count occurrences in a vector (DEPRECATED)
+#' 
+#' @description
+#' \strong{This function is deprecated.} Use \code{table()} from base R instead.
+#' 
+#' This function is a thin wrapper around \code{table()} and provides minimal
+#' added value. Users should use the standard \code{table()} function directly.
+#' 
+#' @param x Vector to count occurrences in
+#' @param n Optional filter for count values
+#' @return Table of counts
 #' @export
+#' @section Deprecated:
+#' \code{count()} is deprecated. Use \code{table()} from base R instead.
+#' 
 #' @examples
-#' x=c(round(rnorm(100, 2)+1), 0,0)
+#' \dontrun{
+#' # Deprecated usage
+#' x <- c(round(rnorm(100, 2)+1), 0, 0)
 #' count(x)
-#' count(x, sum(x==0))
-count <- function(x, n=NULL){
+#' 
+#' # Recommended usage
+#' table(x)
+#' }
+count <- function(x, n = NULL){
+  .Deprecated("table", package = "base",
+              msg = "count() is deprecated. Use table() from base R instead.")
+  
   if(is.null(n)){
-    rt = table(x)
+    rt <- table(x)
   }else{
-    ct = table(x)
-    rt = ct[which(ct %in% n)]
+    ct <- table(x)
+    rt <- ct[which(ct %in% n)]
   }
   rt
 }
@@ -143,7 +148,7 @@ sp2PSLG<-function(sp){
   }
   sl = methods::as(sp, 'SpatialLines')
   nsl = length(sl)
-  P = extractCoords(sl, unique = TRUE)
+  P = get_coords(sl)
   H=S=NULL
   maketb <- function(x, pts){
     # Handel the Holes
@@ -168,7 +173,13 @@ sp2PSLG<-function(sp){
     list(CB=CB, H=H)
   }
   for(i in 1:nsl){
-    cc = extractCoords(sl[i,], unique = FALSE)
+    if (inherits(sl[i,], "sf") || inherits(sl[i,], "sfc")) {
+      cc <- sf::st_coordinates(sf::st_geometry(sl[i,]))[, 1:2, drop = FALSE]
+    } else {
+      spl <- methods::as(sl[i,], "SpatialLines")
+      spp <- methods::as(spl, "SpatialPoints")
+      cc <- sp::coordinates(spp)
+    }
     e = xy2ID(cc,P)
     tb = maketb(x = e, pts = P)
     S = rbind(S, tb$CB)
@@ -236,21 +247,20 @@ days_in_year <- function(years){
 #' @param FUN function.
 #' @param ... more options in xts::apply.daily()
 #' @return xts data whose time index is daily.
-#' @export
+#' @noRd
 #' @examples 
 #' library(xts)
 #' x=as.xts(rnorm(100), order.by = as.POSIXct('2000-01-01')+ 1:100 * 3600*24)
 #' xd = ts2Daily(x)
 #' class(time(x))
 #' class(time(xd))
-ts2Daily <- function(x, FUN=mean, ...){
-  msg = 'xts2Daily:: '
+ts2Daily_legacy <- function(x, FUN=mean, ...){
+  msg = 'ts2Daily:: '
   if(any(class(x) %in% c('xts', 'zoo'))){
     y = xts::apply.daily(x, FUN = FUN, ...)
     t0 = time(y)
-    time(y) = as.Date(t0)
+    zoo::index(y) <- as.Date(t0)
   }else{
-    # message(xts2Daily, 'ERROR: require xts or zoo data class.')
     stop(paste0(msg, 'ERROR: require xts or zoo data class.'));
   }
   return(y)

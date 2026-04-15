@@ -7,15 +7,15 @@
 #' @param AREA Area of the watershed, for estimating the width/depth of river.
 #' @return SHUD.RIVER
 #' @export
-shud.river <- function(sl, dem, rivord  = NULL, rivdown=NULL, AREA=NULL){
-  msg='shud.river::'
+shud.river <- function(sl, dem, rivord = NULL, rivdown = NULL, AREA = NULL){
+  msg = 'shud.river::'
   # sp.slt = sp.Polylines2Lines(sp)
   sp.slt = sl
   nsp = length(sp.slt)
-  xy = data.frame(extractCoords(sp.slt))
+  xy = data.frame(get_coords(sp.slt))
   # z = raster::extract(dem, xy)
   # pt = cbind(1:nrow(xy), xy, z)
-  # colnames(pt) = c('Index','X', 'Y', 'Zmax')
+  # colnames(pt) = c('Index', 'X', 'Y', 'Zmax')
   if(is.null(rivord)){
     message(msg, '\nCalculate river order ...')
     rivord = sp.RiverOrder(sp.slt)
@@ -25,63 +25,64 @@ shud.river <- function(sl, dem, rivord  = NULL, rivdown=NULL, AREA=NULL){
     rivdown = sp.RiverDown(sp.slt)
   }
   message(msg, '\nFrom/To nodes ...') 
-  ft = rbind(FromToNode(sp.slt, simplify=TRUE)[, 2:3])
+  ft = rbind(get_from_to_nodes(sp.slt)[, 2:3])
   message(msg, '\nSlope and length of river ...')
-  zf = raster::extract(dem, xy[ft[,1], ])
-  zt = raster::extract(dem, xy[ft[,2], ])
+  zf = raster::extract(dem, xy[ft[, 1], ])
+  zt = raster::extract(dem, xy[ft[, 2], ])
   len = rgeos::gLength(sp.slt, byid = TRUE)
   slp = (zf - zt) / len;
   row.names(sp.slt) = paste(1:nsp)
   
-  df = data.frame('Index'=1:nsp,
+  df = data.frame('Index' = 1:nsp,
                   'Down' = rivdown,
                   'Type' = rivord,
                   'Slope' = slp,
                   'Length' = len,
-                  'BC' = len *0)
+                  'BC' = len * 0)
   rownames(df) = row.names(sp.slt)
   
-  p.df = data.frame(xy[ft[, 1], ], zf, xy[ft[,2], ], zt)
-  colnames(p.df) = c('From.x','From.y','From.z', 'To.x', 'To.y', 'To.z')
+  p.df = data.frame(xy[ft[, 1], ], zf, xy[ft[, 2], ], zt)
+  colnames(p.df) = c('From.x', 'From.y', 'From.z', 'To.x', 'To.y', 'To.z')
   rownames(p.df) = row.names(sp.slt)
   
-  sp.df = sp::SpatialLinesDataFrame(sp.slt, data=df)
+  sp.df = sp::SpatialLinesDataFrame(sp.slt, data = df)
   ntype = max(rivord)
   if(is.null(AREA)){
     rtype = RiverType(ntype)
   }else{
-    fx  = function(a, n = 10){
-      dd =  (1 / (1:n) ) ^ 0.8
-      rev(8 * log10(a + 1)  * a  ^ 0.25 * dd)
+    fx = function(a, n = 10){
+      dd = (1 / (1:n)) ^ 0.8
+      rev(8 * log10(a + 1) * a ^ 0.25 * dd)
     }
     wd = round(fx(AREA, ntype), 2)
-    rtype = RiverType(ntype, width=wd)
+    rtype = RiverType(ntype, width = wd)
   }
-  p.z=raster::extract(dem, xy)
+  p.z = raster::extract(dem, xy)
   SHUD.RIVER(river = df,
              rivertype = data.frame(rtype), 
-             point=p.df
-  )
+             point = p.df)
 }
+
 #' Calculate the river length
 #' \code{RiverLength}
 #' @param pr SHUD.RIVER class
 #' @return River length, vector
 #' @export
-RiverLength<- function(pr){
+RiverLength <- function(pr){
   rv = pr@river
   pt = pr@point
   n = nrow(rv)
-  pfr = rv[,2]
-  pto = rv[,3]
+  pfr = rv[, 2]
+  pto = rv[, 3]
   p0 = pt[pfr, 2:3]
   p1 = pt[pto, 2:3]
   d = rep(0, n)
   for(i in 1:n){
-    d[i] <- Eudist(p0[i,],p1[i,])
+    d[i] <- Eudist(p0[i, ], p1[i, ])
   }
   d
 }
+
 #' Calculate the river slope
 #' \code{RiverSlope}
 #' @param pr SHUD.RIVER class
@@ -92,8 +93,8 @@ RiverSlope <- function(pr){
   rt = pr@rivertype
   pt = pr@point
 
-  pfr = rv[,'FrNode']
-  pto = rv[,'ToNode']
+  pfr = rv[, 'FrNode']
+  pto = rv[, 'ToNode']
   z0 = pt[pfr, 'Zmax']
   z1 = pt[pto, 'Zmax']
   len = RiverLength(pr)
@@ -103,7 +104,7 @@ RiverSlope <- function(pr){
   #=============
   idown = rv[, 'Down']
   zz = pt[pto, 'Zmax']
-  oid=which(idown <= 0)
+  oid = which(idown <= 0)
   idown[oid] = oid
 
   z0 = z
@@ -122,7 +123,7 @@ RiverSlope <- function(pr){
 #' @return SpatialLinesDataFrame
 #' @export
 correctRiverSlope <- function(pr, minSlope = 1e-5, maxrun = 500){
-    msg='correctRiverSlope::'
+    msg = 'correctRiverSlope::'
   EPS = 1e-9
   # pr = ppr
   # minSlope = 1e-4
@@ -132,13 +133,13 @@ correctRiverSlope <- function(pr, minSlope = 1e-5, maxrun = 500){
   idown = pr@river[,'Down']
   len = RiverLength(pr)
   oid = getOutlets(pr)
-  nloop=0
+  nloop = 0
   pz0 = pr@point[, 'Zmax']
   while(nflag > 0 & maxrun > nloop){
-    nloop=nloop+1
+    nloop = nloop + 1
     pz = pr@point[, 'Zmax']
-    s=RiverSlope(pr)
-    rid = which(s[,1] < minSlope )
+    s = RiverSlope(pr)
+    rid = which(s[, 1] < minSlope )
     nflag = length(rid)
     if(nflag >= 1){
       message(msg, nflag, ' rivers in type 1 (reverse)')
@@ -151,12 +152,12 @@ correctRiverSlope <- function(pr, minSlope = 1e-5, maxrun = 500){
         p2 = pto[otid]
         ll = len[otid]
 
-        pz[p2] = pz[p1] - minSlope*ll - EPS
+        pz[p2] = pz[p1] - minSlope * ll - EPS
         #pz[pto[rid]] = pz[pfr[rid]] - len[rid] * minSlope - EPS
         pr@point[,'Zmax'] = pz
       }else{
         # for(ip in 1:length(rid)){
-        # ip=1
+        # ip = 1
         #   p1 = pfr[rid[ip]]
         #   p2 = pto[rid[ip]]
         #   p3 = pto[idn[ip]]
@@ -175,12 +176,12 @@ correctRiverSlope <- function(pr, minSlope = 1e-5, maxrun = 500){
 
   flag = 1
   idown = pr@river[,'Down']
-  nloop=0
+  nloop = 0
   while(nflag > 0 & maxrun > nloop){
-    nloop=nloop+1
+    nloop = nloop + 1
     pz = pr@point[, 'Zmax']
-    s=RiverSlope(pr)
-    rid = which(s[,2] < minSlope )
+    s = RiverSlope(pr)
+    rid = which(s[, 2] < minSlope )
     nflag = length(rid)
     if(nflag > 0){
       message(msg, nflag, ' rivers in type 2 (revers down)')
@@ -193,7 +194,7 @@ correctRiverSlope <- function(pr, minSlope = 1e-5, maxrun = 500){
     }
   }
   dz = pz0 - pz
-  dz0 = dz[ dz!= 0]
+  dz0 = dz[ dz != 0]
   message(msg, length(dz0), ' points was changed.')
   print(summary(dz0))
   pr
@@ -205,7 +206,7 @@ correctRiverSlope <- function(pr, minSlope = 1e-5, maxrun = 500){
 #' @param dbf Attribute data for exported SpatialLines
 #' @return SpatialLinesDataFrame
 #' @export
-sp.riv2shp <- function(pr = readriv(), dbf=NULL){
+sp.riv2shp <- function(pr = readriv(), dbf = NULL){
   # pt = pr@point[,2:3]
   # rt = pr@rivertype
   # riv = pr@river
@@ -215,7 +216,7 @@ sp.riv2shp <- function(pr = readriv(), dbf=NULL){
   # np = nrow(pt)
   # 
   # ft = riv[,2:3]
-  # sl=list()
+  # sl = list()
   # sls = list()
   # for(i in 1:nr){
   #   coord = rbind(pt[ft[i,1], ], pt[ft[i,2], ])
@@ -231,27 +232,16 @@ sp.riv2shp <- function(pr = readriv(), dbf=NULL){
   # rownames(df) = names(spl)
   # sp = sp::SpatialLinesDataFrame(spl, data=df)
   fn = file.path(get('inpath', envir = .shud), 'gis', 'river.shp')
-  sp = rgdal::readOGR(fn)
+  sp = as(sf::st_read(fn, quiet = TRUE), "Spatial")
   sp
 }
 
-#' Generate the river segments table
-#' \code{shud.rivseg}
-#' @param sl SpatialLinesDataFrame
-#' @return river segments table
-#' @export
-shud.rivseg <- function(sl){
-  df = data.frame('Index' = 1:length(sl),
-                  sl@data,
-                  'Length' = rgeos::gLength(sl, byid = T))
-  df
-}
 #' Get outlet ID(s)
 #' \code{getOutlets}
 #' @param pr SHUD.RIVER class
 #' @return Index of outlets, numeric
 #' @export
-getOutlets <- function(pr=readriv()){
+getOutlets <- function(pr = readriv()){
   idown = pr@river[,'Down']
   ids = which(idown < 0)
   ids

@@ -6,35 +6,35 @@
 #' @return Hydraulic parameters, matrix
 #' @export
 #' @examples 
-#' x=cbind(10,40, 1:20, 1.5)
-#' y=PTF(x)
-#' apply(y[,-1], 2, summary)
-#' plot(x[,3], y[,2])
-PTF <- function (x=t(matrix(c(33, 33, 2, 1.4), ncol=5, nrow=4) ), topsoil=TRUE, 
-                 xmin=c(.1, .1, .8, 1.2) ){
-  msg='PTF:: '
+#' x = cbind(10, 40, 1:20, 1.5)
+#' y = PTF(x)
+#' apply(y[, -1], 2, summary)
+#' plot(x[, 3], y[, 2])
+PTF <- function(x = t(matrix(c(33, 33, 2, 1.4), ncol = 5, nrow = 4)), topsoil = TRUE, 
+                xmin = c(.1, .1, .8, 1.2)){
+  msg = 'PTF:: '
   #Wösten, J. H. M., Pachepsky, Y. a., & Rawls, W. J. (2001). Pedotransfer functions: Bridging the gap between available basic soil data and missing soil hydraulic characteristics. Journal of Hydrology, 251(3–4), 123–150. https://doi.org/10.1016/S0022-1694(01)00464-4
   if(is.matrix(x) || is.data.frame(x)){
     if(ncol(x) < 4){
       stop('Input X must be N*4 matrix or data.frame')
     }else if(ncol(x) == 4){
-      y=x
+      y = x
     }else{
-      y = x[, ncol(x) - 3:0 ]
+      y = x[, ncol(x) - 3:0]
     }
     
   }else{
-    y = as.matrix(x, ncol=4);
+    y = as.matrix(x, ncol = 4);
   }
-  nsoil  = nrow(y)
-  ly =  matrix(ifelse(topsoil,1,0), nrow= nsoil, ncol=1)
-  for (i in  1:nsoil){
-    id= i;
+  nsoil = nrow(y)
+  ly = matrix(ifelse(topsoil, 1, 0), nrow = nsoil, ncol = 1)
+  for (i in 1:nsoil){
+    id = i;
     applymin <- function(x, xb, name, unit){
       if(is.na(x) | is.na(xb)){
       }
-      if (x <xb) { #must be positive. minimum value 0.1_perc.
-        message(msg, name, ' value ', x, ' (', i, ') is less than limit ', xb , ' ', unit)
+      if (x < xb) { #must be positive. minimum value 0.1_perc.
+        message(msg, name, ' value ', x, ' (', i, ') is less than limit ', xb, ' ', unit)
         x = xb
       } 
       return (x)
@@ -44,60 +44,60 @@ PTF <- function (x=t(matrix(c(33, 33, 2, 1.4), ncol=5, nrow=4) ), topsoil=TRUE,
     OM = applymin(y[i, 3], xmin[3], 'Organic Matter', '%wt')
     D = applymin(y[i, 4], xmin[4], 'Bulk Density', 'g/cm3')
     
-    # S = y[i,1] #Silt. percentage to ratio
-    # if (S <=xmin[1]) { #must be positive. minimum value 0.1_perc.
+    # S = y[i, 1] #Silt. percentage to ratio
+    # if (S <= xmin[1]) { #must be positive. minimum value 0.1_perc.
     #   warning('Non-positive SILT percentage, type ', i)
     #   S = 1/10
     # }
-    # C = y[i,2] # Clay ratio. percentage to ratio
-    # if (C <=xmin[2]){ #must be positive. minimum value 0.1_perc.
+    # C = y[i, 2] # Clay ratio. percentage to ratio
+    # if (C <= xmin[2]){ #must be positive. minimum value 0.1_perc.
     #   warning('Non-positive CLAY percentage, type ', i)
     #   C = 1/10
     # }
-    # OM = y[i,3] #Percentage Organic matter
-    # if(OM <=xmin[3]) { #must be positive or zero
+    # OM = y[i, 3] #Percentage Organic matter
+    # if(OM <= xmin[3]) { #must be positive or zero
     #   warning('Non-positive OM percentage, type ', i)
     #   OM = 1.3
     # }
-    # D = y[i,4]  # Bulk Density
+    # D = y[i, 4]  # Bulk Density
     # if (D <= xmin[4]) { # cannot be negative. default = 1.3 g/cm3
     #   warning('Non-positive bulk density, type ', i)
     #   D = 1.3
     # }
     topsoil = ly[i];
     #KsatV
-    #outData[i][1]= (7.755+0.03252*S+0.93*topsoil-0.967*D*D-0.000484*C*C-0.000322*S*S+0.001/S-0.0748/OM-0.643*log(S)-0.01398*D*C-0.1673*D*OM+0.02986*topsoil*C-0.03305*topsoil*S);
-    KsatV=exp(7.755+0.03252*S+0.93*topsoil-0.967*D*D-0.000484*C*C-0.000322*S*S+0.001/S-0.0748/OM-0.643*log(S)-0.01398*D*C-0.1673*D*OM+0.02986*topsoil*C-0.03305*topsoil*S);
-    #outData[i][1]=outData[i][1]/100;
+    #outData[i][1] = (7.755 + 0.03252 * S + 0.93 * topsoil - 0.967 * D * D - 0.000484 * C * C - 0.000322 * S * S + 0.001 / S - 0.0748 / OM - 0.643 * log(S) - 0.01398 * D * C - 0.1673 * D * OM + 0.02986 * topsoil * C - 0.03305 * topsoil * S);
+    KsatV = exp(7.755 + 0.03252 * S + 0.93 * topsoil - 0.967 * D * D - 0.000484 * C * C - 0.000322 * S * S + 0.001 / S - 0.0748 / OM - 0.643 * log(S) - 0.01398 * D * C - 0.1673 * D * OM + 0.02986 * topsoil * C - 0.03305 * topsoil * S);
+    #outData[i][1] = outData[i][1] / 100;
     KsatV = KsatV / 100; #cm/day -> m/day
     #ThetaS
-    #outData[i][2]=(0.7919+0.001691*C-0.29619*D-0.000001491*S*S+0.0000821*OM*OM+0.02427/C+0.01113/S+0.01472*log(S)-0.0000733*OM*C-0.000619*D*C-0.001183*D*OM-0.0001664*topsoil*S);
-    ThetaS=  (0.7919+0.001691*C-0.29619*D-0.000001491*S*S+0.0000821*OM*OM+0.02427/C+0.01113/S+0.01472*log(S)-0.0000733*OM*C-0.000619*D*C-0.001183*D*OM-0.0001664*topsoil*S);
+    #outData[i][2] = (0.7919 + 0.001691 * C - 0.29619 * D - 0.000001491 * S * S + 0.0000821 * OM * OM + 0.02427 / C + 0.01113 / S + 0.01472 * log(S) - 0.0000733 * OM * C - 0.000619 * D * C - 0.001183 * D * OM - 0.0001664 * topsoil * S);
+    ThetaS = (0.7919 + 0.001691 * C - 0.29619 * D - 0.000001491 * S * S + 0.0000821 * OM * OM + 0.02427 / C + 0.01113 / S + 0.01472 * log(S) - 0.0000733 * OM * C - 0.000619 * D * C - 0.001183 * D * OM - 0.0001664 * topsoil * S);
     #ThetaR
-    #ThetaR=0.01;
+    #ThetaR = 0.01;
     #InfD
-    #InfD=0.10;
+    #InfD = 0.10;
     #Alpha
-    #outData[i][5]=log(-14.96+0.03135*C+0.0351*S+0.646*OM+15.29*D-0.192*topsoil-4.671*D*D-0.000781*C*C-0.00687*OM*OM+0.0449/OM+0.0663*log(S)+0.1482*log(OM)-0.04546*D*S-0.4852*D*OM+0.00673*topsoil*C);
-    Alpha=100*exp(-14.96+0.03135*C+0.0351*S+0.646*OM+15.29*D-0.192*topsoil-4.671*D*D-0.000781*C*C-0.00687*OM*OM+0.0449/OM+0.0663*log(S)+0.1482*log(OM)-0.04546*D*S-0.4852*D*OM+0.00673*topsoil*C);
-    #outData[i][5]=   exp(-14.96+0.03135*C+0.0351*S+0.646*OM+15.29*D-0.192*topsoil-4.671*D*D-0.000781*C*C-0.00687*OM*OM+0.0449/OM+0.0663*log(S)+0.1482*log(OM)-0.04546*D*S-0.4852*D*OM+0.00673*topsoil*C);
+    #outData[i][5] = log(-14.96 + 0.03135 * C + 0.0351 * S + 0.646 * OM + 15.29 * D - 0.192 * topsoil - 4.671 * D * D - 0.000781 * C * C - 0.00687 * OM * OM + 0.0449 / OM + 0.0663 * log(S) + 0.1482 * log(OM) - 0.04546 * D * S - 0.4852 * D * OM + 0.00673 * topsoil * C);
+    Alpha = 100 * exp(-14.96 + 0.03135 * C + 0.0351 * S + 0.646 * OM + 15.29 * D - 0.192 * topsoil - 4.671 * D * D - 0.000781 * C * C - 0.00687 * OM * OM + 0.0449 / OM + 0.0663 * log(S) + 0.1482 * log(OM) - 0.04546 * D * S - 0.4852 * D * OM + 0.00673 * topsoil * C);
+    #outData[i][5] = exp(-14.96 + 0.03135 * C + 0.0351 * S + 0.646 * OM + 15.29 * D - 0.192 * topsoil - 4.671 * D * D - 0.000781 * C * C - 0.00687 * OM * OM + 0.0449 / OM + 0.0663 * log(S) + 0.1482 * log(OM) - 0.04546 * D * S - 0.4852 * D * OM + 0.00673 * topsoil * C);
     # exp in Alpha function is what is used in this package .
     #Beta
-    # if(Alpha <0){
+    # if(Alpha < 0){
     #   print(Alpha);
     # }
-    Beta=1+exp(-25.23-0.02195*C+0.0074*S-0.1940*OM+45.5*D-7.24*D*D+0.0003658*C*C+0.002885*OM*OM-12.81/D-0.1524/S-0.01958/OM-0.2876*log(S)-0.0709*log(OM)-44.6*log(D)-0.02264*D*C+0.0896*D*OM+0.00718*topsoil*C);
+    Beta = 1 + exp(-25.23 - 0.02195 * C + 0.0074 * S - 0.1940 * OM + 45.5 * D - 7.24 * D * D + 0.0003658 * C * C + 0.002885 * OM * OM - 12.81 / D - 0.1524 / S - 0.01958 / OM - 0.2876 * log(S) - 0.0709 * log(OM) - 44.6 * log(D) - 0.02264 * D * C + 0.0896 * D * OM + 0.00718 * topsoil * C);
     #hAreaF
-    #hAreaF=0.01;
+    #hAreaF = 0.01;
     #macKsatV
-    #macKsatV=100*outData[i][1];
+    #macKsatV = 100 * outData[i][1];
     #macKsatV = KsatV * 100
-    #val = c(id, KsatV, ThetaS,ThetaR,InfD, Alpha, Beta, hAreaF, macKsatV)
+    #val = c(id, KsatV, ThetaS, ThetaR, InfD, Alpha, Beta, hAreaF, macKsatV)
     val = c(id, KsatV, ThetaS, Alpha, Beta)
-    if( i==1 ){
-      mat =matrix(val, ncol = 5);
+    if(i == 1){
+      mat = matrix(val, ncol = 5);
     }else{
-      mat= rbind(mat, val);
+      mat = rbind(mat, val);
     }
   }
   #colnames(mat) = c('INDEX', 'KsatV(m_d)', 'ThetaS(m3_m3)', 'ThetaR(m3_m3)', 'InfD(m)', 'Alpha(1_m)', 'Beta', 'hAreaF(m2_m2)', 'macKsatV(m_d)')

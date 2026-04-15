@@ -1,26 +1,91 @@
 
-rm(list=ls())
-clib=c('rgdal', 'rgeos', 'raster', 'sp')
+# === pre1. load library ============
+clib=c('raster', 'terra', 'sf', 'fields', 'xts', 'ggplot2')
 x=lapply(clib, library, character.only=T)
+library(rSHUD)
 
-library(PIHMgisR)
-#test_check("PIHMgisR")
+# === pre2. create directories  ============
+dir.prj = '../demo/sac'
+dir.forc = file.path(dir.prj, 'forc')
+dir.fig = file.path(dir.prj, 'figure')
+dir.create(dir.forc, showWarnings = FALSE, recursive = TRUE)
+dir.create(dir.fig, showWarnings = FALSE, recursive = TRUE)
+
+# === pre3. setup the project ============
 prjname = 'sac'
-PRJNAME=prjname
-inapth = file.path(prjname)
-pdir = getwd()
-cdir <- file.path('../demo')
-setwd(cdir)
-PIHM(prjname = prjname)
+model.in <- file.path(dir.prj, 'input', prjname)
+model.out <- file.path(dir.prj, 'output', paste0(prjname, '.out'))
 
-spr=sp.riv2shp()
-varname=c(paste0('eleq',c( 'sub', 'surf') ), 
-          paste0('eley',c( 'surf','unsat', 'gw') ), 
-          paste0('elev',c('prcp','etp','infil', 'rech') ),
-          paste0('elev',paste0('et',0:2) ),
-          paste0('rivq',c('down', 'sub', 'surf') ),
-          paste0('rivy','stage') )
-# undebug(BasicPlot)
-x=BasicPlot(varname = varname, imap = TRUE, sp.riv = spr)
+fin=shud.filein(prjname, inpath = model.in, outpath = model.out )
+shud.env(prjname, inpath = model.in, outpath = model.out )
+dir.create(model.in, showWarnings = F, recursive = T)
 
-setwd(pdir)
+ia=getArea()
+ncell=length(ia)
+spm=read_mesh(fin['md.mesh'])
+
+gplotfun <- function(r, leg.lab='value'){
+  if (inherits(r, "SpatRaster")) {
+    df <- as.data.frame(r, xy = TRUE)
+  } else {
+    map.p <- rasterToPoints(r)
+    df <- data.frame(map.p)
+  }
+  #Make appropriate column headings
+  colnames(df) <- c('X', 'Y', 'MAP')
+  #Now make the map
+  g= ggplot(data=df, aes(y=Y, x=X)) +
+    geom_raster(aes(fill=MAP)) +
+    theme_bw() +
+    coord_equal() +
+    scale_fill_continuous(leg.lab) +
+    theme(
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      axis.text.x = element_blank(),
+      axis.text.y = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      legend.position = 'right',
+      legend.key = element_blank()
+    )
+  return(g)
+}
+
+gl=list()
+# === 1. plot Q (discharge) data ============
+oid = getOutlets()
+qdown = readout('rivqdown')
+prcp = readout('elevprcp')
+xt = 1:min(length(qdown), length(prcp))
+q=qdown[xt, oid]
+pq = cbind(q, rowMeans(prcp[xt,]))[,2:1]
+gl[[1]] = plot_hydrograph(pq, ylabs = c('Preciptation (mm)', 'Discharge (cmd)'))
+gl[[1]] 
+
+# === 2. plot Water Balance ============
+xl=loaddata(varname=c('rivqdown', 'eleveta', 'elevetp', 'elevprcp', 'eleygw'))
+wb=wb.all(xl=xl, plot=F)*1000
+gl[[2]] = plot_hydrograph(wb, ylabs = c('Storage (mm)', 'Flux (mm/mon)'))
+gl[[2]]
+
+# === 3. plot groundwater data ============
+eleygw = readout('eleygw')[xt, ]
+ts.gw=apply.daily(eleygw, sum)/ncell
+gw.mean = apply(eleygw, 2, mean)
+r.gw = mesh_to_raster(gw.mean)
+gl[[3]] =gplotfun(r.gw, leg.lab='Depth (m)')
+gl[[3]]
+
+# === 4. plot ETa data ============
+eleveta = readout('eleveta')[xt, ]
+ts.eta=apply.monthly(eleveta, sum)
+eta.mean = apply(eleveta, 2, mean)
+r.eta = mesh_to_raster(eta.mean)*1000 # mm/day
+gl[[4]]=gplotfun(r.eta, leg.lab='Rate (mm/day) ')
+gl[[4]]
+
+# === Saving the plots ============
+gg=gridExtra::arrangeGrob(grobs=gl, nrow=2, ncol=2)
+ggsave(plot = gg, filename = file.path(dir.fig, paste0(prjname, '_res.png')), 
+       width = 9, height=9, dpi=400, units = 'in')

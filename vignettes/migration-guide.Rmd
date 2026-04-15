@@ -1,0 +1,474 @@
+---
+title: "Migration Guide: rSHUD v2.1 to v2.2"
+author: "rSHUD Development Team"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Migration Guide: rSHUD v2.1 to v2.2}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Overview
+
+rSHUD v2.2 represents a major modernization of the package, transitioning from
+legacy spatial libraries (raster, sp, rgeos) to modern alternatives (terra, sf).
+This guide will help you migrate your existing code to work with the new version.
+
+## Key Changes
+
+### 1. Spatial Library Migration
+
+**raster → terra**
+
+The `raster` package has been completely replaced with `terra`, which offers
+significantly better performance and a more consistent API.
+
+```{r}
+# OLD (v2.1 and earlier)
+library(raster)
+dem <- raster("dem.tif")
+dem_crop <- crop(dem, extent(boundary))
+slope <- terrain(dem_crop, "slope")
+
+# NEW (v2.2)
+library(terra)
+dem <- rast("dem.tif")
+dem_crop <- crop(dem, boundary)
+slope <- terrain(dem_crop, "slope")
+```
+
+**sp → sf**
+
+The `sp` package has been replaced with `sf` for vector data operations.
+
+```{r}
+# OLD (v2.1 and earlier)
+library(sp)
+library(rgdal)
+watershed <- readOGR("watershed.shp")
+watershed_buf <- gBuffer(watershed, width = 1000)
+area <- gArea(watershed_buf)
+
+# NEW (v2.2)
+library(sf)
+watershed <- st_read("watershed.shp")
+watershed_buf <- st_buffer(watershed, dist = 1000)
+area <- st_area(watershed_buf)
+```
+
+### 2. Function Renaming
+
+Many functions have been renamed to follow modern R conventions (snake_case).
+The old names are still available but deprecated and will show warnings.
+
+#### I/O Functions
+
+| Old Name | New Name | Status |
+|----------|----------|--------|
+| `readmesh()` | `read_mesh()` | Deprecated |
+| `readriv()` | `read_river()` | Deprecated |
+| `readatt()` | `read_att()` | Deprecated |
+| `readpara()` | `read_para()` | Deprecated |
+| `readcalib()` | `read_calib()` | Deprecated |
+| `readic()` | `read_ic()` | Deprecated |
+| `readlai()` | `read_lai()` | Deprecated |
+| `readlc()` | `read_lc()` | Deprecated |
+| `readsoil()` | `read_soil()` | Deprecated |
+| `readgeol()` | `read_geol()` | Deprecated |
+| `read.tsd()` | `read_tsd()` | Deprecated |
+| `readout()` | `read_output()` | Deprecated |
+
+#### GIS Functions
+
+| Old Name | New Name | Status |
+|----------|----------|--------|
+| `MeshData2Raster()` | `mesh_to_raster()` | Deprecated |
+| `sp2raster()` | `vector_to_raster()` | Deprecated |
+| `ProjectCoordinate()` | `project_coords()` | Deprecated |
+| `sp.RiverOrder()` | `calc_river_order()` | Deprecated |
+| `sp.RiverPath()` | `calc_river_path()` | Deprecated |
+| `sp.RiverDown()` | `calc_river_downstream()` | Deprecated |
+
+#### Main Interface
+
+| Old Name | New Name | Status |
+|----------|----------|--------|
+| `autoBuildModel()` | `auto_build_model()` | Deprecated |
+
+### 3. Parameter Changes
+
+Some function parameters have been renamed or changed:
+
+```{r}
+# mesh_to_raster (formerly MeshData2Raster)
+# OLD
+r <- MeshData2Raster(x = data, pm = mesh, rmask = template, proj = crs)
+
+# NEW
+r <- mesh_to_raster(data = data, mesh = mesh, template = template, crs = crs)
+
+# vector_to_raster (formerly sp2raster)
+# OLD
+r <- sp2raster(sp = polygons, mask = template)
+
+# NEW
+r <- vector_to_raster(vector = polygons, template = template)
+```
+
+### 4. Return Type Changes
+
+Functions now return modern spatial objects:
+
+```{r}
+# OLD - Returns RasterLayer
+dem <- raster("dem.tif")
+class(dem)  # "RasterLayer"
+
+# NEW - Returns SpatRaster
+dem <- terra::rast("dem.tif")
+class(dem)  # "SpatRaster"
+
+# OLD - Returns SpatialPolygonsDataFrame
+watershed <- readOGR("watershed.shp")
+class(watershed)  # "SpatialPolygonsDataFrame"
+
+# NEW - Returns sf object
+watershed <- sf::st_read("watershed.shp")
+class(watershed)  # "sf" "data.frame"
+```
+
+## Migration Steps
+
+### Step 1: Update Package Installation
+
+```{r}
+# Install updated rSHUD
+devtools::install_github("SHUD-System/rSHUD")
+
+# Ensure modern spatial packages are installed
+install.packages(c("terra", "sf"))
+```
+
+### Step 2: Update Data Loading
+
+Replace all `raster` and `sp` data loading with `terra` and `sf`:
+
+```{r}
+# OLD
+library(raster)
+library(rgdal)
+dem <- raster("data/dem.tif")
+soil <- raster("data/soil.tif")
+watershed <- readOGR("data/watershed.shp")
+rivers <- readOGR("data/rivers.shp")
+
+# NEW
+library(terra)
+library(sf)
+dem <- rast("data/dem.tif")
+soil <- rast("data/soil.tif")
+watershed <- st_read("data/watershed.shp")
+rivers <- st_read("data/rivers.shp")
+```
+
+### Step 3: Update Function Calls
+
+Replace deprecated function names with new ones:
+
+```{r}
+# OLD
+mesh <- readmesh("model.mesh")
+river <- readriv("model.riv")
+att <- readatt("model.att")
+
+# NEW
+mesh <- read_mesh("model.mesh")
+river <- read_river("model.riv")
+att <- read_att("model.att")
+```
+
+### Step 4: Update Model Building Workflow
+
+The main model building function has been significantly updated:
+
+```{r}
+# OLD (v2.1)
+library(raster)
+library(rgdal)
+
+# Load data with old libraries
+dem <- raster("dem.tif")
+soil <- raster("soil.tif")
+lc <- raster("landcover.tif")
+wbd <- readOGR("boundary.shp")
+rivers <- readOGR("rivers.shp")
+
+# Build model
+model <- autoBuildModel(
+  indata = list(
+    dem = dem,
+    soil = soil,
+    lc = lc,
+    wbd = wbd,
+    rivers = rivers
+  ),
+  prjname = "my_watershed",
+  outpath = "output"
+)
+
+# NEW (v2.2)
+library(terra)
+library(sf)
+
+# Load data with modern libraries
+dem <- rast("dem.tif")
+soil <- rast("soil.tif")
+lc <- rast("landcover.tif")
+domain <- st_read("boundary.shp")
+rivers <- st_read("rivers.shp")
+
+# Build model with new interface
+model <- auto_build_model(
+  project_name = "my_watershed",
+  domain = domain,
+  rivers = rivers,
+  dem = dem,
+  soil = soil,
+  landcover = lc,
+  output_dir = "output",
+  years = 2000:2010,
+  verbose = TRUE
+)
+```
+
+## Common Migration Patterns
+
+### Pattern 1: Raster Operations
+
+```{r}
+# OLD
+library(raster)
+r1 <- raster("file1.tif")
+r2 <- raster("file2.tif")
+r_crop <- crop(r1, extent(r2))
+r_resample <- resample(r1, r2)
+r_stack <- stack(r1, r2)
+values(r1)[values(r1) < 0] <- 0
+
+# NEW
+library(terra)
+r1 <- rast("file1.tif")
+r2 <- rast("file2.tif")
+r_crop <- crop(r1, r2)
+r_resample <- resample(r1, r2)
+r_stack <- c(r1, r2)
+r1[r1 < 0] <- 0
+```
+
+### Pattern 2: Vector Operations
+
+```{r}
+# OLD
+library(sp)
+library(rgeos)
+poly <- readOGR("polygon.shp")
+poly_buf <- gBuffer(poly, width = 100)
+poly_union <- gUnaryUnion(poly)
+area <- gArea(poly)
+
+# NEW
+library(sf)
+poly <- st_read("polygon.shp")
+poly_buf <- st_buffer(poly, dist = 100)
+poly_union <- st_union(poly)
+area <- st_area(poly)
+```
+
+### Pattern 3: Coordinate Projection
+
+```{r}
+# OLD
+library(sp)
+library(rgdal)
+poly_ll <- spTransform(poly, CRS("+proj=longlat +datum=WGS84"))
+
+# NEW
+library(sf)
+poly_ll <- st_transform(poly, crs = 4326)
+# or
+poly_ll <- st_transform(poly, crs = "+proj=longlat +datum=WGS84")
+```
+
+### Pattern 4: Raster-Vector Conversion
+
+```{r}
+# OLD
+library(raster)
+library(sp)
+r <- raster("data.tif")
+poly <- rasterToPolygons(r)
+r2 <- rasterize(poly, r, field = "value")
+
+# NEW
+library(terra)
+r <- rast("data.tif")
+poly <- as.polygons(r)
+r2 <- rasterize(poly, r, field = "value")
+```
+
+## Troubleshooting
+
+### Error: "Legacy raster/sp objects are not supported"
+
+If you see this error, it means you're passing old-style spatial objects to
+rSHUD functions. Convert them first:
+
+```{r}
+# Convert raster to terra
+if (inherits(my_raster, "Raster")) {
+  my_raster <- terra::rast(my_raster)
+}
+
+# Convert sp to sf
+if (inherits(my_spatial, "Spatial")) {
+  my_spatial <- sf::st_as_sf(my_spatial)
+}
+```
+
+### Warning: "Function is deprecated"
+
+Update your function calls to use the new names. The old names will be removed
+in a future version.
+
+```{r}
+# Instead of
+mesh <- readmesh("model.mesh")  # Warning: deprecated
+
+# Use
+mesh <- read_mesh("model.mesh")  # No warning
+```
+
+### Performance Issues
+
+If you experience performance issues, ensure you're using the latest versions
+of terra and sf:
+
+```{r}
+update.packages(c("terra", "sf"))
+```
+
+## Benefits of Migration
+
+Migrating to v2.2 provides several benefits:
+
+1. **Performance**: terra is 2-10x faster than raster for most operations
+2. **Memory**: Better memory management for large datasets
+3. **Consistency**: More consistent API across spatial operations
+4. **Maintenance**: Active development and support
+5. **Features**: Access to new spatial analysis capabilities
+
+## Getting Help
+
+If you encounter issues during migration:
+
+1. Check the function documentation: `?function_name`
+2. Review the inst/MIGRATION_GUIDE.md file in the package
+3. Visit the package website: https://www.shud.xyz/
+4. Report issues: https://github.com/SHUD-System/rSHUD/issues
+
+## Complete Example
+
+Here's a complete before/after example:
+
+```{r}
+# ============================================================================
+# OLD CODE (v2.1)
+# ============================================================================
+library(raster)
+library(rgdal)
+library(rSHUD)
+
+# Load data
+dem <- raster("data/dem.tif")
+soil <- raster("data/soil.tif")
+lc <- raster("data/landcover.tif")
+wbd <- readOGR("data/boundary.shp")
+rivers <- readOGR("data/rivers.shp")
+
+# Build model
+model <- autoBuildModel(
+  indata = list(dem = dem, soil = soil, lc = lc, wbd = wbd, rivers = rivers),
+  prjname = "watershed",
+  outpath = "output"
+)
+
+# Read results
+mesh <- readmesh("output/watershed.mesh")
+river <- readriv("output/watershed.riv")
+
+# Convert to raster
+elev_raster <- MeshData2Raster(
+  x = getElevation(mesh),
+  pm = mesh,
+  rmask = dem
+)
+
+# ============================================================================
+# NEW CODE (v2.2)
+# ============================================================================
+library(terra)
+library(sf)
+library(rSHUD)
+
+# Load data
+dem <- rast("data/dem.tif")
+soil <- rast("data/soil.tif")
+lc <- rast("data/landcover.tif")
+domain <- st_read("data/boundary.shp")
+rivers <- st_read("data/rivers.shp")
+
+# Build model
+model <- auto_build_model(
+  project_name = "watershed",
+  domain = domain,
+  rivers = rivers,
+  dem = dem,
+  soil = soil,
+  landcover = lc,
+  output_dir = "output",
+  years = 2000:2010
+)
+
+# Read results
+mesh <- read_mesh("output/watershed.mesh")
+river <- read_river("output/watershed.riv")
+
+# Convert to raster
+elev_raster <- mesh_to_raster(
+  data = getElevation(mesh),
+  mesh = mesh,
+  template = dem
+)
+```
+
+## Summary
+
+The migration from v2.1 to v2.2 primarily involves:
+
+1. Replacing `raster` with `terra`
+2. Replacing `sp` with `sf`
+3. Updating function names to snake_case
+4. Adjusting parameter names where changed
+
+While these changes require updates to existing code, they provide significant
+improvements in performance, maintainability, and access to modern spatial
+analysis capabilities.

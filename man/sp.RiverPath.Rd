@@ -7,7 +7,7 @@
 \usage{
 sp.RiverPath(
   sp,
-  coord = extractCoords(sp, unique = TRUE),
+  coord = get_coords(sp),
   idown = sp.RiverDown(sp, coord = coord),
   tol.simplify = 0
 )
@@ -27,4 +27,11 @@ List of River Path(SegIDs, PointIDs, sp)
 \description{
 determine River path, disolve the river network based on downstream-relationship.
 \code{sp.RiverPath}
+}
+\examples{
+data(sh)
+riv = sh$riv
+x = sp.CutSptialLines(riv, tol = 200)
+xx = sp.RiverPath(x)
+names(xx)
 }

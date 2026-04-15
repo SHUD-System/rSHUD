@@ -2,17 +2,20 @@
 % Please edit documentation in R/PET.R
 \name{VaporPressure_Act}
 \alias{VaporPressure_Act}
-\title{Actual vapor pressure 
+\title{Actual vapor pressure
 \code{VaporPressure_Act}}
 \usage{
 VaporPressure_Act(esat, rh)
 }
 \arguments{
-\item{esat}{Saturated vapor pressure}
+\item{esat}{Saturated vapor pressure in kPa.}
 
-\item{rh}{Relative Humidity [-] 0~1}
+\item{rh}{Relative humidity as a fraction from 0 to 1.}
+}
+\value{
+Actual vapor pressure in kPa.
 }
 \description{
-Actual vapor pressure 
+Actual vapor pressure
 \code{VaporPressure_Act}
 }

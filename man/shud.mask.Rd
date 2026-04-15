@@ -5,13 +5,7 @@
 \title{Generate the raster mask of Mesh domain
 \code{shud.mask}}
 \usage{
-shud.mask(
-  pm = readmesh(),
-  proj = NULL,
-  rr = get("MASK", envir = .shud),
-  n = 10000,
-  cellsize = NULL
-)
+shud.mask(pm = readmesh(), proj = NULL, rr = NULL, n = 10000, cellsize = NULL)
 }
 \arguments{
 \item{pm}{\code{shud.mesh}}

@@ -1,0 +1,644 @@
+---
+title: "Model Building with rSHUD"
+author: "rSHUD Development Team"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Model Building with rSHUD}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Introduction
+
+This vignette provides detailed guidance on building SHUD hydrological models
+using rSHUD. It covers the complete workflow from data preparation through
+mesh generation, attribute calculation, and input file creation.
+
+## Prerequisites
+
+```{r}
+library(rSHUD)
+library(terra)
+library(sf)
+```
+
+## Model Building Overview
+
+The SHUD model building process consists of several key steps:
+
+1. **Data Preparation**: Load and preprocess geospatial data
+2. **Domain Definition**: Define watershed boundary and river network
+3. **Mesh Generation**: Create unstructured triangular mesh
+4. **Attribute Calculation**: Extract soil, geology, land cover properties
+5. **River Processing**: Build river network and calculate properties
+6. **Initial Conditions**: Set initial state variables
+7. **Parameters**: Configure model parameters and calibration
+8. **Time Series**: Generate forcing data time series
+
+## Data Preparation
+
+### Required Data
+
+Minimum required data:
+- **Watershed boundary**: Polygon defining model domain
+- **Digital Elevation Model (DEM)**: Raster with elevation data
+
+Optional but recommended:
+- **River network**: Polylines for streams and rivers
+- **Soil data**: Raster with soil types or properties
+- **Geology data**: Raster with geological units
+- **Land cover**: Raster with vegetation/land use classes
+- **Forcing locations**: Points for meteorological forcing
+
+### Loading Data
+
+```{r}
+# Load watershed boundary
+domain <- st_read("data/watershed.shp")
+
+# Load DEM
+dem <- rast("data/dem.tif")
+
+# Load optional data
+rivers <- st_read("data/rivers.shp")
+soil <- rast("data/soil.tif")
+geology <- rast("data/geology.tif")
+landcover <- rast("data/landcover.tif")
+```
+
+### Data Quality Checks
+
+```{r}
+# Check coordinate systems
+cat("Domain CRS:", st_crs(domain)$input, "\n")
+cat("DEM CRS:", crs(dem, describe = TRUE)$name, "\n")
+
+# Check for missing values
+cat("DEM NA count:", global(is.na(dem), "sum")$sum, "\n")
+
+# Check extents
+cat("Domain extent:", st_bbox(domain), "\n")
+cat("DEM extent:", ext(dem), "\n")
+
+# Visualize
+plot(dem, main = "Input Data")
+plot(st_geometry(domain), add = TRUE, border = "red", lwd = 2)
+if (!is.null(rivers)) {
+  plot(st_geometry(rivers), add = TRUE, col = "blue", lwd = 1)
+}
+```
+
+### Data Preprocessing
+
+```{r}
+# Align coordinate systems
+if (st_crs(domain) != crs(dem)) {
+  cat("Reprojecting domain to match DEM...\n")
+  domain <- st_transform(domain, crs = crs(dem))
+}
+
+# Crop and buffer DEM
+buffer_dist <- 2000  # 2 km buffer
+domain_buffered <- st_buffer(domain, dist = buffer_dist)
+dem_crop <- crop(dem, vect(domain_buffered))
+
+# Fill sinks in DEM (if needed)
+# dem_filled <- fill_sinks(dem_crop)
+
+# Resample rasters to common resolution (if needed)
+target_res <- 30  # 30m resolution
+if (res(dem_crop)[1] != target_res) {
+  dem_resample <- aggregate(dem_crop, fact = target_res / res(dem_crop)[1])
+}
+```
+
+## Mesh Generation
+
+### Understanding Mesh Parameters
+
+The mesh quality is controlled by several parameters:
+
+- **max_area**: Maximum triangle area (m²)
+  - Smaller = more detail, longer computation
+  - Typical: 1e5 to 5e5 m² (10-50 hectares)
+  
+- **min_angle**: Minimum triangle angle (degrees)
+  - Higher = better quality, fewer triangles
+  - Typical: 30-35 degrees
+  - Must be < 34 degrees for Delaunay triangulation
+  
+- **simplify_boundary**: Tolerance for boundary simplification (m)
+  - Reduces complexity of watershed outline
+  - Typical: 100-500 m
+  
+- **simplify_rivers**: Tolerance for river simplification (m)
+  - Reduces river network complexity
+  - Typical: 0-100 m
+
+### Basic Mesh Generation
+
+```{r}
+# Simple mesh with default parameters
+mesh_opts <- list(
+  max_area = 2e5,
+  min_angle = 33,
+  simplify_boundary = 200,
+  simplify_rivers = 0
+)
+
+# Generate triangulation
+tri <- shud.triangle(
+  wb = domain,
+  riv = rivers,
+  q = mesh_opts$min_angle,
+  a = mesh_opts$max_area
+)
+
+# Create mesh object
+mesh <- shud.mesh(tri, dem = dem_crop, AqDepth = 10)
+
+# Check mesh statistics
+cat("Number of triangles:", nrow(mesh@mesh), "\n")
+cat("Number of nodes:", nrow(mesh@point), "\n")
+cat("Total area:", sum(mesh@mesh$Area), "m²\n")
+cat("Mean triangle area:", mean(mesh@mesh$Area), "m²\n")
+```
+
+### Advanced Mesh Generation
+
+```{r}
+# Simplify boundary for coarser mesh
+domain_simple <- st_simplify(domain, dTolerance = mesh_opts$simplify_boundary)
+
+# Simplify rivers
+if (!is.null(rivers) && mesh_opts$simplify_rivers > 0) {
+  rivers_simple <- st_simplify(rivers, dTolerance = mesh_opts$simplify_rivers)
+  
+  # Remove short segments
+  lengths <- as.numeric(st_length(rivers_simple))
+  rivers_simple <- rivers_simple[lengths >= 100, ]
+} else {
+  rivers_simple <- rivers
+}
+
+# Generate mesh with simplified inputs
+tri <- shud.triangle(
+  wb = domain_simple,
+  riv = rivers_simple,
+  q = mesh_opts$min_angle,
+  a = mesh_opts$max_area
+)
+
+mesh <- shud.mesh(tri, dem = dem_crop, AqDepth = 10)
+```
+
+### Mesh Quality Assessment
+
+```{r}
+# Calculate triangle angles
+angles <- mesh@mesh[, c("Ang1", "Ang2", "Ang3")]
+min_angles <- apply(angles, 1, min)
+max_angles <- apply(angles, 1, max)
+
+# Plot angle distribution
+hist(min_angles, breaks = 30, main = "Minimum Triangle Angles",
+     xlab = "Angle (degrees)", col = "lightblue")
+abline(v = mesh_opts$min_angle, col = "red", lwd = 2, lty = 2)
+
+# Check for poor quality triangles
+poor_quality <- sum(min_angles < 20)
+cat("Triangles with min angle < 20°:", poor_quality, "\n")
+
+# Plot mesh
+mesh_sf <- sp.mesh2Shape(mesh, crs = st_crs(domain))
+plot(st_geometry(mesh_sf), main = "Generated Mesh", border = "gray")
+plot(st_geometry(domain), add = TRUE, border = "red", lwd = 2)
+```
+
+### Adaptive Mesh Refinement
+
+```{r}
+# Create variable resolution mesh
+# Finer mesh near rivers, coarser elsewhere
+
+# Define refinement zones
+river_buffer <- st_buffer(rivers, dist = 500)
+
+# Generate mesh with constraints
+# (This requires custom implementation)
+# For now, use uniform mesh with appropriate max_area
+```
+
+## Attribute Calculation
+
+### Soil and Geology Attributes
+
+```{r}
+# Extract soil types to mesh cells
+soil_attr <- shud.att(
+  tri = tri,
+  r.soil = soil,
+  r.geol = geology
+)
+
+# View attribute summary
+summary(soil_attr)
+
+# Check for missing values
+cat("Cells with missing soil:", sum(is.na(soil_attr$Soil)), "\n")
+cat("Cells with missing geology:", sum(is.na(soil_attr$Geol)), "\n")
+
+# Apply pedotransfer functions
+soil_params <- PTF.soil(soil_attr$Soil)
+geol_params <- PTF.geol(soil_attr$Geol)
+
+# Combine attributes
+mesh_att <- cbind(soil_attr, soil_params, geol_params)
+```
+
+### Land Cover Attributes
+
+```{r}
+# Extract land cover
+lc_attr <- shud.att(
+  tri = tri,
+  r.lc = landcover
+)
+
+# Map land cover to vegetation parameters
+# (Depends on land cover classification system)
+if (all(lc_attr$LC >= 0 & lc_attr$LC <= 100)) {
+  # NLCD classification
+  veg_params <- LaiRf.NLCD(lc_attr$LC)
+} else {
+  # GLC classification
+  veg_params <- LaiRf.GLC(lc_attr$LC)
+}
+
+# Add to attributes
+mesh_att <- cbind(mesh_att, lc_attr, veg_params)
+```
+
+### Forcing Data Assignment
+
+```{r}
+# Assign forcing locations to mesh cells
+if (!is.null(forcing_sites)) {
+  forc_attr <- shud.att(
+    tri = tri,
+    r.forc = forcing_sites
+  )
+  
+  mesh_att$Forc <- forc_attr$Forc
+} else {
+  # Use single forcing for all cells
+  mesh_att$Forc <- 1
+}
+```
+
+### Complete Attribute Table
+
+```{r}
+# Create complete attribute table
+att_complete <- data.frame(
+  INDEX = 1:nrow(mesh@mesh),
+  SOIL = mesh_att$Soil,
+  GEOL = mesh_att$Geol,
+  LC = mesh_att$LC,
+  FORC = mesh_att$Forc,
+  LAI = mesh_att$LAI,
+  RL = mesh_att$RL,
+  # Add soil hydraulic properties
+  ThetaS = soil_params$ThetaS,
+  ThetaR = soil_params$ThetaR,
+  Ksat = soil_params$Ksat,
+  # Add other parameters...
+  stringsAsFactors = FALSE
+)
+
+# Write attributes
+write_df(att_complete, "model/watershed.att")
+```
+
+## River Network Processing
+
+### River Network Building
+
+```{r}
+# Build complete river network with all properties
+river_network <- build_river_network(
+  rivers = rivers,
+  dem = dem_crop,
+  min_length = 100,
+  simplify = TRUE,
+  tolerance = 50
+)
+
+# Access components
+river_sf <- river_network$network
+river_order <- river_network$order
+river_downstream <- river_network$downstream
+river_props <- river_network$properties
+
+# Summary statistics
+cat("Total river segments:", nrow(river_sf), "\n")
+cat("Stream orders:", paste(unique(river_order), collapse = ", "), "\n")
+cat("Number of outlets:", sum(river_downstream == -1), "\n")
+```
+
+### River Properties
+
+```{r}
+# Calculate individual properties
+rivers_with_props <- calc_river_properties(
+  rivers = rivers,
+  dem = dem_crop,
+  properties = c("order", "downstream", "length", "slope")
+)
+
+# View properties
+head(rivers_with_props)
+
+# Plot by stream order
+plot(rivers_with_props["order"], main = "Stream Order",
+     pal = terrain.colors(max(rivers_with_props$order)))
+```
+
+### River-Mesh Integration
+
+```{r}
+# Cut rivers with mesh triangles
+mesh_sf <- sp.mesh2Shape(mesh, crs = st_crs(domain))
+river_segments <- shud.rivseg(mesh_sf, river_sf)
+
+# Check connectivity
+cat("River-mesh segments:", nrow(river_segments), "\n")
+cat("Cells with rivers:", length(unique(river_segments$iEle)), "\n")
+
+# Write river segment file
+write_df(river_segments, "model/watershed.rivseg")
+```
+
+### River Width Estimation
+
+```{r}
+# Estimate river width from drainage area
+watershed_area <- as.numeric(st_area(domain)) * 1e-6  # km²
+
+river_widths <- calc_river_width_from_area(
+  area = watershed_area,
+  order = river_order
+)
+
+# Add to river properties
+river_props$Width <- river_widths
+```
+
+## Initial Conditions
+
+### Setting Initial Conditions
+
+```{r}
+# Generate default initial conditions
+n_cells <- nrow(mesh@mesh)
+n_rivers <- nrow(river_network$network)
+
+ic <- shud.ic(
+  nelem = n_cells,
+  nriver = n_rivers,
+  AqD = 10  # Aquifer depth
+)
+
+# Customize initial conditions
+# Set initial water table depth
+ic$Canopy <- 0  # No canopy storage
+ic$Snow <- 0    # No snow
+ic$Surf <- 0    # No surface water
+ic$Unsat <- 0.3 * mesh@mesh$zmax  # 30% of soil depth
+ic$Gw <- 0.5 * 10  # 50% of aquifer depth
+
+# Set river initial conditions
+ic$RivStg <- 0.1  # 10 cm stage
+ic$RivGw <- 0.5   # 50 cm groundwater
+
+# Write initial conditions
+write_ic(ic, "model/watershed.ic")
+```
+
+## Model Parameters
+
+### Parameter Configuration
+
+```{r}
+# Generate default parameters
+n_days <- 365 * 10  # 10 years
+para <- shud.para(nday = n_days)
+
+# Customize parameters
+para$INIT_MODE <- 3  # Relaxation mode
+para$ASCII_OUTPUT <- 1  # Enable ASCII output
+para$SPINUP_DAY <- 365  # 1 year spinup
+
+# Time step settings
+para$DT <- 60  # 60 second time step
+para$START <- "2000-01-01 00:00"
+para$END <- "2010-12-31 23:59"
+
+# Output intervals
+para$SURF_STEP <- 1440  # Daily surface output
+para$UNSAT_STEP <- 1440  # Daily unsaturated zone output
+para$GW_STEP <- 1440  # Daily groundwater output
+para$RIVER_STEP <- 1440  # Daily river output
+
+# Write parameters
+write_config(para, "model/watershed.para")
+```
+
+### Calibration Parameters
+
+```{r}
+# Generate default calibration parameters
+calib <- shud.calib()
+
+# Adjust calibration factors
+calib$GEOL_KSATH <- 1.0  # Horizontal hydraulic conductivity
+calib$GEOL_KSATV <- 1.0  # Vertical hydraulic conductivity
+calib$GEOL_KMACSATH <- 1.0  # Macropore conductivity
+calib$GEOL_KMACSATV <- 1.0
+
+calib$SOIL_KINF <- 1.0  # Infiltration
+calib$SOIL_KSAT <- 1.0  # Soil saturated conductivity
+calib$SOIL_KMACV <- 1.0  # Soil macropore conductivity
+
+calib$LC_ROUGH <- 1.0  # Surface roughness
+calib$LC_VEGFRAC <- 1.0  # Vegetation fraction
+
+# Write calibration parameters
+write_config(calib, "model/watershed.calib")
+```
+
+## Time Series Data
+
+### LAI and Roughness Length
+
+```{r}
+# Generate LAI and roughness length time series
+years <- 2000:2010
+lc_values <- unique(mesh_att$LC)
+
+lai_rl <- fun.lairl(lc_values, years = years)
+
+# View time series
+plot(lai_rl$LAI, main = "Leaf Area Index")
+plot(lai_rl$RL, main = "Roughness Length")
+
+# Write time series
+write_tsd(lai_rl$LAI, "model/watershed.lai")
+write_tsd(lai_rl$RL, "model/watershed.rl")
+```
+
+### Melt Factor
+
+```{r}
+# Generate melt factor time series
+mf <- MeltFactor(years = years)
+
+plot(mf, main = "Melt Factor")
+
+write_tsd(mf, "model/watershed.mf")
+```
+
+### Forcing Data
+
+```{r}
+# List forcing files
+forcing_files <- c(
+  "forcing/prcp.txt",
+  "forcing/temp.txt",
+  "forcing/rh.txt",
+  "forcing/wind.txt",
+  "forcing/solar.txt"
+)
+
+# Write forcing file list
+write_forc(
+  forcing_files,
+  file = "model/watershed.forc",
+  startdate = "20000101"
+)
+```
+
+## Complete Workflow Example
+
+```{r}
+# Complete model building workflow
+build_complete_model <- function(
+  project_name,
+  domain_file,
+  dem_file,
+  rivers_file = NULL,
+  soil_file = NULL,
+  geology_file = NULL,
+  landcover_file = NULL,
+  output_dir = "model",
+  years = 2000:2010
+) {
+  
+  # Load data
+  cat("Loading data...\n")
+  domain <- st_read(domain_file)
+  dem <- rast(dem_file)
+  
+  rivers <- if (!is.null(rivers_file)) st_read(rivers_file) else NULL
+  soil <- if (!is.null(soil_file)) rast(soil_file) else NULL
+  geology <- if (!is.null(geology_file)) rast(geology_file) else NULL
+  landcover <- if (!is.null(landcover_file)) rast(landcover_file) else NULL
+  
+  # Build model
+  cat("Building model...\n")
+  model <- auto_build_model(
+    project_name = project_name,
+    domain = domain,
+    rivers = rivers,
+    dem = dem,
+    soil = soil,
+    geology = geology,
+    landcover = landcover,
+    output_dir = output_dir,
+    years = years,
+    verbose = TRUE
+  )
+  
+  cat("Model building complete!\n")
+  cat("Output directory:", output_dir, "\n")
+  
+  return(model)
+}
+
+# Use the function
+model <- build_complete_model(
+  project_name = "my_watershed",
+  domain_file = "data/watershed.shp",
+  dem_file = "data/dem.tif",
+  rivers_file = "data/rivers.shp",
+  soil_file = "data/soil.tif",
+  landcover_file = "data/landcover.tif",
+  output_dir = "model_output"
+)
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue: Mesh generation fails**
+```{r}
+# Try reducing max_area or increasing min_angle
+# Check for self-intersecting boundaries
+domain_valid <- st_is_valid(domain)
+if (!domain_valid) {
+  domain <- st_make_valid(domain)
+}
+```
+
+**Issue: Missing attribute values**
+```{r}
+# Check raster coverage
+coverage <- ForcingCoverage(mesh, dem)
+cat("DEM coverage:", coverage, "%\n")
+
+# Fill missing values
+att$Soil[is.na(att$Soil)] <- median(att$Soil, na.rm = TRUE)
+```
+
+**Issue: River network disconnected**
+```{r}
+# Check for multiple outlets
+outlets <- get_river_outlets(river_network$network)
+cat("Number of outlets:", length(outlets), "\n")
+
+# Manually connect if needed
+```
+
+## Summary
+
+This vignette covered:
+
+- Data preparation and quality checks
+- Mesh generation with quality control
+- Attribute calculation and assignment
+- River network processing and integration
+- Initial conditions and parameters
+- Time series data generation
+- Complete workflow implementation
+
+For more information, see the other vignettes and function documentation.

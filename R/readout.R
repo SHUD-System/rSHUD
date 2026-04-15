@@ -74,6 +74,17 @@ readout.header <- function(keyword,
                     path=get('outpath', envir=.shud) , 
                     file = file.path(path, paste0(get('PRJNAME', envir=.shud),'.', keyword,'.dat') ) ){
   msg='readout.header::'
+  
+  # Check if file exists
+  if(!file.exists(file)){
+    stop('Output file does not exist: ', file)
+  }
+  
+  # Check if file is readable
+  if(!file.access(file, mode=4) == 0){
+    stop('Output file is not readable: ', file)
+  }
+  
   fid=file(file, 'rb');
   tmp=readBin(fid, what=character(), n=1024, size=1)
   close(fid)
@@ -82,7 +93,8 @@ readout.header <- function(keyword,
 }
 #' Read multiply SHUD model output files
 #' @param varname vector of output keywords 
-#' @param rdsfile Save RDS file. NULL=do not save rds file.
+#' @param rdsfile Save RDS file. NULL = do not save an RDS file.
+#' @param ver Output file version.
 #' @keywords read output.
 #' @return A list of TimeSeries data. 
 #' @export  
@@ -121,13 +133,12 @@ loaddata <- function(
 #' Read multiply SHUD model output files and do time-series plot
 #' @param varname vector of output keywords 
 #' @param xl list of data returned from loaddata()
-#' @param plot Whether do the time-series plot
-#' @param imap Whether do the raster plot for Element data. Only works for element data
-#' @param return Whether return the data. Some the results are too huge to load in memoery at once.
-#' @param iRDS Whether save RDS file.
-#' @param sp.riv River SpatialLine*
-#' @param rdsfile Save RDS file
-#' @param w.focal forcal matrix
+#' @param plot Whether to create time-series plots.
+#' @param imap Whether to create raster plots for element data.
+#' @param sp.riv River SpatialLine* object.
+#' @param rdsfile Save RDS file.
+#' @param w.focal Focal matrix used for raster smoothing.
+#' @param path Output directory for generated figures.
 #' @keywords read output.
 #' @return A list of TimeSeries data. 
 #' @export  
@@ -191,7 +202,7 @@ BasicPlot <- function(
         fn= paste0('Map.', prjname,'_', vn, '.png')
         y = colMeans(x)
         png(file.path(path, fn), width=11, height=9, res=100, units = 'in')
-        # map2d(y)
+        # Legacy map helper was removed; keep direct raster plotting here.
         r = MeshData2Raster(y, stack=FALSE)
         if(!is.null(w.focal)){
           r = raster::focal(r, w=w.focal)

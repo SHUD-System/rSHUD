@@ -1,0 +1,546 @@
+---
+title: "Getting Started with rSHUD"
+author: "rSHUD Development Team"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with rSHUD}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Introduction
+
+rSHUD is an R package toolbox for the SHUD (Simulator for Hydrologic 
+Unstructured Domains) hydrological modeling system. This guide will help you
+get started with building and analyzing SHUD models using modern spatial
+libraries (terra and sf).
+
+## Installation
+
+### Install rSHUD
+
+```{r}
+# Install from GitHub
+devtools::install_github("SHUD-System/rSHUD")
+
+# Load the package
+library(rSHUD)
+```
+
+### Install Dependencies
+
+rSHUD requires modern spatial libraries:
+
+```{r}
+# Install spatial packages
+install.packages(c("terra", "sf"))
+
+# Install optional packages for advanced features
+install.packages(c("gstat", "interp", "ncdf4"))
+```
+
+### System Dependencies (Linux/Mac)
+
+On Ubuntu/Debian systems, you may need to install system libraries:
+
+```{bash}
+sudo apt-get install gdal-bin libgdal-dev
+sudo apt-get install libudunits2-dev
+```
+
+## Basic Workflow
+
+The typical rSHUD workflow consists of:
+
+1. Load and prepare geospatial data
+2. Build the model domain (mesh and river network)
+3. Calculate model attributes
+4. Generate input files
+5. Run the SHUD model (external)
+6. Analyze results
+
+## Quick Start Example
+
+### Load Required Libraries
+
+```{r}
+library(rSHUD)
+library(terra)
+library(sf)
+```
+
+### Load Example Data
+
+rSHUD includes example datasets for demonstration:
+
+```{r}
+# Load example watershed data
+data(sh)  # Shale Hills watershed
+
+# The 'sh' object contains:
+# - sh$mesh: Mesh domain
+# - sh$river: River network
+# - sh$att: Attributes
+```
+
+### Build a Simple Model
+
+For a quick model build with default parameters:
+
+```{r}
+# Prepare input data (replace with your own data)
+domain <- st_read("path/to/watershed.shp")
+dem <- rast("path/to/dem.tif")
+rivers <- st_read("path/to/rivers.shp")
+
+# Quick model build
+model <- quick_model(
+  project_name = "my_watershed",
+  domain = domain,
+  dem = dem,
+  rivers = rivers,
+  output_dir = "model_output"
+)
+
+# Access results
+mesh <- model$mesh
+river_network <- model$river
+```
+
+## Detailed Workflow
+
+### Step 1: Load Geospatial Data
+
+```{r}
+# Load watershed boundary (polygon)
+domain <- st_read("data/watershed.shp")
+
+# Load digital elevation model (raster)
+dem <- rast("data/dem.tif")
+
+# Load river network (lines)
+rivers <- st_read("data/rivers.shp")
+
+# Load soil data (raster)
+soil <- rast("data/soil.tif")
+
+# Load land cover (raster)
+landcover <- rast("data/landcover.tif")
+
+# Check coordinate systems
+st_crs(domain)
+crs(dem)
+```
+
+### Step 2: Visualize Input Data
+
+```{r}
+# Plot DEM with watershed boundary
+plot(dem, main = "Digital Elevation Model")
+plot(st_geometry(domain), add = TRUE, border = "red", lwd = 2)
+plot(st_geometry(rivers), add = TRUE, col = "blue", lwd = 2)
+```
+
+### Step 3: Build Model with Custom Options
+
+```{r}
+# Define mesh generation options
+mesh_opts <- list(
+  max_area = 2e5,           # Maximum triangle area (m²)
+  min_angle = 33,           # Minimum triangle angle (degrees)
+  simplify_boundary = 200,  # Boundary simplification tolerance (m)
+  simplify_rivers = 50      # River simplification tolerance (m)
+)
+
+# Define river processing options
+river_opts <- list(
+  min_length = 100  # Minimum river segment length (m)
+)
+
+# Build model
+model <- auto_build_model(
+  project_name = "detailed_model",
+  domain = domain,
+  rivers = rivers,
+  dem = dem,
+  soil = soil,
+  landcover = landcover,
+  output_dir = "model_output",
+  mesh_options = mesh_opts,
+  river_options = river_opts,
+  aquifer_depth = 10,
+  years = 2000:2010,
+  verbose = TRUE
+)
+```
+
+### Step 4: Examine Model Components
+
+```{r}
+# Access mesh object
+mesh <- model$mesh
+print(mesh)
+
+# Get mesh statistics
+n_cells <- nrow(mesh@mesh)
+mesh_area <- sum(mesh@mesh$Area)
+cat("Number of cells:", n_cells, "\n")
+cat("Total area:", mesh_area, "m²\n")
+
+# Access river network
+river <- model$river
+n_segments <- nrow(river@river)
+cat("Number of river segments:", n_segments, "\n")
+
+# View attributes
+att <- model$attributes
+head(att)
+```
+
+### Step 5: Visualize Model Domain
+
+```{r}
+# Convert mesh to spatial format for plotting
+mesh_sf <- sp.mesh2Shape(mesh, crs = st_crs(domain))
+
+# Plot mesh
+plot(st_geometry(mesh_sf), main = "Model Mesh")
+plot(st_geometry(rivers), add = TRUE, col = "blue", lwd = 2)
+
+# Plot mesh with elevation
+elev <- getElevation(mesh)
+plot(mesh_sf["Elevation"], main = "Mesh Elevation")
+```
+
+### Step 6: Read and Modify Input Files
+
+```{r}
+# Read generated input files
+mesh_data <- read_mesh("model_output/detailed_model.mesh")
+river_data <- read_river("model_output/detailed_model.riv")
+att_data <- read_att("model_output/detailed_model.att")
+para_data <- read_para("model_output/detailed_model.para")
+
+# Modify parameters
+para_data$INIT_MODE <- 3  # Change initialization mode
+para_data$ASCII_OUTPUT <- 1  # Enable ASCII output
+
+# Write modified parameters
+write_config(para_data, "model_output/detailed_model.para")
+```
+
+## Working with Model Results
+
+### Read Model Output
+
+After running the SHUD model, read the output files:
+
+```{r}
+# Read time series output
+surf_flow <- read_output(
+  path = "model_output",
+  variable = "surf",
+  time_range = c("2000-01-01", "2000-12-31")
+)
+
+# Read all variables
+all_output <- read_output(
+  path = "model_output",
+  variables = c("surf", "unsat", "gw", "river")
+)
+```
+
+### Visualize Results
+
+```{r}
+# Plot the first output series
+plot(
+  zoo::as.zoo(surf_flow[, 1]),
+  main = "Surface Flow",
+  ylab = "Flow (m³/s)",
+  xlab = "Time"
+)
+
+# Convert to raster for spatial visualization
+surf_raster <- mesh_to_raster(
+  data = surf_flow[1, ],  # First time step
+  mesh = mesh,
+  template = dem
+)
+
+plot(surf_raster, main = "Surface Flow at t=1")
+```
+
+### Calculate Water Balance
+
+```{r}
+# Calculate element water balance
+wb_elem <- wb.ele(
+  surf = all_output$surf,
+  unsat = all_output$unsat,
+  gw = all_output$gw
+)
+
+# Calculate river water balance
+wb_river <- wb.riv(
+  river = all_output$river
+)
+
+# Plot water balance
+plot(wb_elem$total, main = "Total Water Storage")
+```
+
+## Advanced Features
+
+### Custom Mesh Generation
+
+```{r}
+# Create custom mesh with specific constraints
+boundary <- st_read("boundary.shp")
+rivers <- st_read("rivers.shp")
+
+# Generate triangulation
+tri <- shud.triangle(
+  wb = boundary,
+  riv = rivers,
+  q = 30,      # Minimum angle
+  a = 1e5      # Maximum area
+)
+
+# Create mesh object
+mesh <- shud.mesh(tri, dem = dem, AqDepth = 15)
+```
+
+### River Network Processing
+
+```{r}
+# Build river network with properties
+river_network <- build_river_network(
+  rivers = rivers,
+  dem = dem,
+  min_length = 100,
+  simplify = TRUE
+)
+
+# Calculate specific properties
+rivers_with_order <- calc_river_properties(
+  rivers = rivers,
+  dem = dem,
+  properties = c("order", "slope")
+)
+
+# View stream orders
+table(rivers_with_order$order)
+```
+
+### Spatial Data Conversion
+
+```{r}
+# Convert mesh data to raster
+elevation <- getElevation(mesh)
+elev_raster <- mesh_to_raster(
+  data = elevation,
+  mesh = mesh,
+  resolution = 100,
+  method = "idw"
+)
+
+# Convert vector to raster
+soil_raster <- vector_to_raster(
+  vector = soil_polygons,
+  template = dem,
+  field = "soil_type"
+)
+```
+
+### Time Series Analysis
+
+```{r}
+# Read time series data
+discharge <- read_tsd("forcing/discharge.tsd")
+
+# Convert to daily values
+discharge_daily <- ts_to_daily(discharge, fun = mean)
+
+# Calculate flow duration curve
+fdc_data <- fdc(discharge)
+plot(fdc_data, main = "Flow Duration Curve")
+
+# Plot hydrograph
+hydrograph(
+  obs = observed_flow,
+  sim = simulated_flow,
+  main = "Observed vs Simulated"
+)
+```
+
+## Tips and Best Practices
+
+### Data Preparation
+
+1. **Coordinate Systems**: Ensure all spatial data use the same CRS
+2. **Resolution**: Match raster resolutions when possible
+3. **Extent**: Crop data to watershed extent plus buffer
+4. **Quality**: Check for missing data and outliers
+
+```{r}
+# Check and align CRS
+if (!st_crs(domain) == crs(dem)) {
+  domain <- st_transform(domain, crs = crs(dem))
+}
+
+# Crop rasters to domain with buffer
+domain_buffered <- st_buffer(domain, dist = 2000)
+dem_crop <- crop(dem, vect(domain_buffered))
+```
+
+### Mesh Quality
+
+1. **Triangle Size**: Balance between detail and computation time
+2. **Angle Quality**: Use min_angle >= 30 for stable numerics
+3. **River Alignment**: Ensure rivers align with mesh edges
+
+```{r}
+# Good mesh settings for typical watershed
+mesh_opts <- list(
+  max_area = 2e5,    # ~14 ha triangles
+  min_angle = 33,    # Good quality
+  simplify_boundary = 200
+)
+```
+
+### Performance
+
+1. **Use terra/sf**: Much faster than legacy raster/sp
+2. **Crop Early**: Reduce data extent before processing
+3. **Simplify**: Simplify boundaries and rivers appropriately
+
+```{r}
+# Simplify complex boundaries
+domain_simple <- st_simplify(domain, dTolerance = 100)
+
+# Use appropriate resolution
+dem_resample <- aggregate(dem, fact = 2)  # Reduce resolution
+```
+
+## Getting Help
+
+### Documentation
+
+```{r}
+# Function help
+?auto_build_model
+?mesh_to_raster
+?read_output
+
+# Package vignettes
+browseVignettes("rSHUD")
+```
+
+### Example Datasets
+
+```{r}
+# List available datasets
+data(package = "rSHUD")
+
+# Load and explore
+data(sh)
+str(sh)
+```
+
+### Resources
+
+- Package website: https://www.shud.xyz/
+- GitHub repository: https://github.com/SHUD-System/rSHUD
+- Issue tracker: https://github.com/SHUD-System/rSHUD/issues
+- SHUD model documentation: https://www.shud.xyz/Book/
+
+## Next Steps
+
+After completing this getting started guide:
+
+1. Review the **Migration Guide** if upgrading from v2.1
+2. Explore the **Model Building** vignette for detailed workflows
+3. Check the **GIS Processing** vignette for spatial analysis
+4. Read the **Hydrological Analysis** vignette for result analysis
+
+## Complete Example Script
+
+Here's a complete script to build and analyze a SHUD model:
+
+```{r}
+# Load libraries
+library(rSHUD)
+library(terra)
+library(sf)
+
+# Set working directory
+setwd("my_project")
+
+# Load data
+domain <- st_read("data/watershed.shp")
+dem <- rast("data/dem.tif")
+rivers <- st_read("data/rivers.shp")
+soil <- rast("data/soil.tif")
+lc <- rast("data/landcover.tif")
+
+# Build model
+model <- auto_build_model(
+  project_name = "watershed_2010",
+  domain = domain,
+  rivers = rivers,
+  dem = dem,
+  soil = soil,
+  landcover = lc,
+  output_dir = "model_2010",
+  years = 2010:2015,
+  verbose = TRUE
+)
+
+# Visualize mesh
+mesh_sf <- sp.mesh2Shape(model$mesh, crs = st_crs(domain))
+plot(st_geometry(mesh_sf), main = "Model Domain")
+
+# Run SHUD model (external command)
+# system("shud model_2010/watershed_2010")
+
+# Read and analyze results
+surf <- read_output("model_2010", variable = "surf")
+plot(
+  zoo::as.zoo(surf[, 1]),
+  main = "Surface Flow - Cell 1",
+  ylab = "Flow",
+  xlab = "Time"
+)
+
+# Calculate water balance
+wb <- wb.ele(
+  surf = read_output("model_2010", variable = "surf"),
+  unsat = read_output("model_2010", variable = "unsat"),
+  gw = read_output("model_2010", variable = "gw")
+)
+
+plot(wb$total, main = "Total Water Storage")
+```
+
+## Summary
+
+This guide covered:
+
+- Installing rSHUD and dependencies
+- Basic and detailed model building workflows
+- Reading and modifying input files
+- Analyzing model results
+- Advanced features and best practices
+
+For more detailed information, consult the other vignettes and function
+documentation.

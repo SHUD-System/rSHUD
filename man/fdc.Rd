@@ -8,7 +8,7 @@
 fdc(val, xlab = "Exceedance (\%)", ylab = "value")
 }
 \arguments{
-\item{val}{Matrix or data.frame, number of column=2}
+\item{val}{Matrix or data.frame, number of column = 2}
 
 \item{xlab}{xlab}
 
@@ -22,7 +22,7 @@ Default Comparison of the observation and simulation
 \code{fdc}
 }
 \examples{
-obs=rnorm(100)
-sim=obs+rnorm(100)/2
+obs = rnorm(100)
+sim = obs + rnorm(100) / 2
 fdc(cbind(obs, sim))
 }

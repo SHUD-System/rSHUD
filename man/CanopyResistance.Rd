@@ -8,10 +8,12 @@
 CanopyResistance(rmin, lai)
 }
 \arguments{
-\item{rmin}{Minimum Resistance [s m-1]}
+\item{rmin}{Minimum resistance in s m^-1.}
+
+\item{lai}{Leaf Area Index in m2 m^-2.}
 }
 \value{
-lai Leaf Area Index (LAI) [m2 m-2]
+Canopy resistance in s m^-1.
 }
 \description{
 Canopy resistance

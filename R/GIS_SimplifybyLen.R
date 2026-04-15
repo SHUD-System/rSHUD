@@ -5,47 +5,47 @@
 #' @param tol Tolerance
 #' @param threshold Minimum length for a segment
 #' @export
-sp.simplifyLen <-function(sp, tol, threshold=tol/2){
-  getdiag<-function(x, pos){
-    d=row(x) - col(x)
+sp.simplifyLen <- function(sp, tol, threshold = tol / 2){
+  getdiag <- function(x, pos){
+    d = row(x) - col(x)
     r = x[d == pos]
     r
   }
-  getDist <- function(xy, acc=T){
-    dm=as.matrix(dist(xy[,], diag=T))
+  getDist <- function(xy, acc = TRUE){
+    dm = as.matrix(dist(xy[, ], diag = TRUE))
     if(acc){
-      dv = cumsum(  c(0, getdiag(dm, 1)) )
+      dv = cumsum(c(0, getdiag(dm, 1)))
     }else{
-      dv = dm[,1]
+      dv = dm[, 1]
     }
     dv
   }
   
-  simplify.line<- function(sll, tol=NULL, threshold=tol/2){
+  simplify.line <- function(sll, tol = NULL, threshold = tol / 2){
     coord = sp::coordinates(sll)
     xd = getDist(coord)
     nx = length(xd)
     if(is.null(tol)){
-      tol = max(xd)/10
+      tol = max(xd) / 10
     }
     
-    seqdist = unique(c(seq(0, max(xd), by=tol), max(xd) ) )
+    seqdist = unique(c(seq(0, max(xd), by = tol), max(xd)))
     nq = length(seqdist)
     
-    if(nq<=2){
-      rt = coord[c(1,nx),]
+    if(nq <= 2){
+      rt = coord[c(1, nx), ]
     }else{
-      if(diff(seqdist[-1:0 + nq]) < threshold ){
+      if(diff(seqdist[-1:0 + nq]) < threshold){
         #if the P(n-1) too close to P(n), remove the P(n-1) point.
-        seqdist = seqdist[-1 * ( nq-1)]
+        seqdist = seqdist[-1 * (nq - 1)]
       }
       np = length(seqdist)
-      rt = matrix(0, nrow=np, ncol=2)
+      rt = matrix(0, nrow = np, ncol = 2)
       
-      rt[1,] = coord[1, ]
-      rt[np,] = coord[nx, ]
-      for(i in 2:(np-1)){
-        id = order( abs(seqdist[i] - xd))[1]
+      rt[1, ] = coord[1, ]
+      rt[np, ] = coord[nx, ]
+      for(i in 2:(np - 1)){
+        id = order(abs(seqdist[i] - xd))[1]
         rt[i, ] = coord[id, ]
       }
       
@@ -53,18 +53,18 @@ sp.simplifyLen <-function(sp, tol, threshold=tol/2){
     rt
   }
   shp = methods::as(sp, 'SpatialLines')
-  nshp=length(shp)
-  shp.new=shp;
+  nshp = length(shp)
+  shp.new = shp;
   
   for(i in 1:nshp){
-    # i=1
+    # i = 1
     sl = shp@lines[[i]]@Lines
     # sl = pls@Lines
-    nsl =length(sl)
+    nsl = length(sl)
     for(j in 1:nsl){
       sll = sl[[j]]
-      sll.simp = simplify.line(sll, tol=tol)
-      shp.new@lines[[i]]@Lines[[j]]@coords=sll.simp
+      sll.simp = simplify.line(sll, tol = tol)
+      shp.new@lines[[i]]@Lines[[j]]@coords = sll.simp
     }
   }
   shp.new 

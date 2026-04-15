@@ -1,0 +1,743 @@
+---
+title: "Hydrological Analysis with rSHUD"
+author: "rSHUD Development Team"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Hydrological Analysis with rSHUD}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Introduction
+
+This vignette demonstrates hydrological analysis capabilities in rSHUD,
+including reading model output, calculating water balance, analyzing time
+series, and evaluating model performance.
+
+## Prerequisites
+
+```{r}
+library(rSHUD)
+library(terra)
+library(sf)
+library(xts)
+library(hydroGOF)
+```
+
+## Reading Model Output
+
+### Output File Structure
+
+SHUD model outputs are stored in binary or ASCII format:
+
+- `surf.dat`: Surface water depth
+- `unsat.dat`: Unsaturated zone storage
+- `gw.dat`: Groundwater storage
+- `river.dat`: River stage and discharge
+- `infil.dat`: Infiltration rate
+- `recharge.dat`: Groundwater recharge
+- `et.dat`: Evapotranspiration
+
+### Reading Single Variable
+
+```{r}
+# Read surface water output
+surf <- read_output(
+  path = "model_output",
+  variable = "surf"
+)
+
+# Check dimensions
+dim(surf)  # [time_steps, n_cells]
+
+# View first few time steps
+head(surf[, 1:5])
+
+# Summary statistics
+summary(surf[1, ])  # First time step
+```
+
+### Reading Multiple Variables
+
+```{r}
+# Read all major variables
+output <- read_output(
+  path = "model_output",
+  variables = c("surf", "unsat", "gw", "river")
+)
+
+# Access individual variables
+surf <- output$surf
+unsat <- output$unsat
+gw <- output$gw
+river <- output$river
+```
+
+### Reading with Time Range
+
+```{r}
+# Read specific time period
+output_subset <- read_output(
+  path = "model_output",
+  variable = "surf",
+  time_range = c("2010-01-01", "2010-12-31")
+)
+
+# Read with time step filtering
+output_daily <- read_output(
+  path = "model_output",
+  variable = "surf",
+  time_step = "daily"  # Aggregate to daily
+)
+```
+
+## Water Balance Analysis
+
+### Element Water Balance
+
+```{r}
+# Calculate water balance for mesh elements
+wb_elem <- wb.ele(
+  surf = surf,
+  unsat = unsat,
+  gw = gw
+)
+
+# Components
+storage_surf <- wb_elem$surf      # Surface storage
+storage_unsat <- wb_elem$unsat    # Unsaturated zone storage
+storage_gw <- wb_elem$gw          # Groundwater storage
+storage_total <- wb_elem$total    # Total storage
+
+# Plot total storage over time
+plot(storage_total, main = "Total Water Storage",
+     ylab = "Storage (m³)", xlab = "Time")
+```
+
+### River Water Balance
+
+```{r}
+# Calculate river water balance
+wb_riv <- wb.riv(river = river)
+
+# Components
+river_stage <- wb_riv$stage       # River stage
+river_discharge <- wb_riv$discharge  # River discharge
+river_storage <- wb_riv$storage   # River storage
+
+# Plot discharge at outlet
+outlet_id <- nrow(river)
+plot(river_discharge[, outlet_id],
+     main = "Outlet Discharge",
+     ylab = "Discharge (m³/s)", xlab = "Time")
+```
+
+### Watershed Water Balance
+
+```{r}
+# Calculate watershed-scale water balance
+wb_all <- wb.all(
+  surf = surf,
+  unsat = unsat,
+  gw = gw,
+  river = river,
+  mesh = mesh
+)
+
+# Total watershed storage
+total_storage <- wb_all$total_storage
+
+# Water balance components
+precipitation <- wb_all$precipitation
+evapotranspiration <- wb_all$et
+runoff <- wb_all$runoff
+baseflow <- wb_all$baseflow
+
+# Plot water balance
+plot(total_storage, main = "Watershed Water Balance",
+     ylab = "Storage (mm)", xlab = "Time")
+```
+
+### Storage Change Analysis
+
+```{r}
+# Calculate storage change
+delta_storage <- DeltaS(
+  surf = surf,
+  unsat = unsat,
+  gw = gw
+)
+
+# Plot storage change
+plot(delta_storage, main = "Storage Change",
+     ylab = "ΔS (mm/day)", xlab = "Time")
+abline(h = 0, col = "red", lty = 2)
+
+# Cumulative storage change
+cumulative_ds <- cumsum(delta_storage)
+plot(cumulative_ds, main = "Cumulative Storage Change",
+     ylab = "Cumulative ΔS (mm)", xlab = "Time")
+```
+
+## Time Series Analysis
+
+### Converting to Time Series
+
+```{r}
+# Convert to xts time series
+surf_ts <- ts_to_df(surf)
+
+# Convert to daily values
+surf_daily <- ts_to_daily(surf, fun = mean)
+
+# Extract specific cells
+cell_ids <- c(1, 100, 500)
+surf_subset <- surf[, cell_ids]
+```
+
+### Aggregation
+
+```{r}
+# Daily aggregation
+surf_daily_mean <- ts_to_daily(surf, fun = mean)
+surf_daily_max <- ts_to_daily(surf, fun = max)
+surf_daily_min <- ts_to_daily(surf, fun = min)
+
+# Monthly aggregation
+surf_monthly <- apply.monthly(surf_daily_mean, mean)
+
+# Annual aggregation
+surf_annual <- apply.yearly(surf_daily_mean, mean)
+
+# Plot aggregated data
+plot(surf_daily_mean[, 1], main = "Daily Mean Surface Water",
+     ylab = "Depth (m)", xlab = "Time")
+lines(surf_monthly[, 1], col = "red", lwd = 2)
+```
+
+### Statistical Analysis
+
+```{r}
+# Calculate statistics
+mean_surf <- apply(surf, 2, mean)
+sd_surf <- apply(surf, 2, sd)
+max_surf <- apply(surf, 2, max)
+min_surf <- apply(surf, 2, min)
+
+# Coefficient of variation
+cv_surf <- sd_surf / mean_surf
+
+# Percentiles
+q25_surf <- apply(surf, 2, quantile, probs = 0.25)
+q75_surf <- apply(surf, 2, quantile, probs = 0.75)
+
+# Plot spatial distribution of statistics
+mesh_sf <- sp.mesh2Shape(mesh)
+mesh_sf$mean_surf <- mean_surf
+plot(mesh_sf["mean_surf"], main = "Mean Surface Water Depth")
+```
+
+## Hydrograph Analysis
+
+### Plotting Hydrographs
+
+```{r}
+# Simple hydrograph
+plot(
+  zoo::as.zoo(river_discharge[, outlet_id]),
+  main = "Outlet Hydrograph",
+  ylab = "Discharge (m³/s)",
+  xlab = "Time"
+)
+
+# Multiple hydrographs
+sel_ids <- c(1, 10, 20, outlet_id)
+sel_flow <- river_discharge[, sel_ids]
+matplot(
+  zoo::index(sel_flow),
+  zoo::coredata(sel_flow),
+  type = "l",
+  lty = 1,
+  col = seq_along(sel_ids),
+  xlab = "Time",
+  ylab = "Discharge (m³/s)",
+  main = "River Discharge at Multiple Locations"
+)
+legend(
+  "topright",
+  legend = c("Segment 1", "Segment 10", "Segment 20", "Outlet"),
+  col = seq_along(sel_ids),
+  lty = 1,
+  bty = "n"
+)
+```
+
+### Observed vs Simulated
+
+```{r}
+# Load observed data
+obs_discharge <- read_tsd("data/observed_discharge.tsd")
+
+# Align time periods
+common_time <- index(obs_discharge)[index(obs_discharge) %in%
+                                    index(river_discharge)]
+obs_aligned <- obs_discharge[common_time]
+sim_aligned <- river_discharge[common_time, outlet_id]
+
+# Plot comparison
+hydrograph(
+  obs = obs_aligned,
+  sim = sim_aligned,
+  main = "Observed vs Simulated Discharge"
+)
+
+# Add statistics to plot
+gof_stats <- gof(sim = sim_aligned, obs = obs_aligned)
+legend("topright", legend = c(
+  paste("NSE:", round(gof_stats["NSE"], 3)),
+  paste("R²:", round(gof_stats["R2"], 3)),
+  paste("PBIAS:", round(gof_stats["PBIAS"], 1), "%")
+))
+```
+
+### Flow Duration Curve
+
+```{r}
+# Calculate flow duration curve
+fdc_data <- fdc(river_discharge[, outlet_id])
+
+# Plot FDC
+plot(fdc_data, main = "Flow Duration Curve",
+     xlab = "Exceedance Probability (%)",
+     ylab = "Discharge (m³/s)",
+     log = "y")
+
+# Compare observed and simulated FDC
+fdc_obs <- fdc(obs_discharge)
+fdc_sim <- fdc(sim_aligned)
+
+plot(fdc_obs, main = "Flow Duration Curves",
+     xlab = "Exceedance Probability (%)",
+     ylab = "Discharge (m³/s)",
+     log = "y", col = "black", lwd = 2)
+lines(fdc_sim, col = "red", lwd = 2)
+legend("topright", legend = c("Observed", "Simulated"),
+       col = c("black", "red"), lwd = 2)
+```
+
+### Peak Flow Analysis
+
+```{r}
+# Identify peaks
+peaks <- which(diff(sign(diff(river_discharge[, outlet_id]))) == -2) + 1
+peak_values <- river_discharge[peaks, outlet_id]
+peak_times <- index(river_discharge)[peaks]
+
+# Plot with peaks highlighted
+plot(river_discharge[, outlet_id], main = "Discharge with Peaks")
+points(peak_times, peak_values, col = "red", pch = 19)
+
+# Peak statistics
+cat("Number of peaks:", length(peaks), "\n")
+cat("Mean peak discharge:", mean(peak_values), "m³/s\n")
+cat("Max peak discharge:", max(peak_values), "m³/s\n")
+```
+
+## Model Performance Evaluation
+
+### Goodness-of-Fit Statistics
+
+```{r}
+# Calculate comprehensive GOF statistics
+gof_stats <- gof(
+  sim = sim_aligned,
+  obs = obs_aligned,
+  na.rm = TRUE
+)
+
+print(gof_stats)
+
+# Individual statistics
+nse <- NSE(sim = sim_aligned, obs = obs_aligned)
+rmse <- rmse(sim = sim_aligned, obs = obs_aligned)
+pbias <- pbias(sim = sim_aligned, obs = obs_aligned)
+r2 <- cor(sim_aligned, obs_aligned)^2
+
+cat("Nash-Sutcliffe Efficiency:", nse, "\n")
+cat("Root Mean Square Error:", rmse, "\n")
+cat("Percent Bias:", pbias, "%\n")
+cat("R-squared:", r2, "\n")
+```
+
+### Visual Performance Assessment
+
+```{r}
+# Scatter plot
+plot(obs_aligned, sim_aligned,
+     main = "Observed vs Simulated",
+     xlab = "Observed Discharge (m³/s)",
+     ylab = "Simulated Discharge (m³/s)",
+     pch = 19, col = rgb(0, 0, 0, 0.3))
+abline(0, 1, col = "red", lwd = 2)  # 1:1 line
+
+# Residual plot
+residuals <- sim_aligned - obs_aligned
+plot(obs_aligned, residuals,
+     main = "Residual Plot",
+     xlab = "Observed Discharge (m³/s)",
+     ylab = "Residuals (m³/s)",
+     pch = 19, col = rgb(0, 0, 0, 0.3))
+abline(h = 0, col = "red", lwd = 2)
+
+# Q-Q plot
+qqnorm(residuals, main = "Normal Q-Q Plot of Residuals")
+qqline(residuals, col = "red", lwd = 2)
+```
+
+### Performance by Flow Regime
+
+```{r}
+# Separate by flow regime
+q_median <- median(obs_aligned)
+
+# Low flows
+low_flow_idx <- obs_aligned < q_median
+nse_low <- NSE(sim_aligned[low_flow_idx], obs_aligned[low_flow_idx])
+
+# High flows
+high_flow_idx <- obs_aligned >= q_median
+nse_high <- NSE(sim_aligned[high_flow_idx], obs_aligned[high_flow_idx])
+
+cat("NSE (low flows):", nse_low, "\n")
+cat("NSE (high flows):", nse_high, "\n")
+
+# Performance by season
+obs_df <- data.frame(
+  time = index(obs_aligned),
+  obs = coredata(obs_aligned),
+  sim = coredata(sim_aligned)
+)
+obs_df$season <- quarters(obs_df$time)
+
+# Calculate NSE by season
+library(dplyr)
+season_stats <- obs_df %>%
+  group_by(season) %>%
+  summarise(
+    NSE = NSE(sim, obs),
+    RMSE = rmse(sim, obs),
+    PBIAS = pbias(sim, obs)
+  )
+
+print(season_stats)
+```
+
+## Spatial Analysis
+
+### Spatial Distribution of Variables
+
+```{r}
+# Convert time step to raster
+time_step <- 100
+surf_raster <- mesh_to_raster(
+  data = surf[time_step, ],
+  mesh = mesh,
+  template = dem,
+  method = "idw"
+)
+
+plot(surf_raster, main = paste("Surface Water at t =", time_step))
+
+# Create animation of spatial distribution
+if (requireNamespace("animation", quietly = TRUE)) {
+  animation::saveGIF({
+    for (t in seq(1, nrow(surf), by = 10)) {
+      r <- mesh_to_raster(surf[t, ], mesh, dem, method = "idw")
+      plot(r, main = paste("Time step:", t))
+    }
+  }, movie.name = "surf_animation.gif")
+}
+```
+
+### Spatial Statistics
+
+```{r}
+# Calculate spatial statistics for each time step
+spatial_mean <- apply(surf, 1, mean)
+spatial_sd <- apply(surf, 1, sd)
+spatial_max <- apply(surf, 1, max)
+spatial_min <- apply(surf, 1, min)
+
+# Plot spatial statistics over time
+par(mfrow = c(2, 2))
+plot(spatial_mean, main = "Spatial Mean", ylab = "Depth (m)")
+plot(spatial_sd, main = "Spatial SD", ylab = "Depth (m)")
+plot(spatial_max, main = "Spatial Max", ylab = "Depth (m)")
+plot(spatial_min, main = "Spatial Min", ylab = "Depth (m)")
+```
+
+### Hotspot Analysis
+
+```{r}
+# Identify cells with high variability
+cv_cells <- apply(surf, 2, function(x) sd(x) / mean(x))
+
+# Map high variability cells
+mesh_sf$cv <- cv_cells
+high_var_cells <- mesh_sf[cv_cells > quantile(cv_cells, 0.9), ]
+
+plot(st_geometry(mesh_sf), col = "lightgray", border = NA)
+plot(st_geometry(high_var_cells), col = "red", add = TRUE)
+title("High Variability Cells (top 10%)")
+```
+
+## Evapotranspiration Analysis
+
+### Reading ET Output
+
+```{r}
+# Read ET components
+et_total <- read_output("model_output", variable = "et")
+et_canopy <- read_output("model_output", variable = "et_canopy")
+et_transpiration <- read_output("model_output", variable = "et_transp")
+et_soil <- read_output("model_output", variable = "et_soil")
+
+# Calculate watershed-average ET
+et_mean <- apply(et_total, 1, mean)
+
+# Plot ET time series
+plot(et_mean, main = "Watershed-Average Evapotranspiration",
+     ylab = "ET (mm/day)", xlab = "Time")
+```
+
+### ET Partitioning
+
+```{r}
+# Calculate ET components as fraction of total
+et_canopy_frac <- apply(et_canopy, 1, sum) / apply(et_total, 1, sum)
+et_transp_frac <- apply(et_transpiration, 1, sum) / apply(et_total, 1, sum)
+et_soil_frac <- apply(et_soil, 1, sum) / apply(et_total, 1, sum)
+
+# Plot ET partitioning
+et_components <- data.frame(
+  time = index(et_mean),
+  canopy = et_canopy_frac,
+  transpiration = et_transp_frac,
+  soil = et_soil_frac
+)
+
+# Stacked area plot
+library(ggplot2)
+ggplot(et_components, aes(x = time)) +
+  geom_area(aes(y = canopy, fill = "Canopy")) +
+  geom_area(aes(y = canopy + transpiration, fill = "Transpiration")) +
+  geom_area(aes(y = canopy + transpiration + soil, fill = "Soil")) +
+  labs(title = "ET Partitioning", y = "Fraction", x = "Time") +
+  scale_fill_manual(values = c("green", "blue", "brown"))
+```
+
+### PET Calculation
+
+```{r}
+# Calculate potential ET using Penman-Monteith
+forcing_data <- read_tsd("forcing/meteo.tsd")
+
+pet <- PET_PM(
+  Tair = forcing_data$temp,
+  RH = forcing_data$rh,
+  Wind = forcing_data$wind,
+  Rn = forcing_data$radiation,
+  elevation = mean(getElevation(mesh))
+)
+
+# Compare PET and actual ET
+plot(pet, main = "PET vs Actual ET",
+     ylab = "ET (mm/day)", xlab = "Time", col = "red")
+lines(et_mean, col = "blue")
+legend("topright", legend = c("PET", "Actual ET"),
+       col = c("red", "blue"), lty = 1)
+
+# Calculate ET/PET ratio
+et_pet_ratio <- et_mean / pet
+plot(et_pet_ratio, main = "ET/PET Ratio",
+     ylab = "Ratio", xlab = "Time")
+abline(h = 1, col = "red", lty = 2)
+```
+
+## Groundwater Analysis
+
+### Groundwater Levels
+
+```{r}
+# Calculate groundwater depth below surface
+gw_depth <- mesh@mesh$zmax - gw
+
+# Plot groundwater depth
+gw_depth_mean <- apply(gw_depth, 1, mean)
+plot(gw_depth_mean, main = "Mean Groundwater Depth",
+     ylab = "Depth (m)", xlab = "Time")
+
+# Spatial distribution of groundwater
+gw_raster <- mesh_to_raster(
+  data = gw[100, ],
+  mesh = mesh,
+  template = dem,
+  method = "idw"
+)
+plot(gw_raster, main = "Groundwater Level")
+```
+
+### Baseflow Separation
+
+```{r}
+# Simple baseflow separation
+# (Implement recursive digital filter or other method)
+baseflow_index <- function(discharge, alpha = 0.925) {
+  n <- length(discharge)
+  baseflow <- numeric(n)
+  baseflow[1] <- discharge[1]
+  
+  for (i in 2:n) {
+    baseflow[i] <- alpha * baseflow[i-1] +
+                   (1 - alpha) * (discharge[i] + discharge[i-1]) / 2
+    baseflow[i] <- min(baseflow[i], discharge[i])
+  }
+  
+  return(baseflow)
+}
+
+# Calculate baseflow
+discharge <- river_discharge[, outlet_id]
+baseflow <- baseflow_index(discharge)
+quickflow <- discharge - baseflow
+
+# Plot components
+plot(discharge, main = "Flow Components",
+     ylab = "Discharge (m³/s)", xlab = "Time")
+lines(baseflow, col = "blue", lwd = 2)
+lines(quickflow, col = "red", lwd = 2)
+legend("topright", legend = c("Total", "Baseflow", "Quickflow"),
+       col = c("black", "blue", "red"), lty = 1, lwd = c(1, 2, 2))
+
+# Baseflow index
+bfi <- sum(baseflow) / sum(discharge)
+cat("Baseflow Index:", bfi, "\n")
+```
+
+## Complete Analysis Workflow
+
+```{r}
+# Complete hydrological analysis workflow
+analyze_shud_output <- function(
+  output_dir,
+  mesh_file,
+  obs_file = NULL,
+  start_date = NULL,
+  end_date = NULL
+) {
+  
+  # Load mesh
+  cat("Loading mesh...\n")
+  mesh <- read_mesh(mesh_file)
+  
+  # Read model output
+  cat("Reading model output...\n")
+  output <- read_output(
+    path = output_dir,
+    variables = c("surf", "unsat", "gw", "river"),
+    time_range = c(start_date, end_date)
+  )
+  
+  # Calculate water balance
+  cat("Calculating water balance...\n")
+  wb <- wb.all(
+    surf = output$surf,
+    unsat = output$unsat,
+    gw = output$gw,
+    river = output$river,
+    mesh = mesh
+  )
+  
+  # Plot water balance
+  plot(wb$total_storage, main = "Total Water Storage")
+  
+  # Analyze discharge
+  cat("Analyzing discharge...\n")
+  outlet_id <- nrow(output$river)
+  discharge <- output$river[, outlet_id]
+  
+  # Flow duration curve
+  fdc_data <- fdc(discharge)
+  plot(fdc_data, main = "Flow Duration Curve", log = "y")
+  
+  # If observed data available, calculate GOF
+  if (!is.null(obs_file)) {
+    cat("Evaluating model performance...\n")
+    obs <- read_tsd(obs_file)
+    
+    # Align time periods
+    common_time <- zoo::index(obs)[zoo::index(obs) %in% zoo::index(discharge)]
+    obs_aligned <- obs[common_time]
+    sim_aligned <- discharge[common_time]
+    
+    # Calculate statistics
+    gof_stats <- gof(sim = sim_aligned, obs = obs_aligned)
+    print(gof_stats)
+    
+    # Plot comparison
+    hydrograph(obs = obs_aligned, sim = sim_aligned)
+  }
+  
+  # Spatial analysis
+  cat("Creating spatial maps...\n")
+  surf_mean <- apply(output$surf, 2, mean)
+  surf_raster <- mesh_to_raster(
+    data = surf_mean,
+    mesh = mesh,
+    method = "idw"
+  )
+  plot(surf_raster, main = "Mean Surface Water Depth")
+  
+  cat("Analysis complete!\n")
+  
+  return(list(
+    water_balance = wb,
+    discharge = discharge,
+    gof = if (!is.null(obs_file)) gof_stats else NULL
+  ))
+}
+
+# Run analysis
+results <- analyze_shud_output(
+  output_dir = "model_output",
+  mesh_file = "model/watershed.mesh",
+  obs_file = "data/observed_discharge.tsd",
+  start_date = "2010-01-01",
+  end_date = "2010-12-31"
+)
+```
+
+## Summary
+
+This vignette covered:
+
+- Reading SHUD model output
+- Water balance analysis
+- Time series analysis and aggregation
+- Hydrograph analysis and flow duration curves
+- Model performance evaluation
+- Spatial analysis of model results
+- Evapotranspiration analysis
+- Groundwater and baseflow analysis
+- Complete analysis workflow
+
+For more information, see the other vignettes and function documentation.

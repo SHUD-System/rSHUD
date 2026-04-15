@@ -12,7 +12,7 @@
 #' @return simplified SpatialLines
 #' @source  https://stackoverflow.com/questions/38700246/how-do-i-split-divide-polyline-shapefiles-into-equally-length-smaller-segments
 #' @export
-SimplifybyLen <- function(sp, split_length = 20, plot.results = F) {
+SimplifybyLen <- function(sp, split_length = 20, plot.results = FALSE) {
   sp = methods::as(sp, 'SpatialLines')
   #### Define support functions ####
   # SpatialLines2df extracts start and end point coordinates of each segment of a SpatialLine object
@@ -38,12 +38,12 @@ SimplifybyLen <- function(sp, split_length = 20, plot.results = F) {
       for (j in row_nums) {
         # For each segment stores ids and coordinates
         df[nrow(df) + 1, ] = c(id[j],
-                               mline_id,
-                               segment_id[j],
-                               coords[j, 1],
-                               coords[j, 2],
-                               coords[j + 1, 1],
-                               coords[j + 1, 2])
+                                mline_id,
+                                segment_id[j],
+                                coords[j, 1],
+                                coords[j, 2],
+                                coords[j + 1, 1],
+                                coords[j + 1, 2])
       }
     }
     row.names(df) = NULL
@@ -93,14 +93,13 @@ SimplifybyLen <- function(sp, split_length = 20, plot.results = F) {
     # For each line of the dataframe, corresponding to a single line of the spatial object
     # skips if length is less then split_length
     v_seg = linedf[i, ]
-    seg_length = sqrt((v_seg$fx - v_seg$tx) ^ 2 + (v_seg$fy - v_seg$ty) ^
-                        2) # segment length
+    seg_length = sqrt((v_seg$fx - v_seg$tx) ^ 2 + (v_seg$fy - v_seg$ty) ^ 2) # segment length
     if (seg_length <= split_length) {
-      df[nrow(df) + 1,] = c(paste0(v_seg$id, '_', '0000'),
-                            v_seg$fx,
-                            v_seg$fy,
-                            v_seg$tx,
-                            v_seg$ty)
+      df[nrow(df) + 1, ] = c(paste0(v_seg$id, '_', '0000'),
+                              v_seg$fx,
+                              v_seg$fy,
+                              v_seg$tx,
+                              v_seg$ty)
       next()
     }
     # Create a vector of direction as the line and unit length

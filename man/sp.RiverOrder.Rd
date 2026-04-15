@@ -5,7 +5,7 @@
 \title{calculate river order
 \code{sp.RiverOrder}}
 \usage{
-sp.RiverOrder(sp, coord = extractCoords(sp))
+sp.RiverOrder(sp, coord = get_coords(sp))
 }
 \arguments{
 \item{sp}{SpatialLines*}
@@ -20,7 +20,7 @@ calculate river order
 \code{sp.RiverOrder}
 }
 \examples{
-library(rgdal)
+library(sf)
 data(sac)
 riv=sac$riv
 ord = sp.RiverOrder(riv)

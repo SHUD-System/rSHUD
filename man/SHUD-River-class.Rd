@@ -4,22 +4,73 @@
 \name{SHUD River-class}
 \alias{SHUD River-class}
 \alias{SHUD.RIVER}
-\title{Class of SHUD.RIVER
-\code{SHUD.RIVER}}
+\title{Class of SHUD.RIVER}
 \value{
 Class of SHUD.RIVER
 }
 \description{
-Class of SHUD.RIVER
-\code{SHUD.RIVER}
+S4 class representing a river network for SHUD models.
+The class stores river segment properties, hydraulic parameters,
+and node information. Now supports both legacy data.frame format
+and modern sf spatial format.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{river}}{data.frame or matrix}
+\item{\code{river}}{data.frame with river segment properties}
 
-\item{\code{rivertype}}{data.frame or matrix}
+\item{\code{rivertype}}{data.frame with hydraulic parameters for each river type}
 
-\item{\code{point}}{data.frame or matrix}
+\item{\code{point}}{data.frame with from/to node coordinates and elevations}
+
+\item{\code{network}}{sf object with river network geometry (optional, for modern format)}
+
+\item{\code{crs}}{character string with coordinate reference system (optional)}
 }}
+
+\section{River Data Frame}{
+
+The river slot contains:
+\itemize{
+\item Index: Segment ID
+\item Down: Downstream segment index (-1 for outlets)
+\item Type: River type/order
+\item Slope: Bed slope
+\item Length: Segment length
+\item BC: Boundary condition flag
+}
+}
+
+\section{River Type Data Frame}{
+
+The rivertype slot contains hydraulic parameters:
+\itemize{
+\item Index: Type index
+\item Depth: Channel depth (m)
+\item BankSlope: Bank slope
+\item Width: Channel width (m)
+\item Sinuosity: Channel sinuosity
+\item Manning: Manning's roughness coefficient
+\item Cwr: Width-discharge coefficient
+\item KsatH: Horizontal hydraulic conductivity
+\item BedThick: Bed sediment thickness
+}
+}
+
+\section{Point Data Frame}{
+
+The point slot contains node information:
+\itemize{
+\item From.x, From.y, From.z: Start node coordinates and elevation
+\item To.x, To.y, To.z: End node coordinates and elevation
+}
+}
+
+\section{Modern Format}{
+
+When created with modern functions (e.g., \code{build_river_network()}),
+the network slot contains an sf object with LINESTRING geometry and
+all river properties as attributes. The crs slot stores the coordinate
+reference system.
+}
 

@@ -1,0 +1,700 @@
+---
+title: "GIS Processing with rSHUD"
+author: "rSHUD Development Team"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GIS Processing with rSHUD}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Introduction
+
+This vignette demonstrates GIS processing capabilities in rSHUD using modern
+spatial libraries (terra and sf). It covers raster and vector operations,
+coordinate transformations, spatial analysis, and data conversions.
+
+## Prerequisites
+
+```{r}
+library(rSHUD)
+library(terra)
+library(sf)
+```
+
+## Raster Operations with terra
+
+### Loading and Basic Operations
+
+```{r}
+# Load raster data
+dem <- rast("data/dem.tif")
+
+# Basic information
+print(dem)
+cat("Resolution:", res(dem), "\n")
+cat("Extent:", as.vector(ext(dem)), "\n")
+cat("CRS:", crs(dem), "\n")
+
+# Summary statistics
+global(dem, "mean", na.rm = TRUE)
+global(dem, c("min", "max", "mean", "sd"), na.rm = TRUE)
+
+# Plot
+plot(dem, main = "Digital Elevation Model")
+```
+
+### Raster Algebra
+
+```{r}
+# Simple operations
+dem_m <- dem  # Already in meters
+dem_ft <- dem * 3.28084  # Convert to feet
+
+# Conditional operations
+slope <- terrain(dem, "slope", unit = "degrees")
+steep_areas <- slope > 30  # Boolean raster
+
+# Reclassify
+rcl_matrix <- matrix(c(
+  0, 100, 1,
+  100, 500, 2,
+  500, 1000, 3,
+  1000, Inf, 4
+), ncol = 3, byrow = TRUE)
+
+elev_classes <- classify(dem, rcl_matrix)
+plot(elev_classes, main = "Elevation Classes")
+```
+
+### Terrain Analysis
+
+```{r}
+# Calculate terrain derivatives
+slope <- terrain(dem, "slope", unit = "degrees")
+aspect <- terrain(dem, "aspect", unit = "degrees")
+tpi <- terrain(dem, "TPI")  # Topographic Position Index
+tri <- terrain(dem, "TRI")  # Terrain Ruggedness Index
+
+# Flow direction and accumulation
+flow_dir <- terrain(dem, "flowdir")
+
+# Hillshade for visualization
+hillshade <- shade(
+  slope = terrain(dem, "slope", unit = "radians"),
+  aspect = terrain(dem, "aspect", unit = "radians")
+)
+
+plot(hillshade, col = gray(0:100/100), legend = FALSE)
+plot(dem, add = TRUE, alpha = 0.5)
+```
+
+### Raster Manipulation
+
+```{r}
+# Crop to extent
+bbox <- ext(c(xmin = 100, xmax = 200, ymin = 100, ymax = 200))
+dem_crop <- crop(dem, bbox)
+
+# Crop to polygon
+watershed <- st_read("data/watershed.shp")
+dem_crop <- crop(dem, vect(watershed))
+dem_mask <- mask(dem_crop, vect(watershed))
+
+# Resample to different resolution
+dem_coarse <- aggregate(dem, fact = 2, fun = "mean")
+dem_fine <- disagg(dem, fact = 2, method = "bilinear")
+
+# Reproject
+dem_ll <- project(dem, "EPSG:4326", method = "bilinear")
+```
+
+### Multi-layer Rasters
+
+```{r}
+# Create raster stack
+soil <- rast("data/soil.tif")
+landcover <- rast("data/landcover.tif")
+
+# Combine layers
+layers <- c(dem, soil, landcover)
+names(layers) <- c("elevation", "soil", "landcover")
+
+# Access individual layers
+elev_layer <- layers[[1]]
+elev_layer <- layers[["elevation"]]
+
+# Operations on all layers
+layers_norm <- scale(layers)
+
+# Extract values
+pts <- data.frame(x = c(100, 200), y = c(100, 200))
+values <- extract(layers, pts)
+```
+
+## Vector Operations with sf
+
+### Loading and Basic Operations
+
+```{r}
+# Load vector data
+watershed <- st_read("data/watershed.shp")
+rivers <- st_read("data/rivers.shp")
+stations <- st_read("data/stations.shp")
+
+# Basic information
+print(watershed)
+st_geometry_type(watershed)
+st_crs(watershed)
+st_bbox(watershed)
+
+# Plot
+plot(st_geometry(watershed), main = "Watershed")
+plot(st_geometry(rivers), add = TRUE, col = "blue")
+plot(st_geometry(stations), add = TRUE, col = "red", pch = 19)
+```
+
+### Geometric Operations
+
+```{r}
+# Buffer
+watershed_buf <- st_buffer(watershed, dist = 1000)
+rivers_buf <- st_buffer(rivers, dist = 100)
+
+# Union
+watershed_union <- st_union(watershed)
+
+# Intersection
+rivers_in_watershed <- st_intersection(rivers, watershed)
+
+# Difference
+watershed_no_rivers <- st_difference(watershed, rivers_buf)
+
+# Simplification
+watershed_simple <- st_simplify(watershed, dTolerance = 100)
+rivers_simple <- st_simplify(rivers, dTolerance = 50)
+
+# Centroid
+watershed_centroid <- st_centroid(watershed)
+
+# Convex hull
+watershed_hull <- st_convex_hull(watershed_union)
+```
+
+### Spatial Queries
+
+```{r}
+# Spatial predicates
+rivers_intersect <- st_intersects(rivers, watershed)
+stations_within <- st_within(stations, watershed)
+
+# Filter based on spatial relationship
+rivers_in <- rivers[lengths(st_intersects(rivers, watershed)) > 0, ]
+stations_in <- stations[lengths(st_within(stations, watershed)) > 0, ]
+
+# Distance calculations
+dist_to_rivers <- st_distance(stations, rivers)
+nearest_river <- apply(dist_to_rivers, 1, which.min)
+
+# Area and length
+watershed_area <- st_area(watershed)
+river_lengths <- st_length(rivers)
+```
+
+### Attribute Operations
+
+```{r}
+# Select columns
+rivers_subset <- rivers[, c("name", "order")]
+
+# Filter rows
+major_rivers <- rivers[rivers$order >= 3, ]
+
+# Add new columns
+rivers$length_km <- as.numeric(st_length(rivers)) / 1000
+
+# Aggregate
+rivers_by_order <- aggregate(
+  rivers["length_km"],
+  by = list(order = rivers$order),
+  FUN = sum
+)
+
+# Join
+stations$watershed_id <- st_join(stations, watershed)$id
+```
+
+## Coordinate Reference Systems
+
+### CRS Management
+
+```{r}
+# Check CRS
+st_crs(watershed)
+crs(dem)
+
+# Set CRS (if missing)
+st_crs(watershed) <- 4326
+crs(dem) <- "EPSG:4326"
+
+# Transform to different CRS
+watershed_utm <- st_transform(watershed, crs = 32610)  # UTM Zone 10N
+dem_utm <- project(dem, "EPSG:32610")
+
+# Transform to match another object
+rivers_matched <- st_transform(rivers, crs = st_crs(watershed))
+```
+
+### Common Projections
+
+```{r}
+# Geographic (lat/lon)
+watershed_ll <- st_transform(watershed, crs = 4326)
+
+# UTM (automatically determine zone)
+lon <- mean(st_coordinates(st_centroid(watershed))[, 1])
+utm_zone <- crs.long2utmZone(lon)
+utm_crs <- crs.long2utm(lon)
+watershed_utm <- st_transform(watershed, crs = utm_crs)
+
+# Albers Equal Area
+albers_crs <- crs.Albers(
+  lat1 = 29.5,
+  lat2 = 45.5,
+  lat0 = 37.5,
+  lon0 = -96
+)
+watershed_albers <- st_transform(watershed, crs = albers_crs)
+
+# Lambert Conformal Conic
+lambert_crs <- crs.Lambert(
+  lat1 = 33,
+  lat2 = 45,
+  lat0 = 39,
+  lon0 = -96
+)
+watershed_lambert <- st_transform(watershed, crs = lambert_crs)
+```
+
+## Raster-Vector Conversions
+
+### Mesh to Raster
+
+```{r}
+# Load mesh
+mesh <- read_mesh("model/watershed.mesh")
+
+# Get mesh data
+elevation <- getElevation(mesh)
+soil_type <- mesh@mesh$Soil
+
+# Convert to raster using different methods
+elev_raster_idw <- mesh_to_raster(
+  data = elevation,
+  mesh = mesh,
+  template = dem,
+  method = "idw"
+)
+
+elev_raster_linear <- mesh_to_raster(
+  data = elevation,
+  mesh = mesh,
+  template = dem,
+  method = "linear"
+)
+
+elev_raster_nearest <- mesh_to_raster(
+  data = elevation,
+  mesh = mesh,
+  template = dem,
+  method = "nearest"
+)
+
+# Compare methods
+par(mfrow = c(2, 2))
+plot(dem, main = "Original DEM")
+plot(elev_raster_idw, main = "IDW Interpolation")
+plot(elev_raster_linear, main = "Linear Interpolation")
+plot(elev_raster_nearest, main = "Nearest Neighbor")
+```
+
+### Vector to Raster
+
+```{r}
+# Rasterize polygons
+soil_polygons <- st_read("data/soil_polygons.shp")
+
+soil_raster <- vector_to_raster(
+  vector = soil_polygons,
+  template = dem,
+  field = "soil_type",
+  fun = "first"
+)
+
+# Rasterize lines (rivers)
+rivers_raster <- vector_to_raster(
+  vector = rivers,
+  template = dem,
+  field = "order",
+  fun = "max"
+)
+
+# Rasterize points with interpolation
+stations_raster <- vector_to_raster(
+  vector = stations,
+  template = dem,
+  field = "rainfall",
+  fun = "mean"
+)
+```
+
+### Raster to Vector
+
+```{r}
+# Convert raster to polygons
+elev_classes <- classify(dem, rcl_matrix)
+elev_polygons <- as.polygons(elev_classes)
+elev_sf <- st_as_sf(elev_polygons)
+
+# Convert raster to points
+dem_points <- as.points(dem)
+dem_points_sf <- st_as_sf(dem_points)
+
+# Contour lines
+contours <- as.contour(dem, levels = seq(0, 1000, 100))
+contours_sf <- st_as_sf(contours)
+```
+
+## Spatial Analysis
+
+### Watershed Delineation
+
+```{r}
+# Delineate watershed from pour point
+pour_point <- st_point(c(x = 500000, y = 4000000))
+pour_point_sf <- st_sfc(pour_point, crs = st_crs(dem))
+
+watershed_delineated <- watershedDelineation(
+  dem = dem,
+  outlet = pour_point_sf
+)
+
+plot(dem)
+plot(st_geometry(watershed_delineated), add = TRUE, border = "red", lwd = 2)
+```
+
+### River Network Extraction
+
+```{r}
+# Extract river network from DEM
+flow_acc <- terrain(dem, "flowaccumulation")
+threshold <- 1000  # Minimum accumulation for stream
+
+rivers_extracted <- flow_acc > threshold
+rivers_vectorized <- as.lines(rivers_extracted)
+
+# Process river network
+rivers_processed <- build_river_network(
+  rivers = st_as_sf(rivers_vectorized),
+  dem = dem,
+  min_length = 500
+)
+```
+
+### Zonal Statistics
+
+```{r}
+# Calculate statistics by zone
+zones <- st_read("data/subwatersheds.shp")
+
+# Extract raster values by polygon
+zonal_stats <- extract(dem, vect(zones), fun = mean, na.rm = TRUE)
+zones$mean_elev <- zonal_stats$elevation
+
+# Multiple statistics
+zonal_multi <- extract(
+  dem,
+  vect(zones),
+  fun = function(x) c(
+    mean = mean(x, na.rm = TRUE),
+    min = min(x, na.rm = TRUE),
+    max = max(x, na.rm = TRUE),
+    sd = sd(x, na.rm = TRUE)
+  )
+)
+```
+
+### Spatial Interpolation
+
+```{r}
+# Prepare point data
+rainfall_pts <- st_read("data/rainfall_stations.shp")
+
+# IDW interpolation
+if (requireNamespace("gstat", quietly = TRUE)) {
+  # Create grid
+  grid <- st_as_sf(as.points(dem, values = FALSE))
+  
+  # Perform IDW
+  idw_result <- gstat::idw(
+    formula = rainfall ~ 1,
+    locations = rainfall_pts,
+    newdata = grid,
+    idp = 2.0
+  )
+  
+  # Convert to raster
+  rainfall_raster <- rasterize(
+    idw_result,
+    dem,
+    field = "var1.pred"
+  )
+}
+```
+
+## Data Quality and Validation
+
+### Checking Data Quality
+
+```{r}
+# Check for missing values
+na_count <- global(dem, "isNA")
+cat("Missing values:", na_count, "\n")
+
+# Check value ranges
+value_range <- global(dem, c("min", "max"), na.rm = TRUE)
+cat("Value range:", value_range$min, "to", value_range$max, "\n")
+
+# Check for outliers
+dem_values <- values(dem, na.rm = TRUE)
+outliers <- which_outliers(dem_values)
+cat("Outliers:", sum(outliers), "\n")
+
+# Visualize outliers
+dem_clean <- dem
+dem_clean[outliers] <- NA
+plot(dem_clean, main = "DEM with Outliers Removed")
+```
+
+### Spatial Coverage
+
+```{r}
+# Check raster coverage of mesh
+mesh <- read_mesh("model/watershed.mesh")
+coverage <- ForcingCoverage(mesh, dem)
+cat("DEM coverage of mesh:", coverage, "%\n")
+
+# Check vector coverage
+rivers_coverage <- st_area(st_intersection(rivers, watershed)) /
+                   st_area(watershed) * 100
+cat("River coverage:", rivers_coverage, "%\n")
+```
+
+### Alignment Checks
+
+```{r}
+# Check if extents overlap
+dem_ext <- ext(dem)
+watershed_ext <- st_bbox(watershed)
+
+overlaps <- !(
+  dem_ext$xmax < watershed_ext["xmin"] ||
+  dem_ext$xmin > watershed_ext["xmax"] ||
+  dem_ext$ymax < watershed_ext["ymin"] ||
+  dem_ext$ymin > watershed_ext["ymax"]
+)
+
+cat("Extents overlap:", overlaps, "\n")
+
+# Check CRS compatibility
+crs_match <- compatible_crs(crs(dem), st_crs(watershed))
+cat("CRS compatible:", crs_match, "\n")
+```
+
+## Performance Optimization
+
+### Efficient Raster Processing
+
+```{r}
+# Process in chunks for large rasters
+process_large_raster <- function(r, fun) {
+  # Process by blocks
+  result <- app(r, fun, cores = 4)  # Use multiple cores
+  return(result)
+}
+
+# Use appropriate data types
+dem_int <- as.int(dem * 100)  # Store as integer with scaling
+
+# Crop before processing
+dem_crop <- crop(dem, vect(watershed))
+slope <- terrain(dem_crop, "slope")  # Faster than full extent
+```
+
+### Efficient Vector Processing
+
+```{r}
+# Simplify before processing
+rivers_simple <- st_simplify(rivers, dTolerance = 50)
+
+# Use spatial indexing
+rivers_indexed <- st_make_valid(rivers)
+
+# Batch operations
+watersheds <- st_read("data/watersheds.shp")
+areas <- st_area(watersheds)  # Vectorized operation
+```
+
+## Visualization
+
+### Basic Plotting
+
+```{r}
+# Raster visualization
+plot(dem, main = "Elevation", col = terrain.colors(100))
+contour(dem, add = TRUE, levels = seq(0, 1000, 100))
+
+# Vector visualization
+plot(st_geometry(watershed), main = "Watershed", border = "red", lwd = 2)
+plot(st_geometry(rivers), add = TRUE, col = "blue", lwd = 1)
+plot(st_geometry(stations), add = TRUE, col = "black", pch = 19)
+```
+
+### Advanced Visualization
+
+```{r}
+# Hillshade with overlay
+hillshade <- shade(
+  slope = terrain(dem, "slope", unit = "radians"),
+  aspect = terrain(dem, "aspect", unit = "radians")
+)
+
+plot(hillshade, col = gray(0:100/100), legend = FALSE, main = "Hillshade DEM")
+plot(dem, add = TRUE, alpha = 0.5, col = terrain.colors(100))
+plot(st_geometry(watershed), add = TRUE, border = "red", lwd = 2)
+
+# Multi-panel plots
+par(mfrow = c(2, 2))
+plot(dem, main = "Elevation")
+plot(terrain(dem, "slope"), main = "Slope")
+plot(terrain(dem, "aspect"), main = "Aspect")
+plot(terrain(dem, "TPI"), main = "TPI")
+```
+
+### Interactive Visualization
+
+```{r}
+# Using mapview (if available)
+if (requireNamespace("mapview", quietly = TRUE)) {
+  mapview::mapview(watershed) +
+    mapview::mapview(rivers, color = "blue") +
+    mapview::mapview(stations, col.regions = "red")
+}
+```
+
+## Complete GIS Workflow Example
+
+```{r}
+# Complete GIS processing workflow
+process_watershed_data <- function(
+  dem_file,
+  watershed_file,
+  rivers_file,
+  output_dir = "processed"
+) {
+  
+  # Create output directory
+  dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+  
+  # Load data
+  cat("Loading data...\n")
+  dem <- rast(dem_file)
+  watershed <- st_read(watershed_file)
+  rivers <- st_read(rivers_file)
+  
+  # Align CRS
+  cat("Aligning coordinate systems...\n")
+  if (!compatible_crs(crs(dem), st_crs(watershed))) {
+    watershed <- st_transform(watershed, crs = crs(dem))
+  }
+  if (!compatible_crs(crs(dem), st_crs(rivers))) {
+    rivers <- st_transform(rivers, crs = crs(dem))
+  }
+  
+  # Crop and mask DEM
+  cat("Cropping DEM...\n")
+  watershed_buf <- st_buffer(watershed, dist = 2000)
+  dem_crop <- crop(dem, vect(watershed_buf))
+  dem_mask <- mask(dem_crop, vect(watershed))
+  
+  # Calculate terrain derivatives
+  cat("Calculating terrain derivatives...\n")
+  slope <- terrain(dem_mask, "slope", unit = "degrees")
+  aspect <- terrain(dem_mask, "aspect", unit = "degrees")
+  
+  # Process rivers
+  cat("Processing river network...\n")
+  rivers_clip <- st_intersection(rivers, watershed)
+  rivers_simple <- st_simplify(rivers_clip, dTolerance = 50)
+  
+  river_network <- build_river_network(
+    rivers = rivers_simple,
+    dem = dem_mask,
+    min_length = 100
+  )
+  
+  # Save results
+  cat("Saving results...\n")
+  writeRaster(dem_mask, file.path(output_dir, "dem.tif"), overwrite = TRUE)
+  writeRaster(slope, file.path(output_dir, "slope.tif"), overwrite = TRUE)
+  writeRaster(aspect, file.path(output_dir, "aspect.tif"), overwrite = TRUE)
+  
+  st_write(watershed, file.path(output_dir, "watershed.shp"),
+           delete_dsn = TRUE)
+  st_write(river_network$network, file.path(output_dir, "rivers.shp"),
+           delete_dsn = TRUE)
+  
+  cat("Processing complete!\n")
+  
+  return(list(
+    dem = dem_mask,
+    slope = slope,
+    aspect = aspect,
+    watershed = watershed,
+    rivers = river_network
+  ))
+}
+
+# Run the workflow
+results <- process_watershed_data(
+  dem_file = "data/dem.tif",
+  watershed_file = "data/watershed.shp",
+  rivers_file = "data/rivers.shp",
+  output_dir = "processed_data"
+)
+```
+
+## Summary
+
+This vignette covered:
+
+- Raster operations with terra
+- Vector operations with sf
+- Coordinate reference system management
+- Raster-vector conversions
+- Spatial analysis techniques
+- Data quality and validation
+- Performance optimization
+- Visualization methods
+- Complete GIS workflow
+
+For more information, see the other vignettes and function documentation.

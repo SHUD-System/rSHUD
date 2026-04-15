@@ -24,9 +24,9 @@ shud.ic(
 
 \item{stage}{Default river stage}
 
-\item{p1}{Fraction of unsat zone, [0,1]}
+\item{p1}{Fraction of unsaturated zone, from 0 to 1.}
 
-\item{p2}{Fraction of Groundwater, [0,1]}
+\item{p2}{Fraction of groundwater, from 0 to 1.}
 
 \item{lakestage}{Lake Stages. Null=No lake.}
 }

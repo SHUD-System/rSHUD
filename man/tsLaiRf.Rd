@@ -18,6 +18,6 @@ Generate the default LAI and Roughness Length for UMD classification system
 \code{tsLaiRf}
 }
 \examples{
-tsLaiRf(type=1)
-tsLaiRf(type=2)
+tsLaiRf(type = 1)
+tsLaiRf(type = 2)
 }

@@ -2,23 +2,36 @@
 % Please edit documentation in R/GIS_Projection.R
 \name{crs.Albers}
 \alias{crs.Albers}
-\title{Build an Albers Equal Area projection based on the spatial data or extent.
-\code{crs.Albers}}
+\title{Build an Albers Equal Area projection}
 \usage{
-crs.Albers(spx, ext = NULL)
+crs.Albers(spx = NULL, ext = NULL)
 }
 \arguments{
-\item{spx}{Spatial Data}
+\item{spx}{Spatial data object (sf, SpatVector, or SpatRaster). If NULL,
+must provide ext parameter.}
 
-\item{ext}{extent of the data.}
+\item{ext}{Numeric vector of extent: c(xmin, xmax, ymin, ymax) in
+longitude/latitude (EPSG:4326). If NULL, extracted from spx.}
 }
 \value{
-CRS in Albers Equal Area projection.
+Character string with PROJ.4 CRS definition for Albers projection
 }
 \description{
-Build an Albers Equal Area projection based on the spatial data or extent.
-\code{crs.Albers}
+Creates an Albers Equal Area Conic projection based on spatial data extent.
+This projection is suitable for areas with east-west extent and preserves
+area measurements.
 }
 \examples{
-crs.Albers(ext=c(90, 100, 35, 40))
+# Create Albers projection from extent
+crs_albers <- crs.Albers(ext = c(-120, -110, 35, 45))
+
+# Use with spatial data
+if (requireNamespace("sf", quietly = TRUE)) {
+  pts <- sf::st_as_sf(
+    data.frame(x = c(-115, -112), y = c(40, 42)),
+    coords = c("x", "y"),
+    crs = 4326
+  )
+  crs_albers <- crs.Albers(spx = pts)
+}
 }

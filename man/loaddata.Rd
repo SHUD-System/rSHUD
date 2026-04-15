@@ -15,7 +15,9 @@ loaddata(
 \arguments{
 \item{varname}{vector of output keywords}
 
-\item{rdsfile}{Save RDS file. NULL=do not save rds file.}
+\item{rdsfile}{Save RDS file. NULL = do not save an RDS file.}
+
+\item{ver}{Output file version.}
 }
 \value{
 A list of TimeSeries data.

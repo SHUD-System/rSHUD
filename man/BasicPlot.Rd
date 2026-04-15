@@ -22,19 +22,17 @@ BasicPlot(
 
 \item{xl}{list of data returned from loaddata()}
 
-\item{sp.riv}{River SpatialLine*}
+\item{sp.riv}{River SpatialLine* object.}
 
-\item{rdsfile}{Save RDS file}
+\item{rdsfile}{Save RDS file.}
 
-\item{plot}{Whether do the time-series plot}
+\item{plot}{Whether to create time-series plots.}
 
-\item{imap}{Whether do the raster plot for Element data. Only works for element data}
+\item{imap}{Whether to create raster plots for element data.}
 
-\item{w.focal}{forcal matrix}
+\item{w.focal}{Focal matrix used for raster smoothing.}
 
-\item{return}{Whether return the data. Some the results are too huge to load in memoery at once.}
-
-\item{iRDS}{Whether save RDS file.}
+\item{path}{Output directory for generated figures.}
 }
 \value{
 A list of TimeSeries data.

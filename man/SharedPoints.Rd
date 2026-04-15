@@ -5,10 +5,12 @@
 \title{Find Shared points in SpatialLine*
 \code{SharedPoints}}
 \usage{
-SharedPoints(sp)
+SharedPoints(sp, plot = FALSE)
 }
 \arguments{
 \item{sp}{SpatialLines}
+
+\item{plot}{Whether to plot the results for debugging}
 }
 \value{
 Topologic relationship between components of SpatialLines.

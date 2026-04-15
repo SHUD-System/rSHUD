@@ -3,8 +3,18 @@
 #' \code{read.tsd} 
 #' @param file full path of file
 #' @return xts
-#' @export
-read.tsd <- function(file){
+#' @noRd
+read.tsd_legacy <- function(file){
+  # Check if file exists
+  if(!file.exists(file)){
+    stop('Time-series file does not exist: ', file)
+  }
+  
+  # Check if file is readable
+  if(!file.access(file, mode=4) == 0){
+    stop('Time-series file is not readable: ', file)
+  }
+  
   # file=fin['md.lai']
   text=readLines(file)
   r0 = 1
@@ -26,16 +36,3 @@ read.tsd <- function(file){
   }
   xl
 }
-
-#============ 
-#' Read the .ts.lai Time-Series file
-#' \code{readlai} 
-#' @param file full path of file
-#' @return list of Time-Series data
-#' @export
-readlai <- function( file = shud.filein()['ts.lai'] ){
-  x=read.tsd(file)
-  names(x) = c('LAI','RL')
-  x
-}
-

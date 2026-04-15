@@ -8,10 +8,10 @@
 LAI2hc(lai)
 }
 \arguments{
-\item{lai}{Leaf Area Index (LAI) [m2 m-2]}
+\item{lai}{Leaf Area Index (LAI) in m2 m^-2.}
 }
 \value{
-Height of crop [m]
+Height of crop in m.
 }
 \description{
 Calculate vegetation height from Leaf Area Index (LAI), Eq 4.2.23 in David R Maidment, Handbook of Hydrology

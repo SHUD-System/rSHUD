@@ -33,14 +33,14 @@ wb.all <-function(xl=loaddata(varname=c(paste0('elev', c('prcp', 'eta', 'etp') )
   # y = cbind(dh, x)
   colnames(x)=c('D_pqe', 'P', 'Q','AET','PET')
   if(plot){
-      hydrograph(x)
+      plot_hydrograph(x)
   }
   dse = sum( apply(ds$Ele, 2, sum) * w)
   dsr = sum(ds$Riv)
   dss = dse + dsr
   y=c(apply(x, 2, sum, na.rm=TRUE), DS=dss, DS.Ele=dse, DS.Riv = dsr)
   mat = rbind('H'=y, '%'=y/y[2]*100)
-  print(mat)
+  message('Water balance summary:\n', paste(utils::capture.output(print(mat)), collapse='\n'))
   return(x)
 }
 
@@ -48,8 +48,8 @@ wb.all <-function(xl=loaddata(varname=c(paste0('elev', c('prcp', 'eta', 'etp') )
 #' \code{ts2df}
 #' @param x Time-Series data.
 #' @return data.frame. First column is Time.
-#' @export
-ts2df <- function(x){
+#' @noRd
+ts2df_legacy <- function(x){
   d1 = as.data.frame(x)
   colnames(d1) = colnames(x)
   d2 = data.frame('Time'=time(x), d1)
@@ -90,9 +90,9 @@ wb.riv <-function(
   qsb = fun.read(xl, 'rivqsub')[,]
 
   if(is.null(fun)){
-    Qo = as.xts(rowSums(qr), order.by=time(qr))
-    Qsub = as.xts(rowSums(qsb), order.by=time(qr))
-    Qsf = as.xts(rowSums(qsf), order.by=time(qr))
+    Qo = xts::as.xts(rowSums(qr), order.by=time(qr))
+    Qsub = xts::as.xts(rowSums(qsb), order.by=time(qr))
+    Qsf = xts::as.xts(rowSums(qsf), order.by=time(qr))
   }else{
     Qo = fun(qr, FUN=sum)
     Qsf = fun(qsf, FUN=sum)
@@ -107,7 +107,7 @@ wb.riv <-function(
   x=cbind(dh, q3)
   colnames(x)=c('DH', 'Qout','Qin_sf','Qin_gw')
   if(plot){
-    hydrograph(x)
+    plot_hydrograph(x)
   }
   x
 }
@@ -263,7 +263,6 @@ wb.lake<- function(xl = loaddata(varname =
                      'qhin', 'qhout', 
                      'qsurf', 'qsub',
                      'dh.per', 'DIFF')
-    head(mt)
     # yl[[i]] = mt[, c(4, 5, 6, 7,8)]
     yl[[i]] = mt
   }

@@ -15,7 +15,7 @@ datafilter.riv(x, filter = NULL, plot = TRUE)
 \item{plot}{Whether plot the data}
 }
 \value{
-Matrix information, c('ID','Vmin','Vmax', 'Filter')
+Matrix information, c('ID', 'Vmin', 'Vmax', 'Filter')
 }
 \description{
 Filter the river data with a filter

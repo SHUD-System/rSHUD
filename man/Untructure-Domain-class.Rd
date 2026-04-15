@@ -4,20 +4,41 @@
 \name{Untructure Domain-class}
 \alias{Untructure Domain-class}
 \alias{SHUD.MESH}
-\title{Class of SHUD.MESH
-\code{SHUD.MESH}}
+\title{Class of SHUD.MESH}
 \value{
 Class of SHUD.MESH
 }
 \description{
-Class of SHUD.MESH
-\code{SHUD.MESH}
+S4 class representing an unstructured triangular mesh domain for SHUD models.
+The class stores mesh topology, point coordinates, and associated attributes.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{mesh}}{data.frame or matrix}
+\item{\code{mesh}}{data.frame with mesh topology (triangles and neighbors)}
 
-\item{\code{point}}{data.frame or matrix}
+\item{\code{point}}{data.frame with point coordinates and attributes}
 }}
+
+\section{Mesh Data Frame}{
+
+The mesh slot contains:
+\itemize{
+\item ID: Triangle ID
+\item Node1, Node2, Node3: Vertex indices
+\item Nabr1, Nabr2, Nabr3: Neighbor triangle indices
+\item Zmax: Maximum elevation
+}
+}
+
+\section{Point Data Frame}{
+
+The point slot contains:
+\itemize{
+\item ID: Point ID
+\item X, Y: Coordinates
+\item AqDepth: Aquifer depth
+\item Elevation: Surface elevation
+}
+}
 

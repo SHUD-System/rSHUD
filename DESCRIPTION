@@ -1,18 +1,29 @@
 Package: rSHUD
 Type: Package
-Title: Toolbox For SHUD Model System
-Version: 2.1.0
-Date: 2023-06-24
-Author: Lele Shu <lele.shu@gmail.com>
-Maintainer: Lele Shu <lele.shu@gmail.com>
-Description: The Simulator for Hydrologic Unstructured Domains (SHUD) is a multiprocess, multi-scale hydrologic model 
-  where the major hydrological processes are fully coupled using the finite volume method. 
-  This toolbox is to convert the geospatial data into SHUD format, read/write input files; read SHUD output files; hydrological analysis and spatial visualize the SHUD results. 
+Title: Toolbox For SHUD Modeling System
+Version: 2.2.0
+Date: 2024-11-23
+Authors@R: c(
+    person("Lele", "Shu", 
+           email = "shulele@lzb.ac.cn", 
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-6903-4466"))
+    )
+Author: Lele Shu [aut, cre]
+Maintainer: Lele Shu <shulele@lzb.ac.cn>
+Description: The Simulator for Hydrologic Unstructured Domains (SHUD) is a multiprocess, 
+  multi-scale hydrologic model where the major hydrological processes are fully coupled 
+  using the finite volume method. This toolbox provides comprehensive tools to convert 
+  geospatial data into SHUD format, read/write input files, read SHUD output files, 
+  perform hydrological analysis, and spatially visualize SHUD results. It supports 
+  watershed delineation, mesh generation, river network processing, and various 
+  hydrological calculations including PET, melt factor, and water balance analysis.
 URL: https://www.shud.xyz/
-License: LGPL (>= 3)
 BugReports: https://shud-system.github.io/
+License: MIT + file LICENSE
 LazyData: TRUE
-Depends: R (>= 3.5.0)
+LazyDataCompression: xz
+Depends: R (>= 4.0.0)
 Encoding: UTF-8
 Imports: Rcpp,
   reshape2,
@@ -23,27 +34,31 @@ Imports: Rcpp,
   xts, 
   hydroGOF,
   zoo,
-  raster (>= 2.1.0), 
-  sp, 
-  rgeos, 
+  terra (>= 1.7-0),
+  sf (>= 1.0-0),
   RTriangle,
   proj4,
   gstat,
   abind,
   utils,
   lubridate,
-  doParallel,
-  geometry,
   methods
-LinkingTo: Rcpp, sp
-RoxygenNote: 7.2.1
+LinkingTo: Rcpp
+RoxygenNote: 7.2.3
 Remotes: shulele/RTriangle/pkg
 Suggests: testthat,
     knitr,
     rmarkdown,
-    terra,
-  deldir,
-  interp,
-  whitebox,
-  ncdf4
+    deldir,
+    interp,
+    whitebox,
+    ncdf4,
+    raster,
+    sp,
+    colorspace,
+    ggpmisc,
+    rgeos,
+    geos (>= 0.2.0)
 VignetteBuilder: knitr
+Roxygen: list(markdown = TRUE)
+Language: en-US

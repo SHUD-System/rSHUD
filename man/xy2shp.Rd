@@ -5,7 +5,7 @@
 \title{Generate a shapefile from coordinates.
 \code{xy2shp}}
 \usage{
-xy2shp(xy, df = NULL, crs = NULL, shape = "points")
+xy2shp(xy, df = NULL, crs = NULL, shape = "points", output = c("sp", "sf"))
 }
 \arguments{
 \item{xy}{matrix}
@@ -15,9 +15,11 @@ xy2shp(xy, df = NULL, crs = NULL, shape = "points")
 \item{crs}{projection parameters}
 
 \item{shape}{Shape of the result in points, lines or polygons}
+
+\item{output}{Output class: \code{"sp"} (legacy) or \code{"sf"} (modern)}
 }
 \value{
-SpatialPointsDataFrame, SpatialLinesDataFrame, or SpatialPolygonsDataFrame
+Spatial*DataFrame objects when \code{output = "sp"}, or an \code{sf} object when \code{output = "sf"}
 }
 \description{
 Generate a shapefile from coordinates.
@@ -25,13 +27,20 @@ Generate a shapefile from coordinates.
 }
 \examples{
 library(raster)
-xy=list(cbind(c(0, 2, 1), c(0, 0, 2)),  cbind(c(0, 2, 1), c(0, 0, 2))+2)
-sp1 = xy2shp(xy=xy, shape = 'polygon')
-raster::plot(sp1, axes=TRUE, col='gray')
+library(sf)
+xy = list(cbind(c(0, 2, 1), c(0, 0, 2)),  cbind(c(0, 2, 1), c(0, 0, 2)) + 2)
 
-sp2 = xy2shp(xy=xy, shape = 'lines')
-raster::plot(sp2, add=TRUE, lty=2, lwd=3,col='red')
-sp3 = xy2shp(xy=xy, shape = 'POINTS')
-raster::plot(sp3, add=TRUE, pch=1, cex=2)
+# Legacy output (default): sp
+sp1 = xy2shp(xy = xy, shape = 'polygon')
+raster::plot(sp1, axes = TRUE, col = 'gray')
+
+sp2 = xy2shp(xy = xy, shape = 'lines')
+raster::plot(sp2, add = TRUE, lty = 2, lwd = 3, col = 'red')
+sp3 = xy2shp(xy = xy, shape = 'POINTS')
+raster::plot(sp3, add = TRUE, pch = 1, cex = 2)
+
+# Modern output: sf
+sf1 = xy2shp(xy = xy[[1]], shape = 'polygon', output = 'sf')
+plot(sf::st_geometry(sf1), border = 'blue', add = TRUE)
 
 }

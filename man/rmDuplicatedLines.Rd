@@ -8,7 +8,7 @@
 rmDuplicatedLines(x, ...)
 }
 \arguments{
-\item{x}{ShapeLine*}
+\item{x}{\code{sf} data or \code{sp} ShapeLine*}
 
 \item{...}{More options in duplicated()}
 }

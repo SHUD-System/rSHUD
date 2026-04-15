@@ -8,20 +8,27 @@
 AerodynamicResistance(Uz, hc, Z_u, Z_e, VON_KARMAN = 0.4)
 }
 \arguments{
-\item{Uz}{Wind speed at height z [m s-1]}
+\item{Uz}{Wind speed at height z in m s^-1.}
 
-\item{hc}{Height of crop [m]}
+\item{hc}{Height of crop in m.}
 
-\item{Z_u}{height of wind measurements [m]}
+\item{Z_u}{Height of wind measurements in m.}
 
-\item{Z_e}{height of humidity measurements [m]}
+\item{Z_e}{Height of humidity measurements in m.}
 
-\item{VON_KARMAN}{von Karman's constant. Default = 0.41 [-]}
+\item{VON_KARMAN}{von Karman's constant. Default is 0.41.}
 }
 \value{
-Aerodynamic resistance [s m-1]
+Aerodynamic resistance in s m^-1.
 }
 \description{
 Aerodynamic Resistance. Eq 4.2.25 in David R Maidment, Handbook of Hydrology
 \code{AerodynamicResistance}
+}
+\examples{
+hc = cbind(0.1, 1, 10)
+uz = 5
+zu = 2
+ze = 2
+AerodynamicResistance(uz, hc, zu, ze)
 }

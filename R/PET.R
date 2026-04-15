@@ -1,8 +1,8 @@
 
 #' Latent Heat, Eq 4.2.1 in David R Maidment, Handbook of Hydrology
 #' \code{shud.ic} 
-#' @param Temp Air temperature, [C]
-#' @return Latent heat, lambda in [MJ/kg]
+#' @param Temp Air temperature in C.
+#' @return Latent heat `lambda` in MJ/kg.
 #' @export
 LatentHeat <- function(Temp){
   # Eq 4.2.1 in David R Maidment, Handbook of Hydrology */
@@ -13,8 +13,8 @@ LatentHeat <- function(Temp){
 
 #' Bulk Surface Resistance, Eq 4.2.22 in David R Maidment, Handbook of Hydrology
 #' \code{BulkSurfaceResistance} 
-#' @param lai Leaf Area Index [m2 m-2]
-#' @return Bulk Surface Resistance [s m-1]
+#' @param lai Leaf Area Index in m2 m^-2.
+#' @return Bulk surface resistance in s m^-1.
 #' @export
 BulkSurfaceResistance <- function( lai){
   # # Eq 4.2.22 in David R Maidment, Handbook of Hydrology */
@@ -25,8 +25,8 @@ BulkSurfaceResistance <- function( lai){
 
 #' Air pressure at the elevation, Allen(1998) Eq(7)
 #' \code{PressureElevation} 
-#' @param z Elevation [m]
-#' @return Air pressure at the elevation [kPa]
+#' @param z Elevation in m.
+#' @return Air pressure at the elevation in kPa.
 #' @export
 PressureElevation <- function( z){
   return (101.325 * ((293. - 0.0065 * z) / 293)^5.26 )
@@ -38,21 +38,21 @@ PressureElevation <- function( z){
 
 #' Psychrometric Constant, Eq 4.2.1 in David R Maidment, Handbook of Hydrology
 #' \code{PsychrometricConstant} 
-#' @param Pressure Air pressure [kPa]
-#' @param lambda Latent heat of vaporized water. [MJ/kg]
-#' @return  γ psychrometric constant [kPa °C-1]
+#' @param Pressure Air pressure in kPa.
+#' @param lambda Latent heat of vaporized water in MJ/kg.
+#' @return gamma psychrometric constant in kPa C^-1
 #' @export
 PsychrometricConstant <- function(Pressure, lambda){
   # # Eq 4.2.1 in David R Maidment, Handbook of Hydrology */
   #   # Presser in [kPa], lambda in [MJ/kg]. */
   return (0.0016286 * Pressure / lambda)
-  # #     γ psychrometric constant [kPa °C-1],
+  # #     gamma psychrometric constant [kPa C^-1],
 }
 
 #' Saturated vapor pressure, Eq 4.2.2 in David R Maidment, Handbook of Hydrology
 #' \code{VaporPressure_Sat} 
-#' @param Temp Air temperature, [C]
-#' @return Saturated vapor pressure [kPa]
+#' @param Temp Air temperature in C.
+#' @return Saturated vapor pressure in kPa.
 #' @export
 VaporPressure_Sat <- function(Temp){
   # # Eq 4.2.2 in David R Maidment, Handbook of Hydrology*/
@@ -61,9 +61,9 @@ VaporPressure_Sat <- function(Temp){
 
 #' Actual vapor pressure 
 #' \code{VaporPressure_Act} 
-#' @param esat Saturated vapor pressure
-#' @param rh Relative Humidity [-] 0~1
-#' @return 
+#' @param esat Saturated vapor pressure in kPa.
+#' @param rh Relative humidity as a fraction from 0 to 1.
+#' @return Actual vapor pressure in kPa.
 #' @export
 VaporPressure_Act  <- function(esat,  rh){
   return (esat * rh)
@@ -71,20 +71,17 @@ VaporPressure_Act  <- function(esat,  rh){
 
 #' Aerodynamic Resistance. Eq 4.2.25 in David R Maidment, Handbook of Hydrology
 #' \code{AerodynamicResistance} 
-#' @param Uz Wind speed at height z [m s-1]
-#' @param hc Height of crop [m]
-#' @param Z_u height of wind measurements [m]
-#' @param Z_e height of humidity measurements [m]
-#' @param VON_KARMAN von Karman's constant. Default = 0.41 [-]
-#' @return Aerodynamic resistance [s m-1]
-#' @export 
-#' #Page 4.13, Aerodynamic Resistance. in David R Maidment, Handbook of Hydrology
-#' # Grass(Hc=0.1m, ra = 45 s/m), 
-#' # Agriculture crop(Hc=1m, ra = 18 s/m) and
-#' # tree (Hc=10m, ra = 6.5 s/m)
-#' hc=cbind(0.1, 1, 10)
-#' uz=5
-#' zu=2
+#' @param Uz Wind speed at height z in m s^-1.
+#' @param hc Height of crop in m.
+#' @param Z_u Height of wind measurements in m.
+#' @param Z_e Height of humidity measurements in m.
+#' @param VON_KARMAN von Karman's constant. Default is 0.41.
+#' @return Aerodynamic resistance in s m^-1.
+#' @export
+#' @examples
+#' hc = cbind(0.1, 1, 10)
+#' uz = 5
+#' zu = 2
 #' ze = 2
 #' AerodynamicResistance(uz, hc, zu, ze)
 AerodynamicResistance <- function( Uz,  hc,  Z_u,  Z_e, 
@@ -126,9 +123,9 @@ AerodynamicResistance <- function( Uz,  hc,  Z_u,  Z_e,
 
 #' Air Density, Eq 4.2.4 in David R Maidment, Handbook of Hydrology
 #' \code{shud.ic} 
-#' @param P Air pressure [kP]
-#' @param Temp Air temperature [C]
-#' @return Density of Air. [kg m-3]
+#' @param P Air pressure in kPa.
+#' @param Temp Air temperature in C.
+#' @return Density of air in kg m^-3.
 #' @export
 AirDensity  <- function( P,  Temp){
   #  Eq 4.2.4 in David R Maidment, Handbook of Hydrology
@@ -140,9 +137,9 @@ AirDensity  <- function( P,  Temp){
 
 #' Slope of saturated vapor pressure, Eq 4.2.3 in David R Maidment, Handbook of Hydrology
 #' \code{SlopeSatVaporPressure} 
-#' @param Temp Tempearture [C]
-#' @param ES 
-#' @return 
+#' @param Temp Temperature in C.
+#' @param ES Saturated vapor pressure in kPa.
+#' @return Slope of the saturated vapor pressure curve in kPa C^-1.
 #' @export
 SlopeSatVaporPressure <- function( Temp,  ES){
   tt = (Temp + 237.3);
@@ -153,8 +150,9 @@ SlopeSatVaporPressure <- function( Temp,  ES){
 
 #' Canopy resistance
 #' \code{CanopyResistance} 
-#' @param rmin Minimum Resistance [s m-1]
-#' @return lai Leaf Area Index (LAI) [m2 m-2]
+#' @param rmin Minimum resistance in s m^-1.
+#' @param lai Leaf Area Index in m2 m^-2.
+#' @return Canopy resistance in s m^-1.
 #' @export
 CanopyResistance <- function( rmin,  lai){
   rc = rmin * 2. / lai;
@@ -164,8 +162,8 @@ CanopyResistance <- function( rmin,  lai){
 
 #' Calculate vegetation height from Leaf Area Index (LAI), Eq 4.2.23 in David R Maidment, Handbook of Hydrology
 #' \code{LAI2hc} 
-#' @param lai Leaf Area Index (LAI) [m2 m-2]
-#' @return Height of crop [m]
+#' @param lai Leaf Area Index (LAI) in m2 m^-2.
+#' @return Height of crop in m.
 #' @export
 #' @examples 
 #' lai = seq(0, 10, length.out=100)
@@ -178,19 +176,24 @@ LAI2hc <- function(lai){
   # hc[idx] = lai[idx]
   hc
 }
+# Internal helper used by PET_PM().
+WindSpeed2m <- function(Uz, zm = 10){
+  Uz * 4.87 / log(67.8 * zm - 5.42)
+}
+
 #' Potential Evapotranspiration with Pennmann-Monteith equation.
 #' \code{PET_PM} 
-#' @param Wind Windspeed [m s-1]
-#' @param Temp Air temperature, [C]
-#' @param RH Relative Humidity [-] 0~1.
-#' @param RadNet Net Solar Radiation [w m-2]
-#' @param Press Pressure [kPa]
-#' @param WindHeight Height that wind was measured [m]
-#' @param Veg_height Height of vegetation [m]
-#' @param albedo Albedo [-]
-#' @param Res_surf Aerodynamic surface resistance [s m-1]
-#' @param Elevation Elevation [m]
-#' @return PET at [mm m-2 s-1] or [kg m-2 s-1]
+#' @param Wind Windspeed in m s^-1.
+#' @param Temp Air temperature in C.
+#' @param RH Relative humidity as a fraction from 0 to 1.
+#' @param RadNet Net solar radiation in W m^-2.
+#' @param Press Pressure in kPa.
+#' @param WindHeight Height that wind was measured in m.
+#' @param Veg_height Height of vegetation in m.
+#' @param albedo Albedo as a fraction.
+#' @param Res_surf Aerodynamic surface resistance in s m^-1.
+#' @param Elevation Elevation in m.
+#' @return Potential evapotranspiration in mm m^-2 s^-1 or kg m^-2 s^-1.
 #' @export
 PET_PM <- function(Wind, Temp, RH, RadNet, Press, 
                    WindHeight=10, 
@@ -207,6 +210,7 @@ PET_PM <- function(Wind, Temp, RH, RadNet, Press,
   eqn <- function(Press, Rad, rho,
                   ed, Delta, r_a, r_s,
                   Gamma, lambda){
+    ETp <- NULL
     # http:#www.fao.org/docrep/X0490E/x0490e06.htm#penman%20monteith%20equation
     # Rn net radiation at the crop surface [MJ m-2 min-1],
     # G soil heat flux density [MJ m-2 min-1],
@@ -270,7 +274,7 @@ PET_PM <- function(Wind, Temp, RH, RadNet, Press,
     x2=method2()
     x3=method3()
     x4=method4()
-    print(c(x1, x2, x3, x4))
+    message('PET results (methods 1-4): ', paste(c(x1, x2, x3, x4), collapse=', '))
     
     return (ETp)
   }
@@ -301,27 +305,27 @@ PET_PM <- function(Wind, Temp, RH, RadNet, Press,
 
 #' Calculate windspeed at Zx heights.
 #' \code{WindProfile} 
-#' @param zx Desired height [m]
-#' @param Um Windspeed at measured height [m s-1]
-#' @param zm Measured height [m s-1]
-#' @param d Zero plane [m]
-#' @param roughness roughness [m]
-#' @return windspeed at any desired heights.
+#' @param zx Desired height in m.
+#' @param Um Windspeed at measured height in m s^-1.
+#' @param zm Measured height in m.
+#' @param d Zero plane in m.
+#' @param roughness Roughness length in m.
+#' @return Wind speed at the desired heights.
 #' @export
 WindProfile <- function( zx, Um,zm = 10,  
                          d = 0.12,  roughness=0.012){
   # /* Equation 2.3 in [@abtew2012evaporation] */
   if(any((zx - d) < 0) ){
     message('Warning: ZERO plane (', d, ' m) is below desired height')
-    print(zx)
+    message('Desired heights: ', paste(zx, collapse=', '))
   }
   if(any((zx - roughness) < 0 )){
     message('Warning: roughness (', roughness, ' m) is below desired height')
-    print(roughness)
+    message('Roughness: ', roughness, ' m')
   }
   if(any((d - roughness) < 0 )){
     message('Warning: ZERO plane (', d, ' m) is below roughness (', roughness, ' m)')
-    print(roughness)
+    message('Roughness: ', roughness, ' m')
   }
     return (Um * log( (zx - d) / roughness ) / log ((zm - d) /  roughness))
 }

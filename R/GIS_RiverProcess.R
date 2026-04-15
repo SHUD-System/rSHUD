@@ -4,11 +4,9 @@
 #' @param coord coordinates of \code{sp}.
 #' @return Index of downstream for each segements
 #' @export
-sp.RiverDown <- function(sp, coord = extractCoords(sp)){
+sp.RiverDown <- function(sp, coord = get_coords(sp)){
   msg = 'sp.RiverDown::'
-  ext = raster::extent(sp)
-  sp = rgeos::gSimplify(sp, tol = (ext[2] - ext[1] )*0.01)
-  ft = rbind(FromToNode(sp, coord = coord)[, 2:3])
+  ft = rbind(get_from_to_nodes(sp, coords = coord)[, 2:3])
   nsp = length(sp)
   idown = rep(-3, nsp)
   for(i in 1:nsp){
@@ -19,7 +17,7 @@ sp.RiverDown <- function(sp, coord = extractCoords(sp)){
       idown[i] = id
     }else if(length(id) > 1){
       message(msg, i, '/', nsp, '\t', nid, ' Downstream found')
-      print(id)
+      message('Downstream IDs: ', paste(id, collapse=', '))
       idown[i] = id[1]
       # xid = c(id, i)
       # plot(sp[xid, ]); points(coord[ft[i, ], ], col=1:2);
@@ -41,15 +39,14 @@ sp.RiverDown <- function(sp, coord = extractCoords(sp)){
 #' @param tol.simplify tolerance for simplification of river lines.
 #' @return List of River Path(SegIDs, PointIDs, sp)
 #' @export
-#' @examples 
-# data(sh)
-# riv=sh$riv
-# x=sp.CutSptialLines(riv, tol=200)
-# px(x)
-# xx=sp.RiverPath(x)
-# px(xx$sp)
+#' @examples
+#' data(sh)
+#' riv = sh$riv
+#' x = sp.CutSptialLines(riv, tol = 200)
+#' xx = sp.RiverPath(x)
+#' names(xx)
 sp.RiverPath <- function(sp, 
-                         coord = extractCoords(sp, unique = TRUE), 
+                         coord = get_coords(sp), 
                          idown = sp.RiverDown(sp, coord = coord),
                          tol.simplify = 0){
   msg = 'sp.RiverPath::'
@@ -57,10 +54,10 @@ sp.RiverPath <- function(sp,
   if(tol.simplify > 0){
     sp = rgeos::gSimplify(sp, tol = tol.simplify)
   }
-  pt.list <- unlist(coordinates(sp), recursive = FALSE)
+  pt.list <- unlist(sp::coordinates(sp), recursive = FALSE)
   id.list<-lapply(pt.list, function(x) { xy2ID(xy = x, coord = coord)})
 
-  ft = FromToNode(sp, coord = coord)[, 2:3]
+  ft = get_from_to_nodes(sp, coords = coord)[, 2:3]
   nsp = length(sp)
   p.frq = data.frame(table(unlist(id.list)) )
   p0 = ft[!(ft[, 1] %in% ft[,2]), 1]
@@ -115,7 +112,7 @@ sp.RiverPath <- function(sp,
 #' @return Stream Order of SpatialLines*
 #' @export
 #' @examples 
-#' library(rgdal)
+#' library(sf)
 #' data(sac)
 #' riv=sac$riv
 #' ord = sp.RiverOrder(riv)
@@ -123,10 +120,8 @@ sp.RiverPath <- function(sp,
 #' idx = sort(unique(ord))
 #' raster::plot(riv, col=ord)
 #' legend('topleft', legend=idx, col=idx, lwd=1, lty=1)
-sp.RiverOrder <- function(sp, coord = extractCoords(sp)){
+sp.RiverOrder <- function(sp, coord = get_coords(sp)){
   msg='sp.RiverOrder::'
-  ext = raster::extent(sp)
-  sp = rgeos::gSimplify(sp, tol = (ext[2] - ext[1] )*0.01)
   get1st <- function(x){
     fr = x[,2]
     to = x[,3]
@@ -166,7 +161,7 @@ sp.RiverOrder <- function(sp, coord = extractCoords(sp)){
 
   # ext=raster::extent(sp)
   # sp.tmp =  rgeos::gSimplify(sp, tol=max(diff(ext[1:2] ), diff(ext[3:4])) )
-  ft0 = FromToNode(sp, coord)
+  ft0 = get_from_to_nodes(sp, coords = coord)
   ft = rbind(unique(ft0[, 2:3]))
   if(length(sp) != nrow(ft)){
     message(msg, 'ERROR: duplicated river reches extis.')
@@ -175,7 +170,7 @@ sp.RiverOrder <- function(sp, coord = extractCoords(sp)){
   x = cbind(1:length(sp), ft)
   y =x
   x.ord =x[,1]*0
-  for(i in 1:10000){
+  for(i in 1:100000){
     ids = y[,1]
     message(msg, 'Order = ', i)
     id = get1st(y)
@@ -193,32 +188,13 @@ sp.RiverOrder <- function(sp, coord = extractCoords(sp)){
 #' @param coord Coordinate of vertex in \code{sp}
 #' @return list of Index of each SpatialData, line or polygon
 #' @export
-NodeIDList <- function(sp, coord = extractCoords(sp, unique = TRUE) ){
+NodeIDList <- function(sp, 
+            coord = get_coords(sp) ){
+  force(coord)
   pt.list <- unlist(sp::coordinates(sp), recursive = FALSE)
-  id.list<-lapply(pt.list, function(x) { xy2ID(x, coord = coord)})
+  id.list <- lapply(pt.list, function(x) { xy2ID(x, coord = coord)})
 }
-#' return the FROM and TO nodes index of the SpatialLines
-#' \code{FromToNode}
-#' @param sp SpatialLines*
-#' @param coord Coordinate of vertex in \code{sp}
-#' @param simplify whether simplify the spatialLines
-#' @return FROM and TO nodes index of the SpatialLines
-#' @export
-FromToNode <- function(sp, coord = extractCoords(sp, unique = TRUE), simplify=TRUE){
-  if(simplify){
-    ext = raster::extent(sp)
-    sp = rgeos::gSimplify(sp, tol = (ext[2] - ext[1] )*0.01)
-  }
-  id.list = NodeIDList(sp, coord=coord)
-  frto = cbind(
-    unlist(lapply(id.list, function(x) x[1])),
-    unlist(lapply(id.list, function(x) x[length(x)] ) )
-  )
-  frto = cbind(1:length(sp), frto)
-  colnames(frto)=c('ID', 'FrNode', 'ToNode')
-  ret = rbind(frto)
-  return(ret)
-}
+
 
 #' parameters for river types
 #' \code{RiverType}
@@ -245,39 +221,180 @@ RiverType <- function(n, width = 2 * (1:n) ){
   colnames(rtype) = cn
   rtype
 }
-#' Cut the river by shud.mesh
-#' \code{sp.RiverSeg}
-#' @param sp.mesh shud mesh
-#' @param sp.riv river
-#' @return SpatialLinesDataFrame
+#' Cut rivers by mesh and build river--mesh segment layer
+#'
+#' Intersects reach lines with mesh polygons, then attaches the tabular fields
+#' expected for SHUD \code{.rivseg} output: \code{Index} (1\ldots{}n),
+#' intersection attributes (e.g. \code{iRiv}, \code{iEle}), and \code{Length}
+#' from \code{sf::st_length()}.
+#'
+#' @param sf_mesh Mesh polygons as \code{sf} (e.g. from \code{\link{mesh_to_sf}}).
+#' @param sf_riv River reaches as \code{sf} line geometries only; convert with
+#'   \code{sf::st_as_sf()} if you still have \code{SpatialLines*}.
+#' @return \code{sf} line object with columns \code{Index}, original attributes,
+#'   and \code{Length} (geometry retained for mapping and \code{st_write}).
 #' @export
-sp.RiverSeg <- function(sp.mesh, sp.riv){
-  sp = sp::SpatialPolygonsDataFrame(sp.mesh, 
-                                 data = data.frame('iEle'=1:length(sp.mesh) ),
-                                 match.ID = FALSE)
-  sr =sp::SpatialLinesDataFrame(sp.riv, 
-                                data = data.frame('iRiv' = 1:length(sp.riv)),
-                                match.ID = FALSE )
-  seg = raster::intersect(sr, sp)
-  seg
+shud.rivseg <- function(sf_mesh, sf_riv) {
+  if (!inherits(sf_mesh, "sf")) {
+    stop(
+      "'sf_mesh' must be an sf object (e.g. mesh_to_sf(); use sf::st_as_sf() to convert sp)",
+      call. = FALSE
+    )
+  }
+  if (!inherits(sf_riv, "sf")) {
+    stop(
+      "'sf_riv' must be an sf object (use sf::st_as_sf() on SpatialLines*)",
+      call. = FALSE
+    )
+  }
+  mesh_sf <- sf_mesh
+  riv_sf  <- sf_riv
+
+  n_mesh <- nrow(mesh_sf)
+  n_riv  <- nrow(riv_sf)
+  if (!"iEle" %in% names(mesh_sf)) mesh_sf$iEle <- seq_len(n_mesh)
+  if (!"iRiv" %in% names(riv_sf))  riv_sf$iRiv  <- seq_len(n_riv)
+
+  crs_mesh <- sf::st_crs(mesh_sf)
+  crs_riv  <- sf::st_crs(riv_sf)
+  if (is.na(crs_riv) && !is.na(crs_mesh)) {
+    riv_sf <- sf::st_set_crs(riv_sf, crs_mesh)
+  } else if (!is.na(crs_mesh) && !is.na(crs_riv) && crs_mesh != crs_riv) {
+    riv_sf <- sf::st_transform(riv_sf, crs_mesh)
+  }
+
+  # Only repair features that are actually invalid (avoid full-scan overhead)
+  inv_mesh <- which(!sf::st_is_valid(mesh_sf))
+  if (length(inv_mesh) > 0L)
+    mesh_sf[inv_mesh, ] <- suppressWarnings(sf::st_make_valid(mesh_sf[inv_mesh, ]))
+  inv_riv <- which(!sf::st_is_valid(riv_sf))
+  if (length(inv_riv) > 0L)
+    riv_sf[inv_riv, ] <- suppressWarnings(sf::st_make_valid(riv_sf[inv_riv, ]))
+
+  # Fast path: geos direct GEOS bindings (sparse pre-filter + C-level intersection)
+  # Fallback: sf::st_intersection (always available)
+  if (requireNamespace("geos", quietly = TRUE)) {
+    seg <- .rivseg_geos(riv_sf, mesh_sf)
+  } else {
+    seg <- tryCatch(
+      sf::st_intersection(riv_sf, mesh_sf),
+      error = function(e) {
+        stop(
+          "shud.rivseg: st_intersection failed: ",
+          conditionMessage(e),
+          call. = FALSE
+        )
+      }
+    )
+  }
+
+  seg <- seg[!sf::st_is_empty(seg), , drop = FALSE]
+  if (nrow(seg) == 0L) {
+    warning("shud.rivseg: no features after intersection", call. = FALSE)
+    return(seg)
+  }
+
+  gt  <- sf::st_geometry_type(seg)
+  seg <- seg[gt %in% c(
+    "LINESTRING", "MULTILINESTRING", "GEOMETRYCOLLECTION"
+  ), , drop = FALSE]
+  if (nrow(seg) == 0L) {
+    warning("shud.rivseg: no line features after intersection", call. = FALSE)
+    return(seg)
+  }
+  if (any(sf::st_geometry_type(seg) == "GEOMETRYCOLLECTION"))
+    seg <- sf::st_collection_extract(seg, type = "LINESTRING", warn = FALSE)
+
+  seg <- seg[!sf::st_is_empty(seg) & sf::st_dimension(seg) == 1L, , drop = FALSE]
+  if (nrow(seg) == 0L) {
+    warning("shud.rivseg: no line segments retained", call. = FALSE)
+    return(seg)
+  }
+
+  n   <- nrow(seg)
+  len <- as.numeric(sf::st_length(seg))
+  d   <- sf::st_drop_geometry(seg)
+  d$Index  <- NULL
+  d$Length <- NULL
+  tab <- cbind(
+    data.frame(Index = seq_len(n), stringsAsFactors = FALSE),
+    d,
+    Length = len,
+    stringsAsFactors = FALSE
+  )
+  sf::st_sf(tab, geometry = sf::st_geometry(seg), crs = sf::st_crs(seg))
+}
+
+# Internal helper: geos fast path for shud.rivseg
+# Uses sf::st_intersects() for STRtree-based candidate filtering, then
+# geos::geos_intersection() for C-level geometry computation without R-object overhead.
+.rivseg_geos <- function(riv_sf, mesh_sf) {
+  riv_attrs  <- sf::st_drop_geometry(riv_sf)
+  mesh_attrs <- sf::st_drop_geometry(mesh_sf)
+
+  # Sparse candidate pairs via STRtree (bbox pre-filter)
+  candidates <- sf::st_intersects(riv_sf, mesh_sf)
+  riv_idx    <- rep(seq_along(candidates), lengths(candidates))
+  mesh_idx   <- unlist(candidates)
+
+  empty_result <- function() {
+    sf::st_sf(
+      cbind(riv_attrs[integer(0), , drop = FALSE],
+            mesh_attrs[integer(0), , drop = FALSE]),
+      geometry = sf::st_sfc(crs = sf::st_crs(riv_sf))
+    )
+  }
+
+  if (length(riv_idx) == 0L) return(empty_result())
+
+  # Convert candidate geometries to geos once (avoid repeated conversion)
+  riv_g  <- geos::as_geos_geometry(sf::st_geometry(riv_sf))
+  mesh_g <- geos::as_geos_geometry(sf::st_geometry(mesh_sf))
+
+  # Vectorised exact intersection at C level
+  isect <- geos::geos_intersection(riv_g[riv_idx], mesh_g[mesh_idx])
+  keep  <- !geos::geos_is_empty(isect)
+
+  if (!any(keep)) return(empty_result())
+
+  riv_idx  <- riv_idx[keep]
+  mesh_idx <- mesh_idx[keep]
+  isect    <- isect[keep]
+
+  geom_sfc <- sf::st_as_sfc(isect)
+  if (is.na(sf::st_crs(geom_sfc))) sf::st_crs(geom_sfc) <- sf::st_crs(riv_sf)
+
+  sf::st_sf(
+    cbind(riv_attrs[riv_idx,  , drop = FALSE],
+          mesh_attrs[mesh_idx, , drop = FALSE]),
+    geometry = geom_sfc
+  )
 }
 
 #' Find Shared points in SpatialLine*
 #' \code{SharedPoints}
 #' @param sp SpatialLines
+#' @param plot Whether to plot the results for debugging
 #' @return Topologic relationship between components of SpatialLines.
 #' @export
-SharedPoints <- function(sp){
+SharedPoints <- function(sp, plot=FALSE){
   msg='SharedPoints::'
 #  sp=riv
-  pl = extractCoords(sp, aslist = TRUE)
-  nsp = length(sp)
+  if (inherits(sp, "sf") || inherits(sp, "sfc")) {
+    pl = lapply(sf::st_geometry(sp), function(line) sf::st_coordinates(line)[, 1:2, drop = FALSE])
+    nsp = nrow(sp)
+  } else {
+    pl = lapply(sp::coordinates(sp), function(x) x[[1]])
+    nsp = length(sp)
+  }
   ret = matrix(0, nrow = nsp, ncol=nsp)
   for(i in 1:(nsp-1) ){
     for(j in (i+1):nsp ){
-      plot(rbind(pl[[i]], pl[[j]]), asp=1); 
-      points(pl[[i]], col=2)
-      points(pl[[j]], col=3)
+      if(plot) {
+        plot(rbind(pl[[i]], pl[[j]]), asp=1); 
+        points(pl[[i]], col=2)
+        points(pl[[j]], col=3)
+      }
       cp = CommonPoints(pl[[i]], pl[[j]]) 
       if( is.null(cp) ){
         

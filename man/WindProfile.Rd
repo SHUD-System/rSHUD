@@ -8,18 +8,18 @@
 WindProfile(zx, Um, zm = 10, d = 0.12, roughness = 0.012)
 }
 \arguments{
-\item{zx}{Desired height [m]}
+\item{zx}{Desired height in m.}
 
-\item{Um}{Windspeed at measured height [m s-1]}
+\item{Um}{Windspeed at measured height in m s^-1.}
 
-\item{zm}{Measured height [m s-1]}
+\item{zm}{Measured height in m.}
 
-\item{d}{Zero plane [m]}
+\item{d}{Zero plane in m.}
 
-\item{roughness}{roughness [m]}
+\item{roughness}{Roughness length in m.}
 }
 \value{
-windspeed at any desired heights.
+Wind speed at the desired heights.
 }
 \description{
 Calculate windspeed at Zx heights.

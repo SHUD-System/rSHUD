@@ -1,15 +1,67 @@
-.Rproj.user
+# R包开发相关
+*.Rcheck/
+*.Rproj.user/
 .Rhistory
 .RData
 .Ruserdata
-src/*.o
-src/*.so
-src/*.dll
-experiments
-^.DS_Store
-*.swp
+.Rapp.history
+
+# 构建输出
+*.tar.gz
+*.zip
+*.tgz
+
+# 临时文件
+*.tmp
+*.temp
+*~
+.#*
+.o
+
+# 系统文件
 .DS_Store
-Rplots.pdf
-test*.R
-test2*.R
-nosync
+Thumbs.db
+
+# 输出目录
+output/
+figures/
+*.png
+*.pdf
+*.jpg
+*.jpeg
+
+# 数据文件（大文件）
+*.rda
+*.rds
+*.csv
+*.shp
+*.dbf
+*.shx
+*.prj
+
+# 日志文件
+*.log
+*.out
+
+# 缓存目录
+.cache/
+.temp/
+
+# 文档构建
+docs/_build/
+docs/_site/
+
+# vignettes：只把 .Rmd（及同目录下的 .bib 等）纳入版本控制；
+# .html 为渲染产物，.R 多为 knitr::purl 自 .Rmd 抽出，均可重建
+vignettes/*.html
+vignettes/*.R
+vignettes/*_files/
+
+# 测试覆盖率
+coverage/
+*.cov
+
+# 包依赖
+packrat/
+renv/
+.Rproj.user

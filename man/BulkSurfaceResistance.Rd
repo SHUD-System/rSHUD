@@ -8,10 +8,10 @@
 BulkSurfaceResistance(lai)
 }
 \arguments{
-\item{lai}{Leaf Area Index [m2 m-2]}
+\item{lai}{Leaf Area Index in m2 m^-2.}
 }
 \value{
-Bulk Surface Resistance [s m-1]
+Bulk surface resistance in s m^-1.
 }
 \description{
 Bulk Surface Resistance, Eq 4.2.22 in David R Maidment, Handbook of Hydrology

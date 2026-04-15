@@ -27,12 +27,12 @@ Linefit the observation and simulation
 }
 \examples{
 obs <- rnorm(100)
-sim <- obs+rnorm(100)/2
-p <- LineFit(cbind(obs,sim))
+sim <- obs + rnorm(100) / 2
+p <- LineFit(cbind(obs, sim))
 p
 if(require(ggpmisc)){
 formula = y ~ x
-p+ ggpmisc::stat_poly_eq(aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
+p + ggpmisc::stat_poly_eq(aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
 label.x.npc = "right", label.y.npc = 0.15,
 formula = formula, parse = TRUE, size = 3)
 }

@@ -12,9 +12,9 @@ voronoipolygons(x, pts = x@coords, rw = NULL, crs = NULL)
 
 \item{pts}{Coordinates (x,y) of the points}
 
-\item{rw}{extent}
+\item{rw}{The coordinates of the corners of the rectangular window enclosing the triangulation, in the order (xmin, xmax, ymin, ymax).  (default = NULL)}
 
-\item{crs}{projection parameters}
+\item{crs}{projection parameters (default = NULL)}
 }
 \value{
 ShapePolygon*
@@ -26,39 +26,39 @@ Generate Thiesson Polygons from a point data
 \examples{
 library(rgeos)
 library(rSHUD)
-n=10
+n = 10
 xx = rnorm(n)
 yy = rnorm(n)
 str = paste('MULTIPOINT(', paste(paste('(', xx, yy, ')'), collapse = ','), ')')
-x=readWKT(str)
+x = readWKT(str)
 vx = voronoipolygons(x)
-raster::plot(vx, axes=TRUE)
-raster::plot(add=TRUE, x, col=2)
+raster::plot(vx, axes = TRUE)
+raster::plot(add = TRUE, x, col = 2)
 #' ====END====
 
-x=1:5
-y=1:5
-xy=expand.grid(x,y)
-vx=voronoipolygons(pts=xy)
-plot(vx, axes=TRUE)
+x = 1:5
+y = 1:5
+xy = expand.grid(x, y)
+vx = voronoipolygons(pts = xy)
+plot(vx, axes = TRUE)
 points(xy)
 #' ====END====
 
-library(rgdal)
+library(sf)
 library(raster)
 library(rgeos)
-n=10
+n = 10
 xx = rnorm(n)
 yy = rnorm(n)
 str = paste('MULTIPOINT(', paste(paste('(', xx, yy, ')'), collapse = ','), ')')
-x=readWKT(str)
-y=readWKT(paste('MULTIPOINT(', paste(paste('(', xx+2, yy+2, ')'), collapse = ','), ')'))
+x = readWKT(str)
+y = readWKT(paste('MULTIPOINT(', paste(paste('(', xx + 2, yy + 2, ')'), collapse = ','), ')'))
 e1 = extent(y)
 e2 = extent(x)
 rw = c(min(e1[1], e2[1]),
        max(e1[2], e2[2]),
        min(e1[3], e2[3]),
        max(e1[4], e2[4]) ) + c(-1, 1, -1, 1)
-vx=voronoipolygons(x=x, rw=rw)
-plot(vx); plot(add=TRUE, x, col=2); plot(add=TRUE, y, col=3)
+vx = voronoipolygons(x = x, rw = rw) 
+plot(vx); plot(add = TRUE, x, col = 2); plot(add = TRUE, y, col = 3)
 }

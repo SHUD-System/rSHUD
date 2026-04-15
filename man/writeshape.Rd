@@ -5,26 +5,33 @@
 \title{Write ESRI shapefile out
 \code{writeshape}}
 \usage{
-writeshape(shp, file = NULL, crs = raster::crs(shp))
+writeshape(shp, file = NULL, crs = NULL)
 }
 \arguments{
-\item{shp}{Spatial file}
+\item{shp}{\code{sf} object, or legacy \code{sp} \code{Spatial*} object (converted
+with \code{sf::st_as_sf()} before writing).}
 
-\item{file}{file path, without '.shp'.}
+\item{file}{file path, with or without \code{.shp} extension.}
 
-\item{crs}{projection}
+\item{crs}{CRS to assign before write (default: CRS taken from \code{shp} via
+\code{sf::st_crs()} or \code{raster::crs()} for \code{sp} objects). Use
+\code{NA} to skip \code{st_set_crs} (not recommended for new data).}
 }
 \description{
 Write ESRI shapefile out
 \code{writeshape}
 }
+\details{
+All outputs are written with \code{sf::st_write()}. \code{SpatialPolygons},
+\code{SpatialLines}, and \code{SpatialPoints} without a data slot are given
+a synthetic \code{ID} column so conversion to \code{sf} is well-defined.
+}
 \examples{
-library(sp)
-library(rgeos)
-library(rgdal)
-sp1 = readWKT("POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))")
-raster::crs(sp1) =sp::CRS("+init=epsg:4326")
-writeshape(sp1, file=file.path(tempdir(), 'sp1'))
-sp2=readOGR(file.path(tempdir(), 'sp1.shp'))
-plot(sp2)
+\dontrun{
+f <- file.path(tempdir(), "out")
+if (requireNamespace("sf", quietly = TRUE)) {
+  nc <- sf::read_sf(system.file("shape/nc.shp", package = "sf"))
+  writeshape(nc, file = f)
+}
+}
 }

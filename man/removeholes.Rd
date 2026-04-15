@@ -23,7 +23,7 @@ p.out = Polygon(cbind(c(4,4,6,7,4),c(5,3,2,5,5))  )
 p.hole = Polygon(cbind(c(5,6,6,5,5),c(4,4,3,3,4) ), hole = TRUE)
 sp <- SpatialPolygons(list(Polygons(list(p.out, p.hole), "1")))
 s = removeholes(sp)
-par(mfrow=c(1,2))
+par(mfrow = c(1, 2))
 plot(sp)
 plot(s)
 }

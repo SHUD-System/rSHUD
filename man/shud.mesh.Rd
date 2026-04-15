@@ -2,51 +2,51 @@
 % Please edit documentation in R/MeshDomain.R
 \name{shud.mesh}
 \alias{shud.mesh}
-\title{Generate the mesh data from the triangulation
-\code{shud.mesh}}
+\title{Generate SHUD mesh domain from triangulation}
 \usage{
 shud.mesh(tri, dem, AqDepth = 10, r.aq = dem * 0 + AqDepth)
 }
 \arguments{
-\item{tri}{Triangles defination}
+\item{tri}{Triangulation object from RTriangle or shud.triangle()}
 
-\item{dem}{Elevation. Projection of the DEM raster must be same as watershed boundary.}
+\item{dem}{Elevation data - terra SpatRaster or legacy raster object
+(auto-converted to SpatRaster)}
 
-\item{AqDepth}{Aquifer depth, numeric.}
+\item{AqDepth}{Numeric value for uniform aquifer depth (default: 10)}
 
-\item{r.aq}{Aquifer Thickness. Raster object}
+\item{r.aq}{Aquifer thickness raster - terra SpatRaster or legacy raster
+(optional, overrides AqDepth if provided)}
 }
 \value{
-Triangle mesh of model domain.
+SHUD.MESH S4 object with mesh and point data
 }
 \description{
-Generate the mesh data from the triangulation
-\code{shud.mesh}
+Creates a SHUD.MESH S4 object from a triangulation, extracting elevation
+and aquifer depth from raster data. Modernized implementation using terra
+for raster operations, with automatic raster to terra conversion.
+}
+\details{
+This function has been modernized to use terra for raster operations,
+providing better performance. Legacy raster objects are automatically
+converted to terra SpatRaster format.
 }
 \examples{
-library(raster)
-data(sac)
-wbd=sac[['wbd']]
-dem=sac[['dem']]
-a.max = 1e6 * 1;
-q.min = 33;
-tol.riv = 200
-tol.wb = 200
-tol.len = 500
-AqDepth = 10
+\dontrun{
+library(sf)
+library(terra)
 
-wbbuf = rgeos::gBuffer(wbd, width = 2000)
-dem = raster::crop(dem, wbbuf)
+# Create boundary and generate mesh
+boundary <- sf::st_as_sf(
+  sf::st_sfc(sf::st_polygon(list(matrix(c(0,0, 10,0, 10,10, 0,10, 0,0),
+                                         ncol=2, byrow=TRUE))))
+)
+tri <- shud.triangle(wb = boundary, q = 30, a = 2)
 
-wb.dis = rgeos::gUnionCascaded(wbd)
-wb.simp = rgeos::gSimplify(wb.dis, tol=tol.wb, topologyPreserve = TRUE)
+# Create DEM
+dem <- terra::rast(ncol=10, nrow=10, xmin=0, xmax=10, ymin=0, ymax=10)
+terra::values(dem) <- runif(100, 100, 200)
 
-
-tri = shud.triangle(wb=wb.simp,q=q.min, a=a.max)
-plot(tri, asp=1)
-
-# generate SHUD .mesh
-pm=shud.mesh(tri,dem=dem, AqDepth = AqDepth)
-sm = sp.mesh2Shape(pm)
-raster::plot(sm)
+# Generate mesh domain
+mesh <- shud.mesh(tri, dem = dem, AqDepth = 10)
+}
 }

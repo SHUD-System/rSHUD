@@ -2,18 +2,28 @@
 % Please edit documentation in R/MeshDomain.R
 \name{Tri2Centroid}
 \alias{Tri2Centroid}
-\title{Centroids of the triangulation
-\code{Tri2Centroid}}
+\title{Calculate triangle centroids}
 \usage{
 Tri2Centroid(tri)
 }
 \arguments{
-\item{tri}{Triangles defination}
+\item{tri}{Triangulation object with T (triangles) and P (points)}
 }
 \value{
-Centroids of the triangles, m x 2;
+Matrix of centroid coordinates (n x 2)
 }
 \description{
-Centroids of the triangulation
-\code{Tri2Centroid}
+Computes the centroids of triangles in a triangulation.
+}
+\examples{
+\dontrun{
+library(sf)
+
+boundary <- sf::st_as_sf(
+  sf::st_sfc(sf::st_polygon(list(matrix(c(0,0, 10,0, 10,10, 0,10, 0,0),
+                                         ncol=2, byrow=TRUE))))
+)
+tri <- shud.triangle(wb = boundary, q = 30, a = 2)
+centroids <- Tri2Centroid(tri)
+}
 }

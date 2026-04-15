@@ -26,8 +26,8 @@ Pedotransfer function to generate soil/geol parameter from soil texture
 \code{PTF}
 }
 \examples{
-x=cbind(10,40, 1:20, 1.5)
-y=PTF(x)
-apply(y[,-1], 2, summary)
-plot(x[,3], y[,2])
+x = cbind(10, 40, 1:20, 1.5)
+y = PTF(x)
+apply(y[, -1], 2, summary)
+plot(x[, 3], y[, 2])
 }

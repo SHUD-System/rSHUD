@@ -4,8 +4,8 @@
 #' @param text text return from readLines(file)
 #' @param sep seperator of the table.
 #' @return a list of matrix
-#' @export
-read.df <-function(file, text = readLines(file), sep='\t'){
+#' @noRd
+read.df_legacy <-function(file, text = readLines(file), sep='\t'){
   # fn=fin['md.mesh']
   # text=readLines(fn)
   r0 = 1
@@ -34,9 +34,9 @@ read.df <-function(file, text = readLines(file), sep='\t'){
 #' \code{readmesh} 
 #' @param file full path of .mesh file
 #' @return Mesh domain
-#' @export
-readmesh <-function(file = shud.filein()['md.mesh'] ){
-  d = read.df(file = file);
+#' @noRd
+readmesh_legacy <-function(file = shud.filein()['md.mesh'] ){
+  d = read.df_legacy(file = file);
   ret <- SHUD.MESH(mesh = data.frame(d[[1]]),
                    point = data.frame(d[[2]]) )
 }
@@ -45,9 +45,9 @@ readmesh <-function(file = shud.filein()['md.mesh'] ){
 #' \code{readmesh} 
 #' @param file full path of file
 #' @return matrix
-#' @export
-readatt <-function( file = shud.filein()['md.att']){
-  x = read.df(file)
+#' @noRd
+readatt_legacy <-function( file = shud.filein()['md.att']){
+  x = read.df_legacy(file)
   ret = x[[1]]
 }
 
@@ -55,9 +55,9 @@ readatt <-function( file = shud.filein()['md.att']){
 #' \code{readriv} 
 #' @param file full path of .riv file
 #' @return SHUD.RIVER
-#' @export
-readriv <-function(file = shud.filein()['md.riv'] ){
-  d = read.df(file = file);
+#' @noRd
+readriv_legacy <-function(file = shud.filein()['md.riv'] ){
+  d = read.df_legacy(file = file);
   ret <- SHUD.RIVER(river = data.frame(d[[1]]), 
                     rivertype = data.frame(d[[2]]),
                     point = data.frame() #data.frame(d[[3]]) 
@@ -67,17 +67,22 @@ readriv <-function(file = shud.filein()['md.riv'] ){
 #' \code{readriv.sp} 
 #' @param file full path of spatialLines file
 #' @return spatialLines file
-#' @export
-readriv.sp <-function(file = file.path(shud.filein()['inpath'], 'gis', 'river.shp' ) ){
-  spr = rgdal::readOGR(file)  
+#' @noRd
+readriv.sp_legacy <-function(file = file.path(shud.filein()['inpath'], 'gis', 'river.shp' ) ){
+  # Check if file exists
+  if(!file.exists(file)){
+    stop('River shapefile does not exist: ', file)
+  }
+  
+  spr = as(sf::st_read(file, quiet = TRUE), "Spatial")
 }
 #' Read the .rivseg file
 #' \code{readrivseg} 
 #' @param file full path of .rivseg file
 #' @return matrix
-#' @export
-readrivseg <-function(file = shud.filein()['md.rivseg'] ){
-  d = read.df(file = file);
+#' @noRd
+readrivseg_legacy <-function(file = shud.filein()['md.rivseg'] ){
+  d = read.df_legacy(file = file);
   ret <- d[[1]]
 }
 
@@ -86,9 +91,9 @@ readrivseg <-function(file = shud.filein()['md.rivseg'] ){
 #' \code{readpara} 
 #' @param file full path of file
 #' @return .para
-#' @export
-readpara <- function(file = shud.filein()['md.para'] ){
-  return(readconfig(file))
+#' @noRd
+readpara_legacy <- function(file = shud.filein()['md.para'] ){
+  return(readconfig_legacy(file))
 }
 
 #============
@@ -96,9 +101,9 @@ readpara <- function(file = shud.filein()['md.para'] ){
 #' \code{readcalib} 
 #' @param file full path of file
 #' @return .calib
-#' @export
-readcalib <- function(file = shud.filein()['md.calib'] ){
-  return(readconfig(file))
+#' @noRd
+readcalib_legacy <- function(file = shud.filein()['md.calib'] ){
+  return(readconfig_legacy(file))
 }
 
 #============
@@ -107,8 +112,8 @@ readcalib <- function(file = shud.filein()['md.calib'] ){
 #' @param file full path of file
 #' @return .para or .calib
 #' @importFrom utils type.convert write.table
-#' @export
-readconfig <- function(file = shud.filein()['md.para']){
+#' @noRd
+readconfig_legacy <- function(file = shud.filein()['md.para']){
   tline = readLines(file, skipNul = TRUE)
   tline=tline[!grepl('^#', tline)]
   tmp = which(grepl('[:Alpha:]', tline) | grepl('[:alpha:]', tline))
@@ -124,11 +129,11 @@ readconfig <- function(file = shud.filein()['md.para']){
 #' \code{readic} 
 #' @param file full path of file
 #' @return .ic
-#' @export
-readic <- function(
+#' @noRd
+readic_legacy <- function(
   file = shud.filein()['md.ic']){
   # file = fin['md.ic']
-  x=read.df(file)
+  x=read.df_legacy(file)
   cn = c('minit', 'rinit', 'linit')
   names(x) = cn[1:length(x)]
   x
@@ -138,9 +143,9 @@ readic <- function(
 #' \code{readsoil} 
 #' @param file full path of file
 #' @return .soil
-#' @export
-readsoil <-function(file =  shud.filein()['md.soil']){
-  x=read.df(file)
+#' @noRd
+readsoil_legacy <-function(file =  shud.filein()['md.soil']){
+  x=read.df_legacy(file)
   ret = x[[1]]
 }
 
@@ -149,9 +154,9 @@ readsoil <-function(file =  shud.filein()['md.soil']){
 #' \code{readgeol} 
 #' @param file full path of file
 #' @return .geol
-#' @export
-readgeol <-function(file =  shud.filein()['md.geol']){
-  x=read.df(file)
+#' @noRd
+readgeol_legacy <-function(file =  shud.filein()['md.geol']){
+  x=read.df_legacy(file)
   ret = x[[1]]
 }
 
@@ -160,9 +165,9 @@ readgeol <-function(file =  shud.filein()['md.geol']){
 #' \code{readlc} 
 #' @param file full path of file
 #' @return .lc
-#' @export
-readlc <-function( file = shud.filein()['md.lc']){
-  x=read.df(file)
+#' @noRd
+readlc_legacy <-function( file = shud.filein()['md.lc']){
+  x=read.df_legacy(file)
   ret = x[[1]]
 }
 #============ 
@@ -170,8 +175,8 @@ readlc <-function( file = shud.filein()['md.lc']){
 #' \code{readlc} 
 #' @param file full path of file
 #' @return data.frame of forcing sites.
-#' @export
-readforc.fn <-function( file = shud.filein()['md.forc']){
+#' @noRd
+readforc.fn_legacy <-function( file = shud.filein()['md.forc']){
   txt = readLines(file)
   hd=read.table(text = txt[1])
   path=txt[2]
@@ -188,10 +193,10 @@ readforc.fn <-function( file = shud.filein()['md.forc']){
 #' @param file full path of file
 #' @param id  Index of the forcing sites.  default = NULL, which return average values of all sites.
 #' @return forcing data, list.
-#' @export
-readforc.csv <-function(file = shud.filein()['md.forc'], id=NULL){
+#' @noRd
+readforc.csv_legacy <-function(file = shud.filein()['md.forc'], id=NULL){
   msg='readforc.csv::'
-  xf = readforc.fn(file=file)
+  xf = readforc.fn_legacy(file=file)
   fns = xf$Sites[, ncol(xf$Sites)]
   tstr = xf$StartTime
   t0 = as.POSIXct(tstr, format = '%Y%m%d')
@@ -210,7 +215,7 @@ readforc.csv <-function(file = shud.filein()['md.forc'], id=NULL){
     # y=x[[1]]
     # xt = t0+y[,1]*86400
     # tsd=zoo::zoo(y[,-1], xt)
-    tsd = read.tsd(fns[RID[i]])[[1]]
+    tsd = read_tsd(fns[RID[i]])[[1]]
     xl[[i]] = tsd
   }
   names(xl) = basename(fns[RID])

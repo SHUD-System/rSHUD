@@ -1,20 +1,20 @@
 rm(list=ls())
 
 # === 1. load library ============
-clib=c('rgdal', 'rgeos', 'raster', 'sp', 'fields', 'xts')
+clib=c('raster', 'rgeos', 'terra', 'sf', 'fields', 'xts')
 x=lapply(clib, library, character.only=T)
 library(rSHUD)
 
 # === 2. create directories  ============
-dir.prj = '~/Documents/Ex_waerma'
-dir.forc = file.path(dir.prj, 'forc')
-dir.fig = file.path(dir.prj, 'figure')
+dir.prj = '../demo/waerma'
+dir.forc = file.path(dir.prj, 'forc') # Directory for forcing data output
+dir.fig = file.path(dir.prj, 'figure') # Directory for figure output
 dir.create(dir.forc, showWarnings = FALSE, recursive = TRUE)
 dir.create(dir.fig, showWarnings = FALSE, recursive = TRUE)
 
 # === 3. setup the project ============
 prjname = 'waerma'
-model.in <- file.path(dir.prj, 'input', prjname)
+model.in <- file.path(dir.prj, 'input', prjname) # Directory for SHinput data
 model.out <- file.path(dir.prj, 'output', paste0(prjname, '.out'))
 fin=shud.filein(prjname, inpath = model.in, outpath = model.out )
 if (dir.exists(model.in)){
@@ -24,61 +24,64 @@ dir.create(model.in, showWarnings = F, recursive = T)
 
 # === 4. load and reproject data ============
 data(waerma)
-wbd=waerma[['wbd']]
-meteosite = waerma[['meteosite']] # This is in GCS
+wbd = sf::st_as_sf(waerma[['wbd']])
+meteosite = sf::st_as_sf(waerma[['meteosite']]) # This is in GCS
 
 crs.pcs = crs.Albers(wbd)
-dem = projectRaster(waerma[['dem']], crs=crs.pcs)
-wbd= spTransform(waerma[['wbd']], CRSobj = crs.pcs)
-riv= spTransform(waerma[['riv']], CRSobj = crs.pcs)
+dem = terra::project(terra::rast(waerma[['dem']]), crs.pcs)
+wbd = sf::st_transform(wbd, crs.pcs)
+riv = sf::st_transform(sf::st_as_sf(waerma[['riv']]), crs.pcs)
 
 # sl=mask(terra::terrain(dem, opt='slope', unit='tangent'), wbd)
 # plot(sl)
 
-r0.soil = waerma[['soil']]
+r0.soil = terra::rast(waerma[['soil']])
 att.soil = waerma[['att']]$soil
 rcl.soil=cbind(att.soil[, 1], 1:nrow(att.soil))
-r.soil = projectRaster(reclassify(r0.soil, rcl.soil), crs = crs.pcs, method="ngb")
+r.soil = terra::project(terra::classify(r0.soil, rcl.soil), crs.pcs, method="near")
 
-r0.geol = waerma[['geol']]
+r0.geol = terra::rast(waerma[['geol']])
 att.geol = waerma[['att']]$geol
 rcl.geol=cbind(att.geol[, 1], 1:nrow(att.geol))
-r.geol = projectRaster(reclassify(r0.geol, rcl.geol), crs = crs.pcs, method="ngb")
+r.geol = terra::project(terra::classify(r0.geol, rcl.geol), crs.pcs, method="near")
 
-r0.lc = waerma[['lc']]
+r0.lc = terra::rast(waerma[['lc']])
 att.lc = waerma[['att']]$lc
 rcl.lc=cbind(att.lc[, 1], 1:nrow(att.lc))
-r.lc = projectRaster(reclassify(r0.lc, rcl.lc), crs = crs.pcs, method="ngb")
+r.lc = terra::project(terra::classify(r0.lc, rcl.lc), crs.pcs, method="near")
 
 tsd.forc = waerma$tsd$forc
 tsd.lai = waerma$tsd$lai
 
 # === 5. some threshold for model deployment ============
 AREA = 9853260 # KNOWN Area
-a.max = 150*150;
-q.min = 33;
-tol.riv = 50
-tol.wb = 50
-aqd = 6
-NX = AREA / a.max
+a.max = 150*150; # maximum area of a triangle
+q.min = 33; # minimum angle of triangles
+tol.riv = 50 # tolerance for simplifying the river network
+tol.wb = 50 # tolerance for simplifying the watershed boundary
+aqd = 6 # Default uniform aquifer depth in m
+NX = AREA / a.max # Minimum number of triangles in the mesh
 years = seq(as.numeric(format(min(time(tsd.forc[[1]])), '%Y')), 
             as.numeric(format(max(time(tsd.forc[[1]])), '%Y')))
 ndays = days_in_year(years)
 
 # === 6. domain decomposition ============
 # simplify the river network.
-riv.simp = rgeos::gSimplify(riv, tol=tol.riv, topologyPreserve = T)
-# riv.simp = sp.CutSptialLines(sl=riv.simp, tol=1000)
+riv.sp = sf::as_Spatial(riv)
+riv.simp = rgeos::gSimplify(riv.sp, tol=tol.riv, topologyPreserve = T)
+riv.simp = sp.CutSptialLines(sl=riv.simp, tol=20)
+# Keep riv.simp as SpatialLines for shud.river compatibility
 
 # desolve and simplify the watershed boundary
-wb.dis = rgeos::gUnionCascaded(wbd)
-wb.simp = rgeos::gSimplify(wb.dis, tol=tol.wb, topologyPreserve = T)
+wb.dis = sf::st_union(wbd)
+wb.simp = sf::st_simplify(wb.dis, dTolerance=tol.wb)
+wb.simp = sf::st_sf(geometry = wb.simp)
 
 # !! Triangulation
 tri = shud.triangle(wb=wb.simp,q=q.min, a=a.max, S=NX)
 # generate  .sp.mesh 
 pm=shud.mesh(tri,dem=dem, AqDepth = aqd)
-sp.mesh=sp.mesh2Shape(pm=pm)
+sp.mesh=mesh_to_sf(pm=pm)
 ncell = nrow(pm@mesh)
 print(ncell)
 
@@ -92,7 +95,7 @@ pr@rivertype$BankSlope=c(3, 3, 3)
 fns.meteo  =  paste0(meteosite$FILENAME, '.csv')
 range(time(tsd.forc[[1]]))
 for(i in 1:length(fns.meteo)){
-  write.tsd(tsd.forc[[i]], file = file.path(dir.forc, fns.meteo[i]))
+  write_tsd(tsd.forc[[i]], file = file.path(dir.forc, fns.meteo[i]))
 }
 tsd.mf = MeltFactor(years = seq(as.numeric(format(min(time(tsd.forc[[1]])), '%Y')), 
                                 as.numeric(format(max(time(tsd.forc[[1]])), '%Y'))))
@@ -100,9 +103,9 @@ tsd.mf = MeltFactor(years = seq(as.numeric(format(min(time(tsd.forc[[1]])), '%Y'
 # Coverage of meteorological sites.
 sp.forc = ForcingCoverage(sp.meteoSite = meteosite,  
                                  filenames= fns.meteo,
-                                 pcs=crs.pcs, gcs=crs(meteosite), 
+                                 pcs=crs.pcs, gcs=sf::st_crs(meteosite), 
                                  dem=dem, wbd=wbd)
-write.forc(sp.forc@data, 
+write_forc(sp.forc@data, 
            path = './forc',
            # path = normalizePath(dir.forc),
            startdate = format(min(time(tsd.forc[[1]])), '%Y%m%d'), 
@@ -118,12 +121,11 @@ head(pa)
 # === 9. toplogical relation between river and triangle  ============
 
 # Cut the rivers with triangles
-spm = sp.mesh2Shape(pm)
-crs(spm) =crs(riv)
+spm = mesh_to_sf(pm)
+sf::st_crs(spm) = sf::st_crs(riv)
 spr=riv
-sp.seg = sp.RiverSeg(spm, spr)
-# Generate the River segments table
-prs = shud.rivseg(sp.seg)
+sp.seg = shud.rivseg(spm, spr)
+prs = sp.seg
 
 # Generate initial condition
 pic = shud.ic(nrow(pm@mesh), nrow(pr@river), AqD = aqd)
@@ -166,21 +168,21 @@ para.soil = PTF.soil(att.soil[, -1])  # only 4 columns (Silt, clay, OM, bulk den
 para.geol = PTF.geol(att.geol[, -1])
 
 # === 11. write  input files. ============
-write.mesh(pm, file = fin['md.mesh'])
-write.riv(pr, file = fin['md.riv'])
-write.ic(pic, file = fin['md.ic'])
+write_mesh(pm, file = fin['md.mesh'])
+write_river(pr, file = fin['md.riv'])
+write_ic(pic, file = fin['md.ic'])
 
-write.df(pa, file=fin['md.att'])
-write.df(prs, file=fin['md.rivseg'])
-write.config(cfg.para, fin['md.para'])
-write.config(cfg.calib, fin['md.calib'])
+write_df(pa, file=fin['md.att'])
+write_df(prs, file=fin['md.rivseg'])
+write_config(cfg.para, fin['md.para'])
+write_config(cfg.calib, fin['md.calib'])
 
-write.tsd(tsd.lai, fin['md.lai'] )
-write.tsd(tsd.mf, fin['md.mf'] )
+write_tsd(tsd.lai, fin['md.lai'] )
+write_tsd(tsd.mf, fin['md.mf'] )
 
-write.df(para.lc, file=fin['md.lc'])
-write.df(para.soil, file=fin['md.soil'])
-write.df(para.geol, file=fin['md.geol'])
-writeshape(riv.simp, file=file.path(dirname(fin['md.att']), 'riv'))
+write_df(para.lc, file=fin['md.lc'])
+write_df(para.soil, file=fin['md.soil'])
+write_df(para.geol, file=fin['md.geol'])
+writeshape(sf::st_as_sf(riv.simp), file=file.path(dirname(fin['md.att']), 'riv'))
 print(nrow(pm@mesh))
 
