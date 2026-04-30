@@ -127,17 +127,20 @@ png.control <- function(...) {
 removeholes <- function(sp, ...) {
   .Deprecated(msg = "removeholes() is deprecated. Use terra::fillHoles() or sf workflows instead.")
 
-  if (inherits(sp, "Spatial")) {
-    sp <- sf::st_as_sf(sp)
+  is_legacy <- inherits(sp, "Spatial")
+
+  if (is_legacy) {
+    filled <- terra::fillHoles(terra::vect(sp), ...)
+    return(as(sf::st_as_sf(filled), "Spatial"))
+  }
+
+  if (inherits(sp, "SpatVector")) {
+    return(terra::fillHoles(sp, ...))
   }
 
   if (inherits(sp, "sf")) {
     filled <- terra::fillHoles(terra::vect(sp), ...)
     return(sf::st_as_sf(filled))
-  }
-
-  if (inherits(sp, "SpatVector")) {
-    return(terra::fillHoles(sp, ...))
   }
 
   warning("removeholes() only supports Spatial, sf, or SpatVector inputs.", call. = FALSE)

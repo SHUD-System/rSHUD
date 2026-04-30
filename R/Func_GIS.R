@@ -96,9 +96,9 @@ ProjectCoordinate <- function(x, proj4string, P2G = TRUE){
   # Transformed data
   x = as.matrix(x)
   proj_str <- if (inherits(proj4string, "crs")) {
-    proj4string$wkt
+    proj4string$proj4string
   } else if (inherits(proj4string, "CRS")) {
-    sf::st_crs(proj4string)$wkt
+    sf::st_crs(proj4string)$proj4string
   } else {
     as.character(proj4string)
   }
@@ -464,7 +464,8 @@ extractRaster <- function(r, xy = NULL, ext = NULL, plot = TRUE){
     graphics::arrows(x[1], y[1], x[nx], y[nx], lty = 3, lwd = 1.5, col = 2)
     # lines(x,y, lwd=1.5, col=2, lty=2)
   }
-  v = terra::extract(rr, cbind(x, y))[[2]]
+  ev = terra::extract(rr, cbind(x, y))
+  v = if ("ID" %in% names(ev)) ev[[2]] else ev[[1]]
   ret = cbind('x' = x, 'y' = y, 'z' = v)
   return(ret)
 }

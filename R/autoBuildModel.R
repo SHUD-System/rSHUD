@@ -166,21 +166,9 @@ shud_auto_build <- function(
   
   # generate SHUD .riv
   AA = as.numeric(sf::st_area(sf::st_as_sf(wbd))) * 1e-6
-  river_network = tryCatch(
-    build_river_network(riv.simp, dem, area = AA),
-    error = function(e) {
-      message(msg, "build_river_network() failed; falling back to shud.river(): ",
-              conditionMessage(e))
-      NULL
-    }
-  )
-  if (!is.null(river_network)) {
-    pr = as_shud_river(river_network)
-    spr = river_network$network
-  } else {
-    pr = shud.river(riv.simp, dem, AREA = AA)
-    spr = riv.simp
-  }
+  river_network = build_river_network(riv.simp, dem, area = AA)
+  pr = as_shud_river(river_network)
+  spr = river_network$network
   oid = getOutlets(pr)
   message(msg, 'Number of Rivers = ', nrow(pr@river))
   # Correct river slope to avoid negative slope

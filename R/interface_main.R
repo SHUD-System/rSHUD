@@ -563,17 +563,41 @@ autoBuildModel <- function(indata, forcfiles = NULL, prjname = NULL, ...) {
     x
   }
 
+  dots <- list(...)
+  out_dir     <- dots$outdir %||% dots$output_dir %||% getwd()
+  aq_depth    <- dots$AqDepth %||% dots$aquifer_depth %||% 10
+  yrs         <- dots$years %||% 2000:2010
+  do_clean    <- dots$clean %||% TRUE
+  rm_out      <- dots$rm.outlier %||% dots$remove_outliers %||% TRUE
+  be_quiet    <- dots$quiet
+  verbose_val <- if (!is.null(be_quiet)) !be_quiet else TRUE
+  mesh_opts   <- dots$mesh_options %||% list()
+  if (!is.null(dots$a.max))    mesh_opts$max_area   <- dots$a.max
+  if (!is.null(dots$q.min))    mesh_opts$min_angle  <- dots$q.min
+  if (!is.null(dots$tol.wb))   mesh_opts$tol_domain <- dots$tol.wb
+  if (!is.null(dots$tol.riv))  mesh_opts$tol_river  <- dots$tol.riv
+  if (!is.null(dots$tol.len))  mesh_opts$tol_length <- dots$tol.len
+
   auto_build_model(
-    project_name  = if (is.null(prjname)) "unnamed" else prjname,
-    domain        = safe_convert_sf(indata$wbd),
-    rivers        = safe_convert_sf(indata$riv),
-    dem           = safe_convert_terra(indata$dem),
-    soil          = safe_convert_terra(indata$rsoil),
-    geology       = safe_convert_terra(indata$rgeol),
-    landcover     = safe_convert_terra(indata$rlc),
-    forcing_sites = safe_convert_sf(indata$forc),
-    forcing_files = forcfiles,
-    ...
+    project_name    = if (is.null(prjname)) "unnamed" else prjname,
+    domain          = safe_convert_sf(indata$wbd),
+    rivers          = safe_convert_sf(indata$riv),
+    dem             = safe_convert_terra(indata$dem),
+    soil            = safe_convert_terra(indata$rsoil),
+    geology         = safe_convert_terra(indata$rgeol),
+    landcover       = safe_convert_terra(indata$rlc),
+    forcing_sites   = safe_convert_sf(indata$forc),
+    forcing_files   = forcfiles,
+    output_dir      = out_dir,
+    mesh_options    = mesh_opts,
+    aquifer_depth   = aq_depth,
+    years           = yrs,
+    clean           = do_clean,
+    parameters      = dots$cfg.para,
+    calibration     = dots$cfg.calib,
+    melt_factor     = dots$mf,
+    remove_outliers = rm_out,
+    verbose         = verbose_val
   )
 }
 
