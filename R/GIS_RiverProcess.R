@@ -7,7 +7,7 @@
 sp.RiverDown <- function(sp, coord = get_coords(sp)){
   msg = 'sp.RiverDown::'
   ft = rbind(get_from_to_nodes(sp, coords = coord)[, 2:3])
-  nsp = length(sp)
+  nsp = if (inherits(sp, "sf")) nrow(sp) else length(sp)
   idown = rep(-3, nsp)
   for(i in 1:nsp){
     pto = ft[i,2]
@@ -50,15 +50,17 @@ sp.RiverPath <- function(sp,
                          idown = sp.RiverDown(sp, coord = coord),
                          tol.simplify = 0){
   msg = 'sp.RiverPath::'
-  ext = raster::extent(sp)
+  sp_sf <- if (inherits(sp, "sf")) sp else sf::st_as_sf(sp)
   if(tol.simplify > 0){
-    sp = rgeos::gSimplify(sp, tol = tol.simplify)
+    sp_sf <- sf::st_simplify(sp_sf, dTolerance = tol.simplify, preserveTopology = TRUE)
   }
-  pt.list <- unlist(sp::coordinates(sp), recursive = FALSE)
-  id.list<-lapply(pt.list, function(x) { xy2ID(xy = x, coord = coord)})
+  pt.list <- lapply(sf::st_geometry(sp_sf), function(line) {
+    sf::st_coordinates(line)[, 1:2, drop = FALSE]
+  })
+  id.list <- lapply(pt.list, function(x) { xy2ID(xy = x, coord = coord)})
 
-  ft = get_from_to_nodes(sp, coords = coord)[, 2:3]
-  nsp = length(sp)
+  ft = get_from_to_nodes(sp_sf, coords = coord)[, 2:3]
+  nsp = nrow(sp_sf)
   p.frq = data.frame(table(unlist(id.list)) )
   p0 = ft[!(ft[, 1] %in% ft[,2]), 1]
   tmp =  p.frq[p.frq[,2]>2, 1] # more than twice.
@@ -91,17 +93,20 @@ sp.RiverPath <- function(sp,
     pl[[i]] = pid
   }
   #=========Spatial Lines===============
-  ll = list()
+  ll = vector("list", nstr)
   message(msg, 'build new spatialLines')
   for(i in 1:nstr){
     sid = StreamPath[[i]]
     pid = unique(unlist(lapply(1:length(sid), function(x) id.list[[sid[x]]])))
-    ll[[i]] = sp::Lines( sp::Line(coord[pid, ] ), ID = i)
+    ll[[i]] = sf::st_linestring(as.matrix(coord[pid, ]))
   }
-  spx = sp::SpatialLines(ll, proj4string = raster::crs(sp))
+  spx_sf <- sf::st_sf(
+    ID = seq_len(length(ll)),
+    geometry = sf::st_sfc(ll, crs = sf::st_crs(sp_sf))
+  )
   ret <- list(SegIDs = StreamPath,
               PointIDs= pl,
-              sp = spx)
+              sp = methods::as(spx_sf, "Spatial"))
 }
 
 
@@ -118,10 +123,11 @@ sp.RiverPath <- function(sp,
 #' ord = sp.RiverOrder(riv)
 #' print(ord)
 #' idx = sort(unique(ord))
-#' raster::plot(riv, col=ord)
+#' plot(riv, col=ord)
 #' legend('topleft', legend=idx, col=idx, lwd=1, lty=1)
 sp.RiverOrder <- function(sp, coord = get_coords(sp)){
   msg='sp.RiverOrder::'
+  nsp <- if (inherits(sp, "sf")) nrow(sp) else length(sp)
   get1st <- function(x){
     fr = x[,2]
     to = x[,3]
@@ -159,15 +165,13 @@ sp.RiverOrder <- function(sp, coord = get_coords(sp)){
     ret;
   }
 
-  # ext=raster::extent(sp)
-  # sp.tmp =  rgeos::gSimplify(sp, tol=max(diff(ext[1:2] ), diff(ext[3:4])) )
   ft0 = get_from_to_nodes(sp, coords = coord)
   ft = rbind(unique(ft0[, 2:3]))
-  if(length(sp) != nrow(ft)){
+  if(nsp != nrow(ft)){
     message(msg, 'ERROR: duplicated river reches extis.')
     stop('STOP WITH ERROR')
   }
-  x = cbind(1:length(sp), ft)
+  x = cbind(seq_len(nsp), ft)
   y =x
   x.ord =x[,1]*0
   for(i in 1:100000){
@@ -191,7 +195,10 @@ sp.RiverOrder <- function(sp, coord = get_coords(sp)){
 NodeIDList <- function(sp, 
             coord = get_coords(sp) ){
   force(coord)
-  pt.list <- unlist(sp::coordinates(sp), recursive = FALSE)
+  sp_sf <- if (inherits(sp, "sf")) sp else sf::st_as_sf(sp)
+  pt.list <- lapply(sf::st_geometry(sp_sf), function(line) {
+    sf::st_coordinates(line)[, 1:2, drop = FALSE]
+  })
   id.list <- lapply(pt.list, function(x) { xy2ID(x, coord = coord)})
 }
 
@@ -384,7 +391,8 @@ SharedPoints <- function(sp, plot=FALSE){
     pl = lapply(sf::st_geometry(sp), function(line) sf::st_coordinates(line)[, 1:2, drop = FALSE])
     nsp = nrow(sp)
   } else {
-    pl = lapply(sp::coordinates(sp), function(x) x[[1]])
+    sp_sf <- sf::st_as_sf(sp)
+    pl = lapply(sf::st_geometry(sp_sf), function(line) sf::st_coordinates(line)[, 1:2, drop = FALSE])
     nsp = length(sp)
   }
   ret = matrix(0, nrow = nsp, ncol=nsp)

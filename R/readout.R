@@ -205,11 +205,11 @@ BasicPlot <- function(
         # Legacy map helper was removed; keep direct raster plotting here.
         r = MeshData2Raster(y, stack=FALSE)
         if(!is.null(w.focal)){
-          r = raster::focal(r, w=w.focal)
+          r = terra::focal(r, w=w.focal)
         }
-        raster::plot(r)
+        terra::plot(r)
         if(!is.null(sp.riv)){
-          raster::plot(sp.riv, col=rgb(1,0,0,0.7), lwd=2, add=T)
+          plot(sf::st_geometry(sf::st_as_sf(sp.riv)), col=rgb(1,0,0,0.7), lwd=2, add=TRUE)
         }
         dev.off()
       }

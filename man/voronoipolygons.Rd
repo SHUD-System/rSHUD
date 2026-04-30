@@ -5,7 +5,7 @@
 \title{Generate Thiesson Polygons from a point data
 \code{voronoipolygons}}
 \usage{
-voronoipolygons(x, pts = x@coords, rw = NULL, crs = NULL)
+voronoipolygons(x = NULL, pts = NULL, rw = NULL, crs = NULL)
 }
 \arguments{
 \item{x}{ShapePoints* in PCS}
@@ -24,16 +24,14 @@ Generate Thiesson Polygons from a point data
 \code{voronoipolygons}
 }
 \examples{
-library(rgeos)
 library(rSHUD)
 n = 10
 xx = rnorm(n)
 yy = rnorm(n)
-str = paste('MULTIPOINT(', paste(paste('(', xx, yy, ')'), collapse = ','), ')')
-x = readWKT(str)
+x = sf::st_as_sf(data.frame(x = xx, y = yy), coords = c("x", "y"))
 vx = voronoipolygons(x)
-raster::plot(vx, axes = TRUE)
-raster::plot(add = TRUE, x, col = 2)
+plot(vx, axes = TRUE)
+plot(x, add = TRUE, col = 2)
 #' ====END====
 
 x = 1:5
@@ -45,16 +43,13 @@ points(xy)
 #' ====END====
 
 library(sf)
-library(raster)
-library(rgeos)
 n = 10
 xx = rnorm(n)
 yy = rnorm(n)
-str = paste('MULTIPOINT(', paste(paste('(', xx, yy, ')'), collapse = ','), ')')
-x = readWKT(str)
-y = readWKT(paste('MULTIPOINT(', paste(paste('(', xx + 2, yy + 2, ')'), collapse = ','), ')'))
-e1 = extent(y)
-e2 = extent(x)
+x = sf::st_as_sf(data.frame(x = xx, y = yy), coords = c("x", "y"))
+y = sf::st_as_sf(data.frame(x = xx + 2, y = yy + 2), coords = c("x", "y"))
+e1 = sf::st_bbox(y)
+e2 = sf::st_bbox(x)
 rw = c(min(e1[1], e2[1]),
        max(e1[2], e2[2]),
        min(e1[3], e2[3]),

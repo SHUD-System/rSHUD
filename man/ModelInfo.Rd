@@ -8,7 +8,7 @@
 ModelInfo(
   path = shud.filein()["outpath"],
   spr = readriv.sp(),
-  crs.pcs = raster::crs(spr)
+  crs.pcs = sf::st_crs(sf::st_as_sf(spr))
 )
 }
 \arguments{

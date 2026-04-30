@@ -14,7 +14,8 @@ with \code{sf::st_as_sf()} before writing).}
 \item{file}{file path, with or without \code{.shp} extension.}
 
 \item{crs}{CRS to assign before write (default: CRS taken from \code{shp} via
-\code{sf::st_crs()} or \code{raster::crs()} for \code{sp} objects). Use
+\code{sf::st_crs()} or \code{sf::st_crs(sf::st_as_sf(shp))} for legacy
+vector objects). Use
 \code{NA} to skip \code{st_set_crs} (not recommended for new data).}
 }
 \description{

@@ -5,7 +5,7 @@
 \title{Extract values on Raster map along a normalized line from 0 to 1.
 \code{extractRaster}}
 \usage{
-extractRaster(r, xy = NULL, ext = raster::extent(r), plot = TRUE)
+extractRaster(r, xy = NULL, ext = NULL, plot = TRUE)
 }
 \arguments{
 \item{r}{Raster}
@@ -22,8 +22,7 @@ Extract values on Raster map along a normalized line from 0 to 1.
 \code{extractRaster}
 }
 \examples{
-library(raster)
-r <- raster(ncol = 36, nrow = 18)
-r[] <- 1:ncell(r)
+r <- terra::rast(ncols = 36, nrows = 18)
+terra::values(r) <- seq_len(terra::ncell(r))
 extractRaster(r)
 }

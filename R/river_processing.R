@@ -164,9 +164,11 @@ get_coords <- function(x) {
     # Combine and get unique
     all_coords <- do.call(rbind, coords_list)
   } else {
-    spl <- methods::as(x, "SpatialLines")
-    spp <- methods::as(spl, "SpatialPoints")
-    all_coords <- sp::coordinates(spp)
+    x_sf <- sf::st_as_sf(x)
+    coords_list <- lapply(sf::st_geometry(x_sf), function(line) {
+      sf::st_coordinates(line)[, 1:2, drop = FALSE]
+    })
+    all_coords <- do.call(rbind, coords_list)
   }
   
   unique_coords <- unique(all_coords)
@@ -201,8 +203,11 @@ get_from_to_nodes <- function(sf_line, coords = get_coords(sf_line)) {
       sf::st_coordinates(line)[, 1:2, drop = FALSE]
     })
   } else {
-    nsp <- length(sf_line)
-    coords_list <- lapply(sp::coordinates(sf_line), function(x) x[[1]])
+    sf_line <- sf::st_as_sf(sf_line)
+    nsp <- nrow(sf_line)
+    coords_list <- lapply(sf::st_geometry(sf_line), function(line) {
+      sf::st_coordinates(line)[, 1:2, drop = FALSE]
+    })
   }
   
   # Get first and last points of each line segment

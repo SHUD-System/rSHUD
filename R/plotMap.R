@@ -9,7 +9,7 @@ ts2map <- function(x, fun = mean, raster = TRUE, ...){
   y = apply(x, 2, fun, ...)
   if(raster){
     r = MeshData2Raster(y)
-    raster::plot(r)
+    terra::plot(r)
   }else{
     dbf = cbind(y); colnames(dbf) = 'tsvalue'
     r = mesh_to_sf(dbf = y)
@@ -37,15 +37,18 @@ ts2map <- function(x, fun = mean, raster = TRUE, ...){
 #' compareMaps(list(r, r1, r2, r1 + r2), mfrow = c(2, 2), contour = TRUE)
 compareMaps_legacy <- function(r, mfrow, contour = FALSE, ...){
   nr = length(r)
-  is.Raster <- function(x) {
-    return((class(x) == "RasterLayer" || class(x) == "RasterBrick" || class(x) == "RasterStack"))
-  }
+  is_raster_like <- function(x) inherits(x, c("SpatRaster", "RasterLayer", "RasterBrick", "RasterStack"))
   par(mfrow = mfrow, ...)
   for(i in 1:nr){
-    raster::plot(r[[i]], axes = FALSE, box = FALSE)
+    ri <- if (inherits(r[[i]], "SpatRaster")) r[[i]] else if (is_raster_like(r[[i]])) terra::rast(r[[i]]) else r[[i]]
+    if (inherits(ri, "SpatRaster")) {
+      terra::plot(ri, axes = FALSE, box = FALSE)
+    } else {
+      plot(ri, axes = FALSE, box = FALSE)
+    }
     if(contour){
-      if(is.Raster(r[[i]])){
-        raster::contour(r[[i]], add = TRUE)
+      if(inherits(ri, "SpatRaster")){
+        terra::contour(ri, add = TRUE)
       }
     }
   }
@@ -74,13 +77,13 @@ plot_animate <- function(x, id = NULL, nmap = 10, rlist = NULL){
     }
     y = x[id, ]
     tx = paste(time(y))
-    rlist = raster::stack(apply(y, 1, FUN = function(xr){ MeshData2Raster(xr) }))
+    rlist = terra::rast(lapply(seq_len(nrow(y)), function(i) MeshData2Raster(y[i, ])))
     names(rlist) = tx
   }else{
-    rlist = raster::stack(rlist)
+    rlist = if (inherits(rlist, "SpatRaster")) rlist else terra::rast(rlist)
   }
   par(mfrow = c(1, 1))
-  raster::animate(rlist)
+  terra::animate(rlist)
   ret = rlist
 }
 
@@ -128,17 +131,17 @@ highlight_id <- function(EleID = NULL, RivID = NULL){
   warning("This function uses legacy spatial libraries and may not work correctly.")
   
   spm <- mesh_to_sf()
-  raster::plot(spm)
+  plot(sf::st_geometry(spm))
   if(!is.null(EleID)){
-    raster::plot(spm[EleID, ], add = TRUE, col = 2)
+    plot(sf::st_geometry(spm[EleID, ]), add = TRUE, col = 2)
   }
   inpath <- shud.filein()["inpath"]
   fn <- file.path(inpath, "gis", "riv.shp")
   if(file.exists(fn)){
-    spr <- as(sf::st_read(fn, quiet = TRUE), "Spatial")
-    raster::plot(spr, add = TRUE, col = 3)
+    spr <- sf::st_read(fn, quiet = TRUE)
+    plot(sf::st_geometry(spr), add = TRUE, col = 3)
     if(!is.null(RivID)){
-      raster::plot(spr[RivID, ], add = TRUE, col = 2, lwd = 2)
+      plot(sf::st_geometry(spr[RivID, ]), add = TRUE, col = 2, lwd = 2)
     }
   }
 }

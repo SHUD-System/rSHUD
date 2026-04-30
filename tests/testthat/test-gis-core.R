@@ -166,7 +166,7 @@ test_that("MeshData2Raster shows deprecation warning", {
       MeshData2Raster(x = 1:10),
       error = function(e) NULL
     ),
-    "deprecated"
+    "deprecated|不再有用"
   )
 })
 
@@ -184,7 +184,7 @@ test_that("MeshData2Raster maps old parameters to new ones", {
       MeshData2Raster(x = 1:10, rmask = NULL, pm = NULL, proj = NULL),
       error = function(e) NULL
     ),
-    "deprecated"
+    "deprecated|不再有用"
   )
 })
 
@@ -593,7 +593,7 @@ test_that("sp2raster shows deprecation warning", {
 
   expect_warning(
     sp2raster(sp = pts, field = "value"),
-    "deprecated"
+    "deprecated|不再有用"
   )
 })
 
@@ -611,7 +611,7 @@ test_that("sp2raster maps old parameters to new ones", {
   # Test parameter mapping: sp -> vector, mask -> template
   expect_warning(
     r <- sp2raster(sp = pts, mask = NULL, field = "value"),
-    "deprecated"
+    "deprecated|不再有用"
   )
 
   expect_s4_class(r, "SpatRaster")

@@ -7,7 +7,6 @@
 #' @return Triangle mesh of model domain.
 #' @noRd
 #' @examples
-#' library(raster)
 #' data(sac)
 #' wbd = sac[['wbd']]
 #' dem = sac[['dem']]
@@ -18,11 +17,11 @@
 #' tol.len = 500
 #' AqDepth = 10
 #'
-#' wbbuf = rgeos::gBuffer(wbd, width = 2000)
-#' dem = raster::crop(dem, wbbuf)
+#' wbbuf = sf::st_buffer(sf::st_as_sf(wbd), dist = 2000)
+#' dem = terra::crop(dem, terra::vect(wbbuf))
 #'
-#' wb.dis = rgeos::gUnionCascaded(wbd)
-#' wb.simp = rgeos::gSimplify(wb.dis, tol = tol.wb, topologyPreserve = TRUE)
+#' wb.dis = sf::st_union(sf::st_as_sf(wbd))
+#' wb.simp = sf::st_simplify(wb.dis, dTolerance = tol.wb, preserveTopology = TRUE)
 #'
 #'
 #' tri = shud.triangle(wb = wb.simp, q = q.min, a = a.max)
@@ -31,27 +30,9 @@
 #' # generate SHUD .mesh
 #' pm = shud.mesh(tri, dem = dem, AqDepth = AqDepth)
 #' sm = mesh_to_sf(pm)
-#' raster::plot(sm)
+#' plot(sm)
 shud.mesh_legacy <- function(tri, dem, AqDepth = 10, r.aq = dem * 0 + AqDepth){
-  topo = tri$NB
-  topo[topo < 0] = 0
-  pt = tri$P;
-  pid = tri$T;
-  
-  x = (pt[pid[, 1], 1] + pt[pid[, 2], 1] + pt[pid[, 3], 1]) / 3
-  y = (pt[pid[, 1], 2] + pt[pid[, 2], 2] + pt[pid[, 3], 2]) / 3
-  
-  cxy = cbind(x, y)
-  zc = raster::extract(dem, cxy)
-  
-  m = data.frame(1:nrow(topo), tri$T, topo[, 1:3], zc)
-  colnames(m) = c('ID', paste0('Node', 1:3), paste0('Nabr', 1:3), 'Zmax')
-  
-  zs = raster::extract(dem, pt)
-  aq = raster::extract(r.aq, pt)
-  pt = data.frame(1:nrow(pt), pt, aq, zs)
-  colnames(pt) = c('ID', 'X', 'Y', 'AqDepth', 'Elevation');
-  mm = SHUD.MESH(mesh = m, point = pt)
+  shud.mesh(tri = tri, dem = dem, AqDepth = AqDepth, r.aq = r.aq)
 }
 
 #' Centroids of the triangulation
@@ -60,11 +41,7 @@ shud.mesh_legacy <- function(tri, dem, AqDepth = 10, r.aq = dem * 0 + AqDepth){
 #' @return Centroids of the triangles, m x 2;
 #' @noRd
 Tri2Centroid_legacy <- function(tri){
-  tt = tri$T;
-  pt = tri$P;
-  xc = (pt[tt[, 1], 1] + pt[tt[, 2], 1] + pt[tt[, 3], 1]) / 3;
-  yc = (pt[tt[, 1], 2] + pt[tt[, 2], 2] + pt[tt[, 3], 2]) / 3;
-  ret <- cbind(xc, yc)
+  Tri2Centroid(tri)
 }
 
 #' extract Coordinates of SpatialLines or  SpatialPolygons
@@ -82,48 +59,17 @@ Tri2Centroid_legacy <- function(tri){
 #' @noRd
 shud.att_legacy <- function(tri, r.soil = NULL, r.geol = NULL, r.lc = NULL, r.forc = NULL,
                      r.mf = NULL, r.BC = NULL, r.SS = NULL, sp.lake = NULL){
-  p.centroids = Tri2Centroid_legacy(tri)
-  ncell = nrow(p.centroids)
-  atthead = c("INDEX", "SOIL", "GEOL", "LC", 
-              'FORC', 'MF', 'BC', 'SS', 'LAKE')
-  nh = length(atthead)
-  att = data.frame(cbind(1:ncell, 1, 1, 1, 
-                         1, 1, 0, 0, 0))
-  extract.id <- function(r, p.centroids){
-    id = raster::extract(r, p.centroids)
-    if(is.matrix(id) | is.data.frame(id)){
-      ret = id[, 2]
-    }else{
-      ret = id
-    }
-    ret
-  }
-  apply.raster <- function(rr, pxy, v0){
-    xv = rep(v0, nrow(pxy))
-    if (!is.null(rr)){
-      if( is.numeric(rr)){
-        xv = xv * rr
-      }else{
-        xv = extract.id(rr, pxy)
-        if( nrow(pxy) < length(xv) ){
-          xv = extract.id(rr, pxy*0.0001)
-        }
-      }
-    }
-    xv[is.na(xv)] = v0
-    return(xv)
-  }
-  colnames(att) = atthead;
-  nx = nrow(p.centroids)
-  att$SOIL = apply.raster(r.soil, p.centroids, v0=1)
-  att$GEOL = apply.raster(r.geol, p.centroids, v0=1)
-  att$LC = apply.raster(r.lc, p.centroids, v0=1)
-  att$FORC = apply.raster(r.forc, p.centroids, v0=1)
-  att$MF = apply.raster(r.mf, p.centroids, v0=1)
-  att$BC = apply.raster(r.BC, p.centroids, v0=0)
-  att$SS = apply.raster(r.SS, p.centroids, v0=0)
-  att$LAKE = apply.raster(sp.lake, p.centroids, v0=0)
-  return(att)
+  shud.att(
+    tri = tri,
+    r.soil = r.soil,
+    r.geol = r.geol,
+    r.lc = r.lc,
+    r.forc = r.forc,
+    r.mf = r.mf,
+    r.BC = r.BC,
+    r.SS = r.SS,
+    sp.lake = sp.lake
+  )
 }
 
 # 

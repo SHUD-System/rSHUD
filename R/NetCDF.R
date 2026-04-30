@@ -99,7 +99,7 @@ readnc<-function(ncid, varid=NULL,  ext = NULL){
   #   #      xlim= range(c(x.cord, ext[1:2] )),
   #   #      ylim=range(c(y.cord, ext[3:4] )), xlab='Lon', ylab='Lat'); grid()
   #   sp.fn = fishnet(xx=x.cord, yy=y.cord, type='point')
-  #   raster::plot(sp.fn, axes=TRUE); grid()
+  #   plot(sp.fn, axes=TRUE); grid()
   #   lines(cbind(c(ext[1], ext[1], ext[2], ext[2], ext[1]),
   #               c(ext[3], ext[4], ext[4], ext[3], ext[3])), col=4)
   #   points(x.cord, rep(ext[3], length(xid)), col=2)
@@ -150,7 +150,7 @@ xyz2Raster <- function(x, y=NULL, arr=NULL,Dxy=NULL,
       rl[[i]] = xyz2Raster(x = x, y = y, Dxy=Dxy,
                            arr=matrix(nc$arr[, , i], nrow=dim(nc$arr)[1], ncol=dim(nc$arr)[2]) )
     }
-    rs = raster::stack(rl)
+    rs = terra::rast(rl)
   }else{
     # single layer
     # val = matrix(arr, nrow=nrow(arr), ncol=ncol(arr))
@@ -167,13 +167,19 @@ xyz2Raster <- function(x, y=NULL, arr=NULL,Dxy=NULL,
       dy = abs(mean(diff(y)))
     }
     nx = length(x);   ny = length(y)
-    r = raster::raster(ncols=nx, nrows=ny)
-    raster::extent(r) = c(min(x), max(x), min(y), max(y)) + c(-dx, dx, -dy, dy)/2
-    # raster::res(r) = c(dx, dy)
-    # r = raster::setValues(r, t(val[, ny:1]))
+    ext_vals = c(min(x), max(x), min(y), max(y)) + c(-dx, dx, -dy, dy)/2
+    r = terra::rast(
+      ncols = nx,
+      nrows = ny,
+      xmin = ext_vals[1],
+      xmax = ext_vals[2],
+      ymin = ext_vals[3],
+      ymax = ext_vals[4]
+    )
     if(flip){    idx = ny:1
     }else{    idx = 1:ny  }
-    rs = raster::setValues(r, t(val[, idx ]) )
+    terra::values(r) = as.vector(t(val[, idx ]))
+    rs = r
   }
   rs
 }

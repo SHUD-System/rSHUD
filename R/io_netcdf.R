@@ -357,44 +357,36 @@ nc_to_raster <- function(nc_data = NULL,
     }
     
   } else {
-    # Use raster for legacy format
-    if (!requireNamespace("raster", quietly = TRUE)) {
-      stop("Package 'raster' is required for legacy format", call. = FALSE)
-    }
-    
+    # Keep legacy return support without using raster package constructors.
     if (n_dims > 2) {
-      # Multiple layers
       raster_list <- list()
       for (i in 1:dims[3]) {
         layer_data <- data_array[, , i]
-        
-        r <- raster::raster(ncols = nx, nrows = ny)
-        raster::extent(r) <- extent_vals
-        
         if (flip) {
           idx <- ny:1
         } else {
           idx <- 1:ny
         }
-        
-        raster_list[[i]] <- raster::setValues(r, t(layer_data[, idx]))
+        r <- terra::rast(nrows = ny, ncols = nx, extent = extent_vals)
+        terra::values(r) <- as.vector(t(layer_data[, idx]))
+        raster_list[[i]] <- r
       }
-      result <- raster::stack(raster_list)
+      result <- terra::rast(raster_list)
       if (!is.null(dimnames(data_array)[[3]])) {
         names(result) <- dimnames(data_array)[[3]]
       }
     } else {
-      # Single layer
-      r <- raster::raster(ncols = nx, nrows = ny)
-      raster::extent(r) <- extent_vals
-      
       if (flip) {
         idx <- ny:1
       } else {
         idx <- 1:ny
       }
-      
-      result <- raster::setValues(r, t(data_array[, idx]))
+      result <- terra::rast(nrows = ny, ncols = nx, extent = extent_vals)
+      terra::values(result) <- as.vector(t(data_array[, idx]))
+    }
+
+    if (requireNamespace("raster", quietly = TRUE)) {
+      result <- methods::as(result, "Raster")
     }
   }
   

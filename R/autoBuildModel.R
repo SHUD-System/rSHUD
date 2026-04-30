@@ -50,6 +50,7 @@ shud_auto_build <- function(
   mf = MeltFactor(years = years),
   rm.outlier = TRUE, 
   quiet = FALSE){
+  .Deprecated("auto_build_model")
   msg = paste0('autoBuildModel(', prjname, '):: ')
   message(msg, 'Automatic build the SHUD model.')
   dir.out = file.path(outdir)
@@ -125,8 +126,8 @@ shud_auto_build <- function(
   dev.off()
   
   
-  # shp.riv =raster::crop(riv.simp, wb.simp)
-  # shp.wb = raster::intersect( wb.simp, riv.simp)
+  # shp.riv = terra::crop(terra::vect(riv.simp), terra::vect(wb.simp))
+  # shp.wb = sf::st_intersection(wb.simp, riv.simp)
   wb.simp = wb.s2
   riv.simp = riv.s2
   message(msg, 'Triangulating ... ')
@@ -165,22 +166,30 @@ shud_auto_build <- function(
   
   # generate SHUD .riv
   AA = as.numeric(sf::st_area(sf::st_as_sf(wbd))) * 1e-6
-  pr = shud.river(riv.simp, dem, AREA = AA)
+  river_network = tryCatch(
+    build_river_network(riv.simp, dem, area = AA),
+    error = function(e) {
+      message(msg, "build_river_network() failed; falling back to shud.river(): ",
+              conditionMessage(e))
+      NULL
+    }
+  )
+  if (!is.null(river_network)) {
+    pr = as_shud_river(river_network)
+    spr = river_network$network
+  } else {
+    pr = shud.river(riv.simp, dem, AREA = AA)
+    spr = riv.simp
+  }
   oid = getOutlets(pr)
   message(msg, 'Number of Rivers = ', nrow(pr@river))
   # Correct river slope to avoid negative slope
   
   # shud.riv to Shapefile
-  spr = riv.simp
-  if(is(spr, 'SpatialLines')){
-    spr = sp::SpatialLinesDataFrame(spr, 
-                                   data.frame('Riv' = pr@river, 'Tp' = pr@rivertype[pr@river$Type,]),
-                                   match.ID = FALSE)
-  }else if (inherits(spr, "sf")){
-    spr <- cbind(spr, data.frame('Riv' = pr@river, 'Tp' = pr@rivertype[pr@river$Type,]))
-  }else{
-    spr@data = data.frame(spr@data, 'Riv' = pr@river, 'Tp' = pr@rivertype[pr@river$Type,], match.ID = FALSE)
+  if(!inherits(spr, "sf")){
+    spr <- sf::st_as_sf(spr)
   }
+  spr <- cbind(spr, data.frame('Riv' = pr@river, 'Tp' = pr@rivertype[pr@river$Type,]))
   writeshape(spr, sf::st_crs(sf::st_as_sf(wbd)), file = file.path(gisout, 'river'))
   
   if(length(oid) > 1){

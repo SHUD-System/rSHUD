@@ -535,33 +535,45 @@ auto_build_model <- function(
 }
 
 
-#' Deprecated: autoBuildModel
-#'
+#' @title Deprecated: Build SHUD Model (Legacy Interface)
 #' @description
 #' This function is deprecated. Use \code{\link{auto_build_model}} instead.
-#' The new function uses modern spatial libraries (terra/sf) exclusively.
+#' It auto-converts legacy sp/raster inputs to sf/terra before forwarding.
 #'
-#' @param ... Arguments (not supported - will show error with migration guidance)
+#' @param indata Named list with components: wbd (domain), riv (rivers), dem, rsoil, rgeol, rlc, forc
+#' @param forcfiles Forcing file paths or data.frame
+#' @param prjname Project name string
+#' @param ... Additional arguments passed to auto_build_model()
+#' @return Same as auto_build_model()
 #' @export
-#' @keywords internal
-autoBuildModel <- function(...) {
-  .Deprecated("auto_build_model")
+autoBuildModel <- function(indata, forcfiles = NULL, prjname = NULL, ...) {
+  .Deprecated("auto_build_model",
+    msg = paste0("autoBuildModel() is deprecated, use auto_build_model().\n",
+                 "Will be removed in v3.1.0."))
 
-  stop(
-    "autoBuildModel() is deprecated and no longer functional.\n\n",
-    "Please use auto_build_model() with modern spatial libraries:\n\n",
-    "MIGRATION STEPS:\n",
-    "1. Convert sp objects to sf:\n",
-    "   OLD: wbd <- readOGR('boundary.shp')\n",
-    "   NEW: wbd <- sf::st_read('boundary.shp')\n\n",
-    "2. Convert raster objects to terra:\n",
-    "   OLD: dem <- raster('dem.tif')\n",
-    "   NEW: dem <- terra::rast('dem.tif')\n\n",
-    "3. Update function call:\n",
-    "   OLD: autoBuildModel(indata, forcfiles, prjname, ...)\n",
-    "   NEW: auto_build_model(project_name, domain, dem, ...)\n\n",
-    "See inst/MIGRATION_GUIDE.md for complete migration instructions.",
-    call. = FALSE
+  safe_convert_sf <- function(x) {
+    if (is.null(x)) return(NULL)
+    if (inherits(x, "Spatial")) return(sf::st_as_sf(x))
+    x
+  }
+  safe_convert_terra <- function(x) {
+    if (is.null(x)) return(NULL)
+    if (inherits(x, "RasterLayer") || inherits(x, "RasterStack") || inherits(x, "RasterBrick"))
+      return(terra::rast(x))
+    x
+  }
+
+  auto_build_model(
+    project_name  = if (is.null(prjname)) "unnamed" else prjname,
+    domain        = safe_convert_sf(indata$wbd),
+    rivers        = safe_convert_sf(indata$riv),
+    dem           = safe_convert_terra(indata$dem),
+    soil          = safe_convert_terra(indata$rsoil),
+    geology       = safe_convert_terra(indata$rgeol),
+    landcover     = safe_convert_terra(indata$rlc),
+    forcing_sites = safe_convert_sf(indata$forc),
+    forcing_files = forcfiles,
+    ...
   )
 }
 

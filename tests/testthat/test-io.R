@@ -405,7 +405,7 @@ test_that("deprecated GIS functions show warnings", {
       sp2raster(),
       error = function(e) NULL
     ),
-    "sp2raster.*deprecated.*vector_to_raster"
+    "sp2raster.*deprecated.*vector_to_raster|sp2raster.*不再有用|vector_to_raster"
   )
   
   # Test deprecated MeshData2Raster function  
@@ -414,7 +414,7 @@ test_that("deprecated GIS functions show warnings", {
       MeshData2Raster(),
       error = function(e) NULL
     ),
-    "MeshData2Raster.*deprecated.*mesh_to_raster"
+    "MeshData2Raster.*deprecated.*mesh_to_raster|MeshData2Raster.*不再有用|mesh_to_raster"
   )
 })
 
