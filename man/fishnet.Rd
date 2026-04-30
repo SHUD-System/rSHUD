@@ -5,7 +5,7 @@
 \title{Generatue fishnet
 \code{fishnet} Generate fishnet by the coordinates}
 \usage{
-fishnet(xx, yy, crs = sp::CRS("+init=epsg:4326"), type = "polygon")
+fishnet(xx, yy, crs = sf::st_crs(4326), type = "polygon")
 }
 \arguments{
 \item{xx}{x coordinates}
@@ -24,7 +24,6 @@ Generatue fishnet
 \code{fishnet} Generate fishnet by the coordinates
 }
 \examples{
-library(raster)
 ext = c(0, 8, 2, 10)
 dx = 2; dy = 4
 xx = seq(ext[1], ext[2], by = dx)

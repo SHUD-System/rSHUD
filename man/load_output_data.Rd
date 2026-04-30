@@ -40,7 +40,7 @@ data_list <- load_output_data(vars, format = "modern")
 \seealso{
 Other output-io: 
 \code{\link{get_default_variables}()},
-\code{\link{read_output_header}()},
-\code{\link{read_output}()}
+\code{\link{read_output}()},
+\code{\link{read_output_header}()}
 }
 \concept{output-io}

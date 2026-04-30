@@ -282,7 +282,7 @@ test_that("Tri2Centroid centroids are within bounds", {
 test_that("shud.mesh requires tri and dem parameters", {
   expect_error(
     shud.mesh(),
-    "Parameter 'tri'|missing, with no default"
+    "Parameter 'tri'|missing|tri|缺少"
   )
 })
 

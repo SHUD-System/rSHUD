@@ -2,15 +2,23 @@
 % Please edit documentation in R/interface_main.R
 \name{autoBuildModel}
 \alias{autoBuildModel}
-\title{Deprecated: autoBuildModel}
+\title{Deprecated: Build SHUD Model (Legacy Interface)}
 \usage{
-autoBuildModel(...)
+autoBuildModel(indata, forcfiles = NULL, prjname = NULL, ...)
 }
 \arguments{
-\item{...}{Arguments (not supported - will show error with migration guidance)}
+\item{indata}{Named list with components: wbd (domain), riv (rivers), dem, rsoil, rgeol, rlc, forc}
+
+\item{forcfiles}{Forcing file paths or data.frame}
+
+\item{prjname}{Project name string}
+
+\item{...}{Additional arguments passed to auto_build_model()}
+}
+\value{
+Same as auto_build_model()
 }
 \description{
 This function is deprecated. Use \code{\link{auto_build_model}} instead.
-The new function uses modern spatial libraries (terra/sf) exclusively.
+It auto-converts legacy sp/raster inputs to sf/terra before forwarding.
 }
-\keyword{internal}

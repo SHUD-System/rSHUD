@@ -26,7 +26,7 @@
 #' }
 #' 
 #' @return Class of SHUD.MESH
-#' @importFrom methods new
+#' @importFrom methods new setMethod callNextMethod
 #' @export
 SHUD.MESH <- methods::setClass("Untructure Domain",
                                slots = c(mesh = "data.frame", 
@@ -95,6 +95,35 @@ SHUD.RIVER <- methods::setClass("SHUD River",
                                 prototype = list(network = NULL,
                                                 crs = ""))
 
+#' @importFrom methods setMethod callNextMethod
+setMethod("initialize", "SHUD River", function(.Object, ...) {
+  .Object <- callNextMethod()
+  if (is.null(.Object@network)) .Object@network <- NULL
+  if (length(.Object@crs) == 0) .Object@crs <- ""
+  .Object
+})
+
+#' Upgrade legacy SHUD.RIVER objects to v3 format
+#'
+#' Adds missing slots (network, crs) to v2 serialized SHUD.RIVER objects.
+#'
+#' @param old_river A SHUD.RIVER object loaded from v2 serialization
+#' @return Updated SHUD.RIVER object with all required slots
+#' @export
+upgrade_shud_river <- function(old_river) {
+  if (!methods::is(old_river, "SHUD River")) {
+    stop("Input must be a SHUD.RIVER object", call. = FALSE)
+  }
+  if (!methods::.hasSlot(old_river, "network")) {
+    methods::slot(old_river, "network") <- NULL
+  }
+  if (!methods::.hasSlot(old_river, "crs")) {
+    methods::slot(old_river, "crs") <- ""
+  }
+  methods::validObject(old_river)
+  old_river
+}
+
 #' This is data to be included in my package
 #' @name sh
 #' @docType data
@@ -129,5 +158,4 @@ NULL
 #' This is .shud environment.
 #' @name .shud
 .shud <- new.env()
-
 

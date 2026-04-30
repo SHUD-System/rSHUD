@@ -3,7 +3,8 @@
 #' @param shp \code{sf} object, or legacy \code{sp} \code{Spatial*} object (converted
 #'   with \code{sf::st_as_sf()} before writing).
 #' @param crs CRS to assign before write (default: CRS taken from \code{shp} via
-#'   \code{sf::st_crs()} or \code{raster::crs()} for \code{sp} objects). Use
+#'   \code{sf::st_crs()} or \code{sf::st_crs(sf::st_as_sf(shp))} for legacy
+#'   vector objects). Use
 #'   \code{NA} to skip \code{st_set_crs} (not recommended for new data).
 #' @param file file path, with or without \code{.shp} extension.
 #' @details
@@ -25,7 +26,7 @@ writeshape <- function(shp, file = NULL, crs = NULL) {
     crs <- if (inherits(shp, "sf")) {
       sf::st_crs(shp)
     } else {
-      raster::crs(shp)
+      sf::st_crs(sf::st_as_sf(shp))
     }
   }
   if (!is.null(file) && tolower(tools::file_ext(file)) == "shp") {
@@ -42,29 +43,23 @@ writeshape <- function(shp, file = NULL, crs = NULL) {
   }
 
   if (!inherits(shp, "sf")) {
-    if (inherits(shp, "SpatialPolygons") &&
-        !inherits(shp, "SpatialPolygonsDataFrame")) {
-      shp <- sp::SpatialPolygonsDataFrame(
-        shp,
-        data = data.frame(ID = seq_len(length(shp)), stringsAsFactors = FALSE),
-        match.ID = FALSE
-      )
-    } else if (inherits(shp, "SpatialLines") &&
-               !inherits(shp, "SpatialLinesDataFrame")) {
-      shp <- sp::SpatialLinesDataFrame(
-        shp,
-        data = data.frame(ID = seq_len(length(shp)), stringsAsFactors = FALSE),
-        match.ID = FALSE
-      )
-    } else if (inherits(shp, "SpatialPoints") &&
-               !inherits(shp, "SpatialPointsDataFrame")) {
-      shp <- sp::SpatialPointsDataFrame(
-        shp,
-        data = data.frame(ID = seq_len(length(shp)), stringsAsFactors = FALSE)
-      )
-    }
     shp <- tryCatch(
-      sf::st_as_sf(shp),
+      {
+        if ((inherits(shp, "SpatialPolygons") &&
+             !inherits(shp, "SpatialPolygonsDataFrame")) ||
+            (inherits(shp, "SpatialLines") &&
+             !inherits(shp, "SpatialLinesDataFrame")) ||
+            (inherits(shp, "SpatialPoints") &&
+             !inherits(shp, "SpatialPointsDataFrame"))) {
+          geom <- sf::st_geometry(sf::st_as_sf(shp))
+          sf::st_sf(
+            ID = seq_len(length(shp)),
+            geometry = geom
+          )
+        } else {
+          sf::st_as_sf(shp)
+        }
+      },
       error = function(e) {
         stop(
           "writeshape: could not convert object to sf: ",
@@ -100,7 +95,14 @@ writeshape <- function(shp, file = NULL, crs = NULL) {
 ProjectCoordinate <- function(x, proj4string, P2G = TRUE){
   # Transformed data
   x = as.matrix(x)
-  y <- proj4::project(x, proj4string, inverse = P2G)
+  proj_str <- if (inherits(proj4string, "crs")) {
+    proj4string$proj4string
+  } else if (inherits(proj4string, "CRS")) {
+    sf::st_crs(proj4string)$proj4string
+  } else {
+    as.character(proj4string)
+  }
+  y <- proj4::project(x, proj_str, inverse = P2G)
   if(P2G){
     colnames(y) = c('Lon', 'Lat')
   }else{
@@ -109,35 +111,7 @@ ProjectCoordinate <- function(x, proj4string, P2G = TRUE){
   y
 }
 
-#' SpatialData to Raster
-#' \code{sp2raster}
-#' @param sp SpatialPolygon
-#' @param mask Raster mask of mesh domain.
-#' @param ngrids Number of grid along x direction.
-#' @param resolution Resolution, defaul = NULL, resolution = extent / ngrids
-#' @param field Index of field
-#' @return Raster map
-#' @export
-sp2raster <- function(sp, mask = get('MASK', envir = .shud),
-                      ngrids = 200, 
-                      resolution = NULL, field = 1) {
-  if(is.null(mask)){
-    ext <- raster::extent(sp)
-    xlim = ext[1:2]
-    ylim = ext[3:4]
-    if(resolution <= 0 || is.null(resolution)){
-      dx = diff(xlim) / ngrids;
-    }else{
-      dx = resolution
-    }
-    r <- raster::raster(ext, res = dx)
-  }else{
-    r = mask
-  }
-  ## Rasterize the shapefile
-  rr <- raster::rasterize(sp, r, field = field)
-  return(rr)
-}
+# sp2raster moved to R/gis_core.R as deprecated wrapper for vector_to_raster()
 
 #' Generate the raster mask of Mesh domain
 #' \code{shud.mask}
@@ -151,59 +125,37 @@ sp2raster <- function(sp, mask = get('MASK', envir = .shud),
 shud.mask  <- function (pm = readmesh(), proj = NULL,
                         rr = NULL,
                         n = 10000, cellsize = NULL){
-  # mesh = readmesh(shp = TRUE); ngrids = 100; resolution = 0
   if (is.null(rr)) {
     rr <- tryCatch(get('MASK', envir = .shud), error = function(e) NULL)
   }
+  if (!is.null(rr) && !inherits(rr, "SpatRaster")) {
+    rr <- terra::rast(rr)
+  }
   if(is.null(rr)){
-    spm = mesh_to_sf(pm)
+    spm <- mesh_to_sf(pm)
+    sp0 <- sf::st_union(spm)
+    bb <- sf::st_bbox(sp0)
+    dx <- cellsize
+    if (is.null(dx)) {
+      xrange <- as.numeric(bb["xmax"] - bb["xmin"])
+      yrange <- as.numeric(bb["ymax"] - bb["ymin"])
+      dx <- sqrt((xrange * yrange) / n)
+    }
 
-    if (inherits(spm, "sf")) {
-      sp0 <- sf::st_union(spm)
-      bb <- sf::st_bbox(sp0)
-      dx <- cellsize
-      if (is.null(dx)) {
-        xrange <- as.numeric(bb["xmax"] - bb["xmin"])
-        yrange <- as.numeric(bb["ymax"] - bb["ymin"])
-        dx <- sqrt((xrange * yrange) / n)
-      }
+    rr <- terra::rast(
+      xmin = bb["xmin"], xmax = bb["xmax"],
+      ymin = bb["ymin"], ymax = bb["ymax"],
+      resolution = dx
+    )
+    rr[] <- 1
+    rr <- terra::mask(rr, terra::vect(sp0))
 
-      rr <- terra::rast(
-        xmin = bb["xmin"], xmax = bb["xmax"],
-        ymin = bb["ymin"], ymax = bb["ymax"],
-        resolution = dx
-      )
-      rr[] <- 1
-      rr <- terra::mask(rr, terra::vect(sp0))
-
-      if(!is.null(proj)){
-        terra::crs(rr) <- proj
-      } else if (!is.na(sf::st_crs(sp0))) {
-        terra::crs(rr) <- sf::st_crs(sp0)$wkt
-      }
-    } else {
-      sp0 = rgeos::gUnaryUnion(spm)
-      if(is.null(cellsize)){
-        # grd <- as.data.frame(sp::spsample(spm, "regular", n = n))
-        # grd <- as.data.frame(sp::spsample(spm, "regular", nsig = 2, n = n))
-        grd <- sp::makegrid(sp0, n = n)
-      }else{
-        # grd <- as.data.frame(sp::spsample(spm, "regular", cellsize = cellsize))
-        grd <- sp::makegrid(sp0, cellsize = cellsize, pretty = FALSE)
-      }
-      names(grd)       <- c("X", "Y")
-      sp::coordinates(grd) <- c("X", "Y")
-      sp::gridded(grd)     <- TRUE  # Create SpatialPixel object
-      sp::fullgrid(grd)    <- TRUE  # Create SpatialGrid object
-      rr = raster::raster(grd); rr[] = 1
-      rr = raster::mask(rr, sp0)
-      if(!is.null(proj)){
-        raster::crs(rr) = proj
-      }
+    if(!is.null(proj)){
+      terra::crs(rr) <- proj
+    } else if (!is.na(sf::st_crs(sp0))) {
+      terra::crs(rr) <- sf::st_crs(sp0)$wkt
     }
     assign('MASK', rr, envir = .shud)
-  }else{
-    rr = rr
   }
   rr
 }
@@ -224,9 +176,22 @@ MeshData2Raster <- function(x = getElevation(),
                             pm = readmesh(), proj = NULL,
                             stack = FALSE, method = 'ide',
                             plot = FALSE){
-  
+  if (!inherits(rmask, "SpatRaster")) {
+    rmask <- terra::rast(rmask)
+  }
+
   if(stack){
-    ret <- raster::stack(apply(x, 1, FUN = MeshData2Raster) )
+    ret <- terra::rast(lapply(seq_len(nrow(x)), function(i) {
+      MeshData2Raster(
+        x = as.numeric(x[i, ]),
+        rmask = rmask,
+        pm = pm,
+        proj = proj,
+        stack = FALSE,
+        method = method,
+        plot = FALSE
+      )
+    }))
   }else{
     if(is.matrix(x) | is.data.frame(x)){
       x = as.numeric(x[nrow(x),])
@@ -238,36 +203,40 @@ MeshData2Raster <- function(x = getElevation(),
       x[is.infinite(x)] = 0
     }
     xy = getCentroid(pm = pm)[, 2:3]
-    
+
     if(grepl('idw', tolower(method))){
-      val = data.frame(xy, x)
-      colnames(val) = c('X', 'Y', 'Z')
-      sp::coordinates(val) = c('X', 'Y')
-      grd = methods::as(rmask, 'SpatialGrid')
-      # if(grepl(method, 'idw')){
-      # Interpolate the grid cells using a power value of 2 (idp = 2.0)
-      dat <- gstat::idw(Z ~ 1, val, newdata = grd, idp = 2.0)
-      r = raster::raster(dat)
+      val = data.frame(X = xy[, 1], Y = xy[, 2], Z = x)
+      gs <- gstat::gstat(
+        formula = Z ~ 1,
+        locations = ~ X + Y,
+        data = val,
+        set = list(idp = 2.0)
+      )
+      dat <- terra::interpolate(rmask, gs)
+      r <- dat[["var1.pred"]]
     }
     if(grepl('linear', tolower(method))){
-      xr = raster::rasterToPoints(rmask)
-      ext = raster::extent(rmask); res = raster::res(rmask); hr = res / 2
-      r0 = rmask; r0[] = 1
-      xyo = raster::rasterToPoints(r0)
-      xx = interp::interp(x = xy[, 1], y = xy[, 2], z = x, xo = xyo[, 1], yo = xyo[, 2] )
-      r = raster::setValues(rmask, as.numeric(xx$z))
+      grid_xy <- terra::crds(rmask, na.rm = FALSE)
+      xx <- interp::interp(
+        x = xy[, 1],
+        y = xy[, 2],
+        z = x,
+        xo = sort(unique(grid_xy[, 1])),
+        yo = sort(unique(grid_xy[, 2]))
+      )
+      r <- rmask
+      terra::values(r) <- as.numeric(xx$z)
     }
     if(grepl('ide', tolower(method))){
       tps <- fields::Tps(xy, x)
-      # use model to predict values at all locations
-      r <- raster::interpolate(rmask, tps)
+      r <- terra::interpolate(rmask, tps)
     }
-    ret <- raster::mask(r, rmask)
+    ret <- terra::mask(r, rmask)
   }
   if(plot){
-    raster::plot(ret)
+    terra::plot(ret)
   }
-  if(!is.null(proj)){ raster::crs(ret) <- proj }
+  if(!is.null(proj)){ terra::crs(ret) <- proj }
   return(ret)
 }
 
@@ -281,7 +250,6 @@ MeshData2Raster <- function(x = getElevation(),
 #' @return spatildata (.shp)
 #' @export
 #' @examples
-#' library(raster)
 #' ext = c(0, 8, 2, 10)
 #' dx = 2; dy = 4
 #' xx = seq(ext[1], ext[2], by = dx)
@@ -294,61 +262,63 @@ MeshData2Raster <- function(x = getElevation(),
 #' plot(sp3, axes = TRUE, add = TRUE, col = 3, pch = 20)
 #' grid()
 fishnet <- function(xx, yy,
-                    crs = sp::CRS("+init=epsg:4326"),
+                    crs = sf::st_crs(4326),
                     type = 'polygon'){
-  nx = length(xx)
-  ny = length(yy)
+  crs_sf <- sf::st_crs(crs)
+  nx <- length(xx)
+  ny <- length(yy)
   if(grepl('line', tolower(type)) ){
-    ymin = min(yy); ymax = max(yy)
-    xmin = min(xx); xmax = max(xx)
-    vline = cbind(xx, ymin, xx, ymax)
-    hline =  cbind(xmin, yy, xmax, yy)
-    mat = rbind(vline, hline)
-    str = paste(paste('(', mat[, 1], mat[, 2], ',', mat[, 3], mat[, 4], ')'), collapse = ',')
-    spl = rgeos::readWKT(paste('MULTILINESTRING(', str, ')'))
-    df = as.data.frame(mat)
-    colnames(df) = c('x1', 'y1', 'x2', 'y2')
-    spdf = sp::SpatialLinesDataFrame(spl, data = df)
-    ret = spdf
+    ymin <- min(yy)
+    ymax <- max(yy)
+    xmin <- min(xx)
+    xmax <- max(xx)
+    vline <- cbind(xx, ymin, xx, ymax)
+    hline <- cbind(xmin, yy, xmax, yy)
+    mat <- rbind(vline, hline)
+    df <- as.data.frame(mat)
+    colnames(df) <- c('x1', 'y1', 'x2', 'y2')
+    geoms <- lapply(seq_len(nrow(mat)), function(i) {
+      sf::st_linestring(matrix(mat[i, ], ncol = 2, byrow = TRUE))
+    })
+    ret <- sf::st_sf(df, geometry = sf::st_sfc(geoms, crs = crs_sf))
   }
   if(grepl('polygon', tolower(type)) ){
-    xy = expand.grid(xx, yy)
-    xm = matrix(xy[, 1], nx, ny)
-    ym = matrix(xy[, 2], nx, ny)
-    xloc = abind::abind(as.matrix(xm[-nx, -ny]), as.matrix(xm[-nx, -1]), as.matrix(xm[-1, -1]),
-                         as.matrix(xm[-1, -ny]), as.matrix(xm[-nx, -ny]), along = 3)
-    yloc = abind::abind(as.matrix(ym[-nx, -ny]), as.matrix(ym[-nx, -1]), as.matrix(ym[-1, -1]),
-                         as.matrix(ym[-1, -ny]), as.matrix(ym[-nx, -ny]), along = 3)
-    
-    # df = as.data.frame(matrix(0, nrow = (nx - 1) * (ny - 1), 6))
-    df = data.frame(as.numeric(apply(xloc, 1:2, min)),
-                     as.numeric(apply(xloc, 1:2, max)),
-                     as.numeric(apply(yloc, 1:2, min)),
-                     as.numeric(apply(yloc, 1:2, max)))
-    df = data.frame(df, rowMeans(df[, 1:2]), rowMeans(df[, 1:2 + 2]) )
-    colnames(df) = c('xmin', 'xmax', 'ymin', 'ymax', 'xcenter', 'ycenter')
-    str = paste('GEOMETRYCOLLECTION(',
-                 paste(paste('POLYGON((',
-                             paste(xm[-nx, -ny], ym[-nx, -ny], ',' ),
-                             paste(xm[-nx, -1],  ym[-nx, -1], ','),
-                             paste(xm[-1, -1],   ym[-1, -1], ','),
-                             paste(xm[-1, -ny],  ym[-1, -ny], ','),
-                             paste(xm[-nx, -ny], ym[-nx, -ny], '' ), '))' )
-                 , collapse = ','),
-                 ')' )
-    # str = paste('MULTIPOLYGON(', paste(xt, collapse = ', '), ')')
-    SRL = rgeos::readWKT(str)
-    # x1 = x0@polygons[[1]]@Polygons
-    # SRL = lapply(1:length(x1),  function(x, i) {Polygons(list(x[[i]]), ID = i)},  x = x1 )
-    ret = sp::SpatialPolygonsDataFrame(Sr = SRL, data = df, match.ID = TRUE)
+    polys <- vector("list", (nx - 1) * (ny - 1))
+    df <- data.frame(
+      xmin = numeric(length(polys)),
+      xmax = numeric(length(polys)),
+      ymin = numeric(length(polys)),
+      ymax = numeric(length(polys)),
+      xcenter = numeric(length(polys)),
+      ycenter = numeric(length(polys))
+    )
+    k <- 1
+    for (i in seq_len(nx - 1)) {
+      for (j in seq_len(ny - 1)) {
+        pxy <- rbind(
+          c(xx[i], yy[j]),
+          c(xx[i], yy[j + 1]),
+          c(xx[i + 1], yy[j + 1]),
+          c(xx[i + 1], yy[j]),
+          c(xx[i], yy[j])
+        )
+        polys[[k]] <- sf::st_polygon(list(pxy))
+        df[k, ] <- c(
+          min(pxy[, 1]), max(pxy[, 1]),
+          min(pxy[, 2]), max(pxy[, 2]),
+          mean(range(pxy[, 1])), mean(range(pxy[, 2]))
+        )
+        k <- k + 1
+      }
+    }
+    ret <- sf::st_sf(df, geometry = sf::st_sfc(polys, crs = crs_sf))
   }
   if(grepl('point', tolower(type)) ){
-    xm = expand.grid(xx, yy)
-    df = data.frame('X' = xm[, 1], 'Y' = xm[, 2])
-    ret = sp::SpatialPointsDataFrame(coords = df, data = df, match.ID = TRUE)
+    xm <- expand.grid(xx, yy)
+    df <- data.frame('X' = xm[, 1], 'Y' = xm[, 2])
+    ret <- sf::st_as_sf(df, coords = c("X", "Y"), crs = crs_sf, remove = FALSE)
   }
-  raster::crs(ret) = crs
-  return(ret)
+  return(methods::as(ret, "Spatial"))
 }
 
 #' Add holes into Polygons
@@ -357,20 +327,14 @@ fishnet <- function(xx, yy,
 #' @param hole Hole Polygon
 #' @export
 AddHoleToPolygon <- function(poly, hole){
-  # https://stackoverflow.com/questions/29624895/how-to-add-a-hole-to-a-polygon-within-a-spatialpolygonsdataframe
-  # invert the coordinates for Polygons to flag it as a hole
-  coordsHole <-  hole@polygons[[1]]@Polygons[[1]]@coords
-  newHole <- sp::Polygon(coordsHole, hole = TRUE)
-  
-  # punch the hole in the main poly
-  listPol <- poly@polygons[[1]]@Polygons
-  listPol[[length(listPol) + 1]] <- newHole
-  punch <- sp::Polygons(listPol, poly@polygons[[1]]@ID)
-  
-  # make the polygon a SpatialPolygonsDataFrame as the entry
-  new <- sp::SpatialPolygons(list(punch), proj4string = poly@proj4string)
-  new <- sp::SpatialPolygonsDataFrame(new, data = as(poly, "data.frame"))
-  return(new)
+  input_is_sf <- inherits(poly, "sf")
+  poly_sf <- if (input_is_sf) poly else sf::st_as_sf(poly)
+  hole_sf <- if (inherits(hole, "sf")) hole else sf::st_as_sf(hole)
+  new <- suppressWarnings(sf::st_difference(poly_sf, sf::st_union(hole_sf)))
+  if (input_is_sf) {
+    return(new)
+  }
+  methods::as(new, "Spatial")
 }
 #' Cut sptialLines with threshold.
 #' \code{sp.CutSptialLines}
@@ -401,54 +365,60 @@ AddHoleToPolygon <- function(poly, hole){
 #' plot(add = TRUE, x, col = 1:length(x))
 sp.CutSptialLines <- function(sl, tol){
   msg = 'sp.CutSptialLines::'
-  ll = rgeos::gLength(sl, byid = TRUE)
+  input_is_sp <- inherits(sl, c("Spatial", "SpatialLines", "SpatialLinesDataFrame"))
+  sl_sf <- if (inherits(sl, "sf")) sl else sf::st_as_sf(sl)
+  if (any(sf::st_geometry_type(sl_sf) == "MULTILINESTRING")) {
+    sl_sf <- suppressWarnings(sf::st_cast(sl_sf, "LINESTRING"))
+  }
+  ll <- as.numeric(sf::st_length(sl_sf))
   if(all(ll < tol) ){
-    ret = sl
+    ret <- sl
   }else{
-    nsp = length(sl)
-    xsl = list(); ik = 1
-    for(i in 1:nsp){
-      sx = sl[i, ]
-      pxy = get_coords(sx)
-      np = nrow(pxy)
-      dacc = cumsum( sp::LineLength(pxy, sum = FALSE))
-      # dacc = getDist(pxy)
-      tol = max(c(tol, min(dacc) ) )
-      len = rgeos::gLength(sx)
-      if(len > tol){
-        nsplit = ceiling(len / tol)
+    xsl <- list()
+    ilen <- numeric()
+    ik <- 1
+    for(i in seq_len(nrow(sl_sf))){
+      sx <- sl_sf[i, ]
+      pxy <- sf::st_coordinates(sx)[, 1:2, drop = FALSE]
+      np <- nrow(pxy)
+      seglen <- sqrt(rowSums((pxy[-1, , drop = FALSE] - pxy[-np, , drop = FALSE]) ^ 2))
+      dacc <- cumsum(seglen)
+      tol_i <- max(c(tol, min(dacc)))
+      len <- sum(seglen)
+      if(len > tol_i){
+        nsplit <- ceiling(len / tol_i)
       }else{
-        nsplit = 1
+        nsplit <- 1
       }
-      dd = len / nsplit
-      v0 = 1  # Vetex 0, Vetex 1
-      message(msg, i, '/', nsp, '\t', nsplit, '\t', round(dd, 2) )
-      for(k in 1:nsplit){
+      dd <- len / nsplit
+      v0 <- 1
+      message(msg, i, '/', nrow(sl_sf), '\t', nsplit, '\t', round(dd, 2) )
+      for(k in seq_len(nsplit)){
         if(v0 >= np){
           break
         }
-        # message(msg, '\t', k, '/', nsplit)
-        dk = dd * k
-        v1 = order(abs(dacc - dk), decreasing = FALSE)[1] + 1
+        dk <- dd * k
+        v1 <- order(abs(dacc - dk), decreasing = FALSE)[1] + 1
         if(v1 + 1 > np){
-          v1 = np
+          v1 <- np
         }
         message(msg, v0, '\t', v1)
         if(v0 == v1){
-          next;
+          next
         }
-        # plot(sl[i, ]); points(pxy); points(pxy[c(v0, v1), ], pch = 2, col = 2)
-        xsl[[ik]] = sp::Lines(sp::Line( pxy[c(v0:v1), ]), ID = ik)
-        ik = ik + 1
-        # points(pxy[v0:v1,], col = k)
-        v0 = v1
+        coords_k <- pxy[v0:v1, , drop = FALSE]
+        xsl[[ik]] <- sf::st_linestring(as.matrix(coords_k))
+        ilen[ik] <- sum(sqrt(rowSums((coords_k[-1, , drop = FALSE] - coords_k[-nrow(coords_k), , drop = FALSE]) ^ 2)))
+        ik <- ik + 1
+        v0 <- v1
       }
     }
-    nsl = length(xsl)
-    tmp = sp::SpatialLines(xsl, proj4string = raster::crs(sl))
-    ilen = rgeos::gLength(tmp, byid = TRUE)
-    att = data.frame('INDEX' = 1:length(tmp), 'Length' = ilen)
-    ret = sp::SpatialLinesDataFrame(tmp, data = att)
+    ret_sf <- sf::st_sf(
+      INDEX = seq_along(xsl),
+      Length = ilen,
+      geometry = sf::st_sfc(xsl, crs = sf::st_crs(sl_sf))
+    )
+    ret <- if (input_is_sp) methods::as(ret_sf, "Spatial") else ret_sf
   }
   return(ret)
 }
@@ -467,13 +437,19 @@ sp.CutSptialLines <- function(sl, tol){
 #' @importFrom utils read.table
 #' @export
 #' @examples
-#' library(raster)
-#' r <- raster(ncol = 36, nrow = 18)
-#' r[] <- 1:ncell(r)
+#' r <- terra::rast(ncols = 36, nrows = 18)
+#' terra::values(r) <- seq_len(terra::ncell(r))
 #' extractRaster(r)
-extractRaster <- function(r, xy = NULL, ext = raster::extent(r), plot = TRUE){
+extractRaster <- function(r, xy = NULL, ext = NULL, plot = TRUE){
+  rr <- if (inherits(r, "SpatRaster")) r else terra::rast(r)
+  if (is.null(ext)) {
+    ext <- terra::ext(rr)
+  }
+  if (inherits(ext, "SpatExtent")) {
+    ext <- c(ext$xmin, ext$xmax, ext$ymin, ext$ymax)
+  }
   if(is.null(xy)){
-    ndim = dim(r)
+    ndim = dim(rr)
     x = 0:ndim[2] / ndim[2]
     y = rep(0.5, length(x))
     xy = cbind(x, y)
@@ -481,14 +457,15 @@ extractRaster <- function(r, xy = NULL, ext = raster::extent(r), plot = TRUE){
   x = ext[1] + xy[, 1] * (ext[2] - ext[1] )
   y = ext[3] + xy[, 2] * (ext[4] - ext[3] )
   if(plot){
-    raster::plot(r);
+    terra::plot(rr)
     points(x, y, col = 2)
     nx = length(x)
     points(x, y)
     graphics::arrows(x[1], y[1], x[nx], y[nx], lty = 3, lwd = 1.5, col = 2)
     # lines(x,y, lwd=1.5, col=2, lty=2)
   }
-  v = raster::extract(r, cbind(x, y))
+  ev = terra::extract(rr, cbind(x, y))
+  v = if ("ID" %in% names(ev)) ev[[2]] else ev[[1]]
   ret = cbind('x' = x, 'y' = y, 'z' = v)
   return(ret)
 }
@@ -498,29 +475,14 @@ extractRaster <- function(r, xy = NULL, ext = raster::extent(r), plot = TRUE){
 #' @return Simplified SpatialData
 #' @export
 SimpleSpatial <- function(x){
-  # n1 = length(x@polygons)
-  # nj = unlist(lapply(1:n1, function(i){ length(x@polygons[[i]]@Polygons) } ))
-  # x@polygons[[1]]@Polygons[[1]]@coords
   msg = 'SimpleSpatial'
-  ni = length(x@polygons)
-  k = 1
-  sl = list()
-  for(i in 1:ni){
-    nj = length(x@polygons[[1]]@Polygons)
-    for(j in 1:nj){
-      cd = x@polygons[[i]]@Polygons[[j]]@coords
-      np = nrow(cd)
-      message(msg, i, '-', j, '\t', np)
-      sl[[k]] = paste('POLYGON((', paste( paste(cd[, 1], cd[, 2]), collapse = ',' ), '))')
-      if(k == 1){
-        str = sl[[k]]
-      }else{
-        str = paste(str, ',', sl[[k]] )
-      }
-      k = k + 1
-    }
+  x_sf <- if (inherits(x, "sf")) x else sf::st_as_sf(x)
+  geoms <- suppressWarnings(sf::st_cast(sf::st_geometry(x_sf), "POLYGON"))
+  for (i in seq_along(geoms)) {
+    np <- nrow(sf::st_coordinates(geoms[[i]]))
+    message(msg, i, '\t', np)
   }
-  r = rgeos::readWKT(paste('GEOMETRYCOLLECTION(', str, ')'))
+  sf::st_combine(geoms)
 }
 
 #' Find the points in distance less than tol.
@@ -556,33 +518,22 @@ PointInDistance <- function(pt, tol){
 #' @param id Index of the sorted (decreasing) polygons to return. default = 0;
 #' @export
 SinglePolygon <- function(x, id = 0){
-  n1 = length(x)
-  y1 = list()
-  y2 = list()
-  k = 1
-  for(i in 1:n1){
-    message('level 1:', i, '/', n1)
-    x1 = x@polygons[[i]]
-    
-    n2 = length(x1@Polygons)
-    for(j in 1:n2){
-      message('level 2:', j, '/', n2)
-      x2 = x1@Polygons[[j]]
-      y1[[k]] = sp::Polygons(list(x2), ID = k)
-      k = k + 1
-    }
-  }
-  
-  y = sp::SpatialPolygonsDataFrame(sp::SpatialPolygons(y1), data = data.frame('ID' = 2:k - 1))
-  
+  input_is_sp <- inherits(x, c("Spatial", "SpatialPolygons", "SpatialPolygonsDataFrame"))
+  x_sf <- if (inherits(x, "sf")) x else sf::st_as_sf(x)
+  geoms <- suppressWarnings(sf::st_cast(sf::st_geometry(x_sf), "POLYGON"))
+  y_sf <- sf::st_sf(ID = seq_along(geoms), geometry = geoms)
+
   if(id < 1){
-    return(y)
-  }else{
-    ia = rgeos::gArea(y, byid = TRUE)
-    id = order(ia, decreasing = TRUE)[1]
-    return(y[id,])
-    
+    return(if (input_is_sp) methods::as(y_sf, "Spatial") else y_sf)
   }
+
+  ia <- as.numeric(sf::st_area(y_sf))
+  idx <- order(ia, decreasing = TRUE)[min(id, length(ia))]
+  ret <- y_sf[idx, ]
+  if (input_is_sp) {
+    return(methods::as(ret, "Spatial"))
+  }
+  ret
 }
 
 #' Remove the duplicated lines, which means the FROM and TO points are identical.
@@ -614,16 +565,14 @@ rmDuplicatedLines <- function(x, ...){
 #' @return ShapePolygon*
 #' @export
 #' @examples 
-#' library(rgeos)
 #' library(rSHUD)
 #' n = 10
 #' xx = rnorm(n)
 #' yy = rnorm(n)
-#' str = paste('MULTIPOINT(', paste(paste('(', xx, yy, ')'), collapse = ','), ')')
-#' x = readWKT(str)
+#' x = sf::st_as_sf(data.frame(x = xx, y = yy), coords = c("x", "y"))
 #' vx = voronoipolygons(x)
-#' raster::plot(vx, axes = TRUE)
-#' raster::plot(add = TRUE, x, col = 2)
+#' plot(vx, axes = TRUE)
+#' plot(x, add = TRUE, col = 2)
 #' #' ====END====
 #' 
 #' x = 1:5
@@ -635,40 +584,43 @@ rmDuplicatedLines <- function(x, ...){
 #' #' ====END====
 #' 
 #' library(sf)
-#' library(raster)
-#' library(rgeos)
 #' n = 10
 #' xx = rnorm(n)
 #' yy = rnorm(n)
-#' str = paste('MULTIPOINT(', paste(paste('(', xx, yy, ')'), collapse = ','), ')')
-#' x = readWKT(str)
-#' y = readWKT(paste('MULTIPOINT(', paste(paste('(', xx + 2, yy + 2, ')'), collapse = ','), ')'))
-#' e1 = extent(y)
-#' e2 = extent(x)
+#' x = sf::st_as_sf(data.frame(x = xx, y = yy), coords = c("x", "y"))
+#' y = sf::st_as_sf(data.frame(x = xx + 2, y = yy + 2), coords = c("x", "y"))
+#' e1 = sf::st_bbox(y)
+#' e2 = sf::st_bbox(x)
 #' rw = c(min(e1[1], e2[1]),
 #'        max(e1[2], e2[2]),
 #'        min(e1[3], e2[3]),
 #'        max(e1[4], e2[4]) ) + c(-1, 1, -1, 1)
 #' vx = voronoipolygons(x = x, rw = rw) 
 #' plot(vx); plot(add = TRUE, x, col = 2); plot(add = TRUE, y, col = 3)
-voronoipolygons = function(x, pts = x@coords, rw = NULL, crs = NULL) {
+voronoipolygons = function(x = NULL, pts = NULL, rw = NULL, crs = NULL) {
+  if (is.null(pts)) {
+    if (is.null(x)) {
+      stop("Either 'x' or 'pts' must be provided", call. = FALSE)
+    }
+    if (inherits(x, c("sf", "sfc"))) {
+      pts <- sf::st_coordinates(sf::st_geometry(x))[, 1:2, drop = FALSE]
+    } else {
+      pts <- get_coords(x)
+    }
+  }
   z = deldir::deldir(pts[, 1], pts[, 2], rw = rw)
   w = deldir::tile.list(z)
   polys = vector(mode = 'list', length = length(w))
   for (i in seq(along = polys)) {
     pcrds = cbind(w[[i]]$x, w[[i]]$y)
     pcrds = rbind(pcrds, pcrds[1,])
-    polys[[i]] = sp::Polygons(list(sp::Polygon(pcrds)), ID = as.character(i))
+    polys[[i]] = sf::st_polygon(list(pcrds))
   }
-  SP = sp::SpatialPolygons(polys)
-  voronoi = sp::SpatialPolygonsDataFrame(SP,
-                                         data = data.frame(x = pts[, 1],
-                                                           y = pts[, 2], row.names = sapply(methods::slot(SP, 'polygons'),
-                                                                                            function(x) methods::slot(x, 'ID'))))
-  if(!is.null(crs)){
-    raster::crs(voronoi) = crs;
-  }
-  return(voronoi)
+  voronoi = sf::st_sf(
+    data.frame(x = pts[, 1], y = pts[, 2]),
+    geometry = sf::st_sfc(polys, crs = sf::st_crs(crs))
+  )
+  return(methods::as(voronoi, "Spatial"))
 }
 
 
@@ -843,18 +795,17 @@ grid.subset <- function(ext, res,
 #' @return Spatial*DataFrame objects when \code{output = "sp"}, or an \code{sf} object when \code{output = "sf"}
 #' @export
 #' @examples 
-#' library(raster)
 #' library(sf)
 #' xy = list(cbind(c(0, 2, 1), c(0, 0, 2)),  cbind(c(0, 2, 1), c(0, 0, 2)) + 2)
 #' 
 #' # Legacy output (default): sp
 #' sp1 = xy2shp(xy = xy, shape = 'polygon')
-#' raster::plot(sp1, axes = TRUE, col = 'gray')
+#' plot(sp1, axes = TRUE, col = 'gray')
 #' 
 #' sp2 = xy2shp(xy = xy, shape = 'lines')
-#' raster::plot(sp2, add = TRUE, lty = 2, lwd = 3, col = 'red')
+#' plot(sp2, add = TRUE, lty = 2, lwd = 3, col = 'red')
 #' sp3 = xy2shp(xy = xy, shape = 'POINTS')
-#' raster::plot(sp3, add = TRUE, pch = 1, cex = 2)
+#' plot(sp3, add = TRUE, pch = 1, cex = 2)
 #' 
 #' # Modern output: sf
 #' sf1 = xy2shp(xy = xy[[1]], shape = 'polygon', output = 'sf')
@@ -906,10 +857,5 @@ xy2shp <- function(xy, df = NULL, crs = NULL, shape = 'points', output = c("sp",
     return(sf_obj)
   }
 
-  spd = methods::as(sf_obj, "Spatial")
-  if(!is.null(crs)){
-    raster::crs(spd) = crs
-  }
-  return(spd)
+  methods::as(sf_obj, "Spatial")
 }
-

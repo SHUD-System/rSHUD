@@ -8,59 +8,18 @@
 #' @return SHUD.RIVER
 #' @export
 shud.river <- function(sl, dem, rivord = NULL, rivdown = NULL, AREA = NULL){
-  msg = 'shud.river::'
-  # sp.slt = sp.Polylines2Lines(sp)
-  sp.slt = sl
-  nsp = length(sp.slt)
-  xy = data.frame(get_coords(sp.slt))
-  # z = raster::extract(dem, xy)
-  # pt = cbind(1:nrow(xy), xy, z)
-  # colnames(pt) = c('Index', 'X', 'Y', 'Zmax')
-  if(is.null(rivord)){
-    message(msg, '\nCalculate river order ...')
-    rivord = sp.RiverOrder(sp.slt)
-  }
-  if(is.null(rivdown)){
-    message(msg, '\nIdentify the downstream ...')
-    rivdown = sp.RiverDown(sp.slt)
-  }
-  message(msg, '\nFrom/To nodes ...') 
-  ft = rbind(get_from_to_nodes(sp.slt)[, 2:3])
-  message(msg, '\nSlope and length of river ...')
-  zf = raster::extract(dem, xy[ft[, 1], ])
-  zt = raster::extract(dem, xy[ft[, 2], ])
-  len = rgeos::gLength(sp.slt, byid = TRUE)
-  slp = (zf - zt) / len;
-  row.names(sp.slt) = paste(1:nsp)
-  
-  df = data.frame('Index' = 1:nsp,
-                  'Down' = rivdown,
-                  'Type' = rivord,
-                  'Slope' = slp,
-                  'Length' = len,
-                  'BC' = len * 0)
-  rownames(df) = row.names(sp.slt)
-  
-  p.df = data.frame(xy[ft[, 1], ], zf, xy[ft[, 2], ], zt)
-  colnames(p.df) = c('From.x', 'From.y', 'From.z', 'To.x', 'To.y', 'To.z')
-  rownames(p.df) = row.names(sp.slt)
-  
-  sp.df = sp::SpatialLinesDataFrame(sp.slt, data = df)
-  ntype = max(rivord)
-  if(is.null(AREA)){
-    rtype = RiverType(ntype)
-  }else{
-    fx = function(a, n = 10){
-      dd = (1 / (1:n)) ^ 0.8
-      rev(8 * log10(a + 1) * a ^ 0.25 * dd)
-    }
-    wd = round(fx(AREA, ntype), 2)
-    rtype = RiverType(ntype, width = wd)
-  }
-  p.z = raster::extract(dem, xy)
-  SHUD.RIVER(river = df,
-             rivertype = data.frame(rtype), 
-             point = p.df)
+  rivers_sf <- if (inherits(sl, "sf")) sl else sf::st_as_sf(sl)
+  dem_rast <- if (inherits(dem, "SpatRaster")) dem else terra::rast(dem)
+
+  network <- build_river_network(
+    rivers = rivers_sf,
+    dem = dem_rast,
+    area = AREA,
+    river_order = rivord,
+    downstream = rivdown
+  )
+
+  as_shud_river(network)
 }
 
 #' Calculate the river length

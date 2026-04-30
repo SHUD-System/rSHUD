@@ -15,7 +15,7 @@ Returns a vector of commonly used SHUD output variables.
 \seealso{
 Other output-io: 
 \code{\link{load_output_data}()},
-\code{\link{read_output_header}()},
-\code{\link{read_output}()}
+\code{\link{read_output}()},
+\code{\link{read_output_header}()}
 }
 \concept{output-io}

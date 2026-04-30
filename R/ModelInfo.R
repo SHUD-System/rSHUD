@@ -8,7 +8,7 @@
 #' @export
 ModelInfo <- function(path = shud.filein()['outpath'],
                       spr = readriv.sp(),
-                      crs.pcs = raster::crs(spr)){
+                      crs.pcs = sf::st_crs(sf::st_as_sf(spr))){
   # path=pp$outpath
   outdir = file.path(path, 'ModelInfo')
   figdir = file.path(outdir, 'Figure')
@@ -20,7 +20,7 @@ ModelInfo <- function(path = shud.filein()['outpath'],
   ia = getArea(pm = pm); 
   
   #======Basic Info ============
-  iRivLen = rgeos::gLength(spr, byid = TRUE)
+  iRivLen = as.numeric(sf::st_length(sf::st_as_sf(spr)))
   iSegLen = pseg$Length
   RL = sum(iRivLen)
   RivEle = sort(unique(pseg$iEle))

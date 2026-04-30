@@ -178,7 +178,7 @@ sp2PSLG<-function(sp){
     } else {
       spl <- methods::as(sl[i,], "SpatialLines")
       spp <- methods::as(spl, "SpatialPoints")
-      cc <- sp::coordinates(spp)
+      cc <- sf::st_coordinates(sf::st_as_sf(spp))[, 1:2, drop = FALSE]
     }
     e = xy2ID(cc,P)
     tb = maketb(x = e, pts = P)
@@ -286,4 +286,3 @@ rowMatch <-function(x, m){
   out = apply(y, 1, FUN = function(x){all(x == 0)})
   return(out)
 }
-

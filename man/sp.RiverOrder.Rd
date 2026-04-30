@@ -26,6 +26,6 @@ riv=sac$riv
 ord = sp.RiverOrder(riv)
 print(ord)
 idx = sort(unique(ord))
-raster::plot(riv, col=ord)
+plot(riv, col=ord)
 legend('topleft', legend=idx, col=idx, lwd=1, lty=1)
 }

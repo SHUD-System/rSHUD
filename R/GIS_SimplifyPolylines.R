@@ -13,11 +13,11 @@
 #' @source  https://stackoverflow.com/questions/38700246/how-do-i-split-divide-polyline-shapefiles-into-equally-length-smaller-segments
 #' @export
 SimplifybyLen <- function(sp, split_length = 20, plot.results = FALSE) {
-  sp = methods::as(sp, 'SpatialLines')
+  sp_sf = if (inherits(sp, "sf")) sp else sf::st_as_sf(sp)
+  sp_legacy = methods::as(sp_sf, 'SpatialLines')
   #### Define support functions ####
   # SpatialLines2df extracts start and end point coordinates of each segment of a SpatialLine object
   # sp: an object class SpatialLinesDataFrame of the package sp
-  requireNamespace('sp')
   SpatialLines2df = function(sp) {
     df = data.frame(
       id = character(),
@@ -63,22 +63,23 @@ SimplifybyLen <- function(sp, split_length = 20, plot.results = FALSE) {
   #         tx = coordinates y of the second point of the line
   
 
-  linedf2SpatialLines = function(linedf) {
-    sl = list()
+  linedf2sf = function(linedf, crs) {
+    geoms = vector("list", nrow(linedf))
     for (i in 1:nrow(linedf)) {
       c1 = cbind(rbind(linedf$fx[i], linedf$tx[i]),
                  rbind(linedf$fy[i], linedf$ty[i]))
-      l1 = sp::Line(c1)
-      sl[[i]] = sp::Lines(list(l1), ID = linedf$id[i])
+      geoms[[i]] = sf::st_linestring(c1)
     }
-    SL = sp::SpatialLines(sl)
-    return(SL)
+    sf::st_sf(
+      id = linedf$id,
+      geometry = sf::st_sfc(geoms, crs = crs)
+    )
   }
   
   
   #### Split the lines ####
   # Convert the input SpatialLine object into a dataframe and create an empty output dataframe
-  linedf = SpatialLines2df(sp)
+  linedf = SpatialLines2df(sp_legacy)
   df = data.frame(
     id = character(),
     fx = numeric(),
@@ -138,11 +139,12 @@ SimplifybyLen <- function(sp, split_length = 20, plot.results = FALSE) {
   
   #### Visualise the results to check ####
   if (plot.results) {
-    raster::plot(sp)
+    plot(sf::st_geometry(sp_sf))
     coords = cbind(as.numeric(df$fx), as.numeric(df$fy))
     coords = rbind(coords, as.numeric(df$tx[nrow(df)]), as.numeric(df$ty)[nrow(df)])
-    sp_points = sp::SpatialPoints(coords)
-    plot(sp_points, col = 'red', add = T)
+    pt_sf = sf::st_as_sf(data.frame(x = coords[, 1], y = coords[, 2]), coords = c("x", "y"),
+                         crs = sf::st_crs(sp_sf))
+    plot(sf::st_geometry(pt_sf), col = 'red', add = TRUE)
   }
   
   #### Output ####
@@ -150,11 +152,10 @@ SimplifybyLen <- function(sp, split_length = 20, plot.results = FALSE) {
   df$fy = as.numeric(df$fy)
   df$tx = as.numeric(df$tx)
   df$ty = as.numeric(df$ty)
-  sl = linedf2SpatialLines(df)
+  sl = linedf2sf(df, sf::st_crs(sp_sf))
   
-  att=data.frame('Index'=1:nrow(df), df[,-1], 'Length' = sp::SpatialLinesLengths(sl))
+  att=data.frame('Index'=1:nrow(df), df[,-1], 'Length' = as.numeric(sf::st_length(sl)))
   rownames(att) = df[,1]
-  sld=sp::SpatialLinesDataFrame(sl, data = att)
-  return(sld) # Return a SpatialLine object
+  sld=sf::st_sf(att, geometry = sf::st_geometry(sl))
+  return(methods::as(sld, "Spatial")) # Return a SpatialLine object
 }
-

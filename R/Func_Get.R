@@ -95,7 +95,7 @@ getVertex <- function(pm = readmesh()){
 #' @return a list, c(points, FT_ID)
 #' @export
 getRiverNodes <- function(spr = readriv.sp()){
-  crs.pcs = raster::crs(spr)
+  crs.pcs = sf::st_crs(sf::st_as_sf(spr))
   pts = get_coords(spr)
   ft0 = get_from_to_nodes(spr, coords = pts)
   ft.pts = pts[sort(unique(as.numeric(ft0))), ]; 

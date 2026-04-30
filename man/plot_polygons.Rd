@@ -34,7 +34,7 @@ raster/sp. Key differences:
 \itemize{
 \item Parameter 'zcol' renamed to 'field' for consistency
 \item Accepts sf or SpatVector instead of Spatial* objects
-\item Uses terra::plot() or sf::plot() instead of raster::plot()
+\item Uses terra::plot() or sf::plot() instead of legacy raster plotting
 }
 }
 
