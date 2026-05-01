@@ -6,6 +6,12 @@
 \usage{
 extractCoords(...)
 }
+\arguments{
+\item{...}{Arguments passed to \code{\link{get_coords}}.}
+}
+\value{
+The result from \code{\link{get_coords}}.
+}
 \description{
 Legacy compatibility wrapper for \code{\link{get_coords}}.
 }

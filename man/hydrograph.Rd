@@ -6,6 +6,12 @@
 \usage{
 hydrograph(...)
 }
+\arguments{
+\item{...}{Arguments passed to \code{\link{plot_hydrograph}}.}
+}
+\value{
+A plot object from \code{\link{plot_hydrograph}}.
+}
 \description{
 Legacy compatibility wrapper for \code{\link{plot_hydrograph}}.
 }

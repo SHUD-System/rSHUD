@@ -6,6 +6,14 @@
 \usage{
 write.config(x, file)
 }
+\arguments{
+\item{x}{SHUD model configuration parameters or calibration data.}
+
+\item{file}{Character. Output configuration file path.}
+}
+\value{
+Invisibly returns the output file path.
+}
 \description{
 Legacy compatibility wrapper for \code{\link{write_config}}.
 }

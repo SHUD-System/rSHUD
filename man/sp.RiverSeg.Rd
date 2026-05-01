@@ -6,6 +6,12 @@
 \usage{
 sp.RiverSeg(...)
 }
+\arguments{
+\item{...}{Arguments passed to \code{\link{shud.rivseg}}.}
+}
+\value{
+The result from \code{\link{shud.rivseg}}.
+}
 \description{
 Legacy compatibility wrapper for \code{\link{shud.rivseg}}.
 }

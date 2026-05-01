@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Hydrological Analysis with rSHUD}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::rmarkdown_notangle}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -13,7 +13,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = FALSE
+  eval = FALSE,
+  purl = FALSE
 )
 ```
 
@@ -53,7 +54,7 @@ SHUD model outputs are stored in binary or ASCII format:
 # Read surface water output
 surf <- read_output(
   path = "model_output",
-  variable = "surf"
+  keyword = "surf"
 )
 
 # Check dimensions
@@ -70,9 +71,11 @@ summary(surf[1, ])  # First time step
 
 ```{r}
 # Read all major variables
-output <- read_output(
-  path = "model_output",
-  variables = c("surf", "unsat", "gw", "river")
+variables <- c("surf", "unsat", "gw", "river")
+output <- lapply(
+  setNames(variables, variables),
+  read_output,
+  path = "model_output"
 )
 
 # Access individual variables
@@ -88,16 +91,15 @@ river <- output$river
 # Read specific time period
 output_subset <- read_output(
   path = "model_output",
-  variable = "surf",
-  time_range = c("2010-01-01", "2010-12-31")
+  keyword = "surf"
 )
 
-# Read with time step filtering
+# Convert to daily values after reading
 output_daily <- read_output(
   path = "model_output",
-  variable = "surf",
-  time_step = "daily"  # Aggregate to daily
+  keyword = "surf"
 )
+output_daily <- ts_to_daily(output_daily)
 ```
 
 ## Water Balance Analysis
@@ -506,10 +508,10 @@ title("High Variability Cells (top 10%)")
 
 ```{r}
 # Read ET components
-et_total <- read_output("model_output", variable = "et")
-et_canopy <- read_output("model_output", variable = "et_canopy")
-et_transpiration <- read_output("model_output", variable = "et_transp")
-et_soil <- read_output("model_output", variable = "et_soil")
+et_total <- read_output(keyword = "et", path = "model_output")
+et_canopy <- read_output(keyword = "et_canopy", path = "model_output")
+et_transpiration <- read_output(keyword = "et_transp", path = "model_output")
+et_soil <- read_output(keyword = "et_soil", path = "model_output")
 
 # Calculate watershed-average ET
 et_mean <- apply(et_total, 1, mean)
@@ -651,10 +653,11 @@ analyze_shud_output <- function(
   
   # Read model output
   cat("Reading model output...\n")
-  output <- read_output(
-    path = output_dir,
-    variables = c("surf", "unsat", "gw", "river"),
-    time_range = c(start_date, end_date)
+  variables <- c("surf", "unsat", "gw", "river")
+  output <- lapply(
+    setNames(variables, variables),
+    read_output,
+    path = output_dir
   )
   
   # Calculate water balance

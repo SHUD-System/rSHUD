@@ -6,6 +6,12 @@
 \usage{
 map2d(...)
 }
+\arguments{
+\item{...}{Ignored legacy arguments.}
+}
+\value{
+\code{NULL}.
+}
 \description{
 This legacy export is retained for transition compatibility only.
 }

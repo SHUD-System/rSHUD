@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Getting Started with rSHUD}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::rmarkdown_notangle}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -13,7 +13,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = FALSE
+  eval = FALSE,
+  purl = FALSE
 )
 ```
 
@@ -247,15 +248,16 @@ After running the SHUD model, read the output files:
 ```{r}
 # Read time series output
 surf_flow <- read_output(
-  path = "model_output",
-  variable = "surf",
-  time_range = c("2000-01-01", "2000-12-31")
+  keyword = "surf",
+  path = "model_output"
 )
 
 # Read all variables
-all_output <- read_output(
-  path = "model_output",
-  variables = c("surf", "unsat", "gw", "river")
+variables <- c("surf", "unsat", "gw", "river")
+all_output <- lapply(
+  setNames(variables, variables),
+  read_output,
+  path = "model_output"
 )
 ```
 
@@ -514,7 +516,7 @@ plot(st_geometry(mesh_sf), main = "Model Domain")
 # system("shud model_2010/watershed_2010")
 
 # Read and analyze results
-surf <- read_output("model_2010", variable = "surf")
+surf <- read_output(keyword = "surf", path = "model_2010")
 plot(
   zoo::as.zoo(surf[, 1]),
   main = "Surface Flow - Cell 1",
@@ -524,9 +526,9 @@ plot(
 
 # Calculate water balance
 wb <- wb.ele(
-  surf = read_output("model_2010", variable = "surf"),
-  unsat = read_output("model_2010", variable = "unsat"),
-  gw = read_output("model_2010", variable = "gw")
+  surf = read_output(keyword = "surf", path = "model_2010"),
+  unsat = read_output(keyword = "unsat", path = "model_2010"),
+  gw = read_output(keyword = "gw", path = "model_2010")
 )
 
 plot(wb$total, main = "Total Water Storage")

@@ -25,24 +25,26 @@ Generate Thiesson Polygons from a point data
 }
 \examples{
 library(rSHUD)
+set.seed(1)
 n = 10
 xx = rnorm(n)
 yy = rnorm(n)
 x = sf::st_as_sf(data.frame(x = xx, y = yy), coords = c("x", "y"))
 vx = voronoipolygons(x)
-plot(vx, axes = TRUE)
-plot(x, add = TRUE, col = 2)
+plot(sf::st_geometry(sf::st_as_sf(vx)), axes = TRUE)
+plot(sf::st_geometry(x), add = TRUE, col = 2)
 #' ====END====
 
 x = 1:5
 y = 1:5
 xy = expand.grid(x, y)
 vx = voronoipolygons(pts = xy)
-plot(vx, axes = TRUE)
+plot(sf::st_geometry(sf::st_as_sf(vx)), axes = TRUE)
 points(xy)
 #' ====END====
 
 library(sf)
+set.seed(2)
 n = 10
 xx = rnorm(n)
 yy = rnorm(n)
@@ -50,10 +52,12 @@ x = sf::st_as_sf(data.frame(x = xx, y = yy), coords = c("x", "y"))
 y = sf::st_as_sf(data.frame(x = xx + 2, y = yy + 2), coords = c("x", "y"))
 e1 = sf::st_bbox(y)
 e2 = sf::st_bbox(x)
-rw = c(min(e1[1], e2[1]),
-       max(e1[2], e2[2]),
-       min(e1[3], e2[3]),
-       max(e1[4], e2[4]) ) + c(-1, 1, -1, 1)
+rw = c(xmin = min(e1["xmin"], e2["xmin"]),
+       xmax = max(e1["xmax"], e2["xmax"]),
+       ymin = min(e1["ymin"], e2["ymin"]),
+       ymax = max(e1["ymax"], e2["ymax"])) + c(xmin = -1, xmax = 1, ymin = -1, ymax = 1)
 vx = voronoipolygons(x = x, rw = rw) 
-plot(vx); plot(add = TRUE, x, col = 2); plot(add = TRUE, y, col = 3)
+plot(sf::st_geometry(sf::st_as_sf(vx)))
+plot(sf::st_geometry(x), add = TRUE, col = 2)
+plot(sf::st_geometry(y), add = TRUE, col = 3)
 }

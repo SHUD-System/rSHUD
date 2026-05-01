@@ -6,6 +6,18 @@
 \usage{
 write.forc(x, file, path = "", startdate = "20000101")
 }
+\arguments{
+\item{x}{Data frame of forcing-site information.}
+
+\item{file}{Character. Output .forc file path.}
+
+\item{path}{Character. Common path of the forcing files.}
+
+\item{startdate}{Character. Start date in YYYYMMDD format.}
+}
+\value{
+Invisibly returns the output file path.
+}
 \description{
 Legacy compatibility wrapper for \code{\link{write_forc}}.
 }

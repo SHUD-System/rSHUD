@@ -6,6 +6,14 @@
 \usage{
 write.mesh(pm, file)
 }
+\arguments{
+\item{pm}{SHUD.MESH object containing mesh and point data.}
+
+\item{file}{Character. Output .mesh file path.}
+}
+\value{
+Invisibly returns the output file path.
+}
 \description{
 Legacy compatibility wrapper for \code{\link{write_mesh}}.
 }

@@ -6,6 +6,14 @@
 \usage{
 plot_tsd(x, ...)
 }
+\arguments{
+\item{x}{Time-series object to plot.}
+
+\item{...}{Additional arguments passed to \code{\link{plot_timeseries}}.}
+}
+\value{
+A plot object from \code{\link{plot_timeseries}}.
+}
 \description{
-Uses \code{plot_timeseries()} when available, otherwise falls back to base plotting.
+Legacy compatibility wrapper for \code{\link{plot_timeseries}}.
 }

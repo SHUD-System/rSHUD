@@ -199,3 +199,23 @@ plot_hydrograph <- function(x,
 
   return(p)
 }
+
+#' Plot time-series hydrograph
+#'
+#' Compatibility alias for \code{\link{plot_hydrograph}} retained for code that
+#' used the transitional \code{plot_timeseries()} name.
+#'
+#' @param x xts or zoo time-series matrix.
+#' @param ... Additional arguments passed to \code{\link{plot_hydrograph}}.
+#' @return A combined plot object from \code{\link{plot_hydrograph}}.
+#' @export
+#' @examples
+#' \dontrun{
+#' library(xts)
+#' dates <- as.POSIXct(as.Date("2020-01-01") + 1:10)
+#' x <- xts(cbind(precip = 1:10, discharge = 11:20), order.by = dates)
+#' plot_timeseries(x)
+#' }
+plot_timeseries <- function(x, ...) {
+  plot_hydrograph(x, ...)
+}

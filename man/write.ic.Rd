@@ -6,6 +6,14 @@
 \usage{
 write.ic(x, file)
 }
+\arguments{
+\item{x}{List containing initial condition data.}
+
+\item{file}{Character. Output .ic file path.}
+}
+\value{
+Invisibly returns the output file path.
+}
 \description{
 Legacy compatibility wrapper for \code{\link{write_ic}}.
 }

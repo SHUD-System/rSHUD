@@ -6,6 +6,14 @@
 \usage{
 write.riv(riv, file)
 }
+\arguments{
+\item{riv}{SHUD.RIVER object or compatible river data.}
+
+\item{file}{Character. Output .riv file path.}
+}
+\value{
+Invisibly returns the output file path.
+}
 \description{
 Legacy compatibility wrapper for \code{\link{write_river}}.
 }

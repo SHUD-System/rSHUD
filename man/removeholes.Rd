@@ -6,6 +6,15 @@
 \usage{
 removeholes(sp, ...)
 }
+\arguments{
+\item{sp}{Spatial, sf, or SpatVector polygon object.}
+
+\item{...}{Additional arguments passed to \code{\link[terra]{fillHoles}}.}
+}
+\value{
+Object of the same general spatial class as \code{sp}, or
+\code{NULL} for unsupported inputs.
+}
 \description{
 Uses modern terra/sf polygon handling to fill interior holes.
 }

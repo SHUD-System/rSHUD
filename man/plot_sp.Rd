@@ -6,6 +6,20 @@
 \usage{
 plot_sp(x, field = NULL, zcol = field, ...)
 }
+\arguments{
+\item{x}{Object to plot. Supported modern inputs include \code{sf},
+\code{sfc}, and \code{terra::SpatVector}; other inputs are forwarded to
+\code{\link[graphics]{plot}}.}
+
+\item{field}{Character. Attribute field to use for coloring.}
+
+\item{zcol}{Character. Legacy alias for \code{field}.}
+
+\item{...}{Additional arguments passed to the selected plotting function.}
+}
+\value{
+Invisibly returns \code{x}.
+}
 \description{
 Uses modern plotting methods when possible.
 }
