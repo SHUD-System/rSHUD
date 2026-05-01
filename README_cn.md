@@ -156,16 +156,21 @@ rSHUD/
 - `write_mesh()`, `write_river()` - 写入网格和河流数据
 
 ### GIS功能
-- `watershedDelineation()` - 流域划分
 - `vector_to_raster()` - 空间数据转栅格
 - `mesh_to_raster()` - 网格数据转 terra 栅格
 - `mesh_to_sf()` - 网格数据转 sf 面对象
-- `writeshape()` - 输出Shapefile
+- `writeshape()` - 将 sf 数据写出为 Shapefile
+- `watershedDelineation()` - 保留 legacy 命名的流域划分辅助函数，输出兼容旧工作流
 
 ### 水文计算
-- `PET_PM()` - 彭曼-蒙蒂斯蒸散发计算
-- `MeltFactor()` - 融雪因子
+- `PET_PM()` - 保留 legacy 命名的彭曼-蒙蒂斯蒸散发辅助函数
+- `MeltFactor()` - 保留 legacy 命名的融雪因子时间序列辅助函数
+- `calc_river_order()` - 河流级别计算
 - `plot_hydrograph()` - 水文图分析
+
+### 低层兼容与高级 API
+- `shud.triangle()`, `shud.mesh()`, `shud.att()` - `auto_build_model()` 使用的高级网格与属性构建器；一般用户优先使用自动构建流程
+- `shud.rivseg()`, `shud.ic()` - 保留 legacy 命名的低层 SHUD 表生成器
 
 ---
 

@@ -8,7 +8,7 @@
 ts2map <- function(x, fun = mean, raster = TRUE, ...){
   y = apply(x, 2, fun, ...)
   if(raster){
-    r = .mesh_data_to_raster_legacy(y)
+    r = mesh_to_raster(data = y)
     terra::plot(r)
   }else{
     dbf = cbind(y); colnames(dbf) = 'tsvalue'
@@ -77,7 +77,7 @@ plot_animate <- function(x, id = NULL, nmap = 10, rlist = NULL){
     }
     y = x[id, ]
     tx = paste(time(y))
-    rlist = terra::rast(lapply(seq_len(nrow(y)), function(i) .mesh_data_to_raster_legacy(y[i, ])))
+    rlist = mesh_to_raster(data = as.matrix(y), stack = TRUE)
     names(rlist) = tx
   }else{
     rlist = if (inherits(rlist, "SpatRaster")) rlist else terra::rast(rlist)

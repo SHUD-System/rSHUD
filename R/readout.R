@@ -202,9 +202,7 @@ BasicPlot <- function(
         fn= paste0('Map.', prjname,'_', vn, '.png')
         y = colMeans(x)
         png(file.path(path, fn), width=11, height=9, res=100, units = 'in')
-        # Use the internal compatibility helper to preserve legacy map output
-        # without recommending the deprecated public wrapper.
-        r = .mesh_data_to_raster_legacy(y, stack=FALSE)
+        r = mesh_to_raster(data = y, stack=FALSE)
         if(!is.null(w.focal)){
           r = terra::focal(r, w=w.focal)
         }

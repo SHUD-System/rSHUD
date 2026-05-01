@@ -2,7 +2,7 @@
 % Please edit documentation in R/MeshDomain.R
 \name{shud.mesh}
 \alias{shud.mesh}
-\title{Generate SHUD mesh domain from triangulation}
+\title{Low-level compatibility SHUD mesh domain builder}
 \usage{
 shud.mesh(tri, dem, AqDepth = 10, r.aq = dem * 0 + AqDepth)
 }
@@ -21,13 +21,17 @@ SHUD.MESH S4 object with mesh and point data
 }
 \description{
 Creates a SHUD.MESH S4 object from a triangulation, extracting elevation
-and aquifer depth from \code{terra::SpatRaster} data.
+and aquifer depth from \code{terra::SpatRaster} data. This is a low-level
+compatibility/advanced API used by the automated model builder; most users
+should call \code{\link{auto_build_model}}.
 }
 \details{
 This function has been modernized to use terra for raster operations,
-providing better performance. Deprecated low-level callers may still pass
-legacy objects, which are converted for compatibility; new code should pass
-\code{terra::SpatRaster} directly.
+providing better performance. It is retained for advanced manual workflows
+and compatibility with older scripts. Deprecated low-level callers may still
+pass legacy objects, which are converted for compatibility; new code should
+pass \code{terra::SpatRaster} directly or use
+\code{\link{auto_build_model}} for the full workflow.
 }
 \examples{
 \dontrun{

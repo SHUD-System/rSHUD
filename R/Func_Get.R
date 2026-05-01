@@ -91,13 +91,12 @@ getVertex <- function(pm = read_mesh()){
 
 #' Get the From/To nodes of the river.
 #' \code{getRiverNodes} 
-#' @param spr \code{sf} LINESTRING object for river streams; legacy spatial
-#'   input is accepted for compatibility.
+#' @param spr River line geometry. Defaults to the compatibility
+#'   \code{\link{read_river_sp}()} reader; \code{sf} LINESTRING input is also
+#'   accepted.
 #' @return a list, c(points, FT_ID)
 #' @export
-getRiverNodes <- function(
-    spr = sf::st_read(file.path(shud.filein()["inpath"], "gis", "river.shp"),
-                      quiet = TRUE)){
+getRiverNodes <- function(spr = read_river_sp()){
   crs.pcs = sf::st_crs(sf::st_as_sf(spr))
   pts = get_coords(spr)
   ft0 = get_from_to_nodes(spr, coords = pts)

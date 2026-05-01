@@ -5,13 +5,12 @@
 \title{Get the From/To nodes of the river.
 \code{getRiverNodes}}
 \usage{
-getRiverNodes(
-  spr = sf::st_read(file.path(shud.filein()["inpath"], "gis", "river.shp"), quiet = TRUE)
-)
+getRiverNodes(spr = read_river_sp())
 }
 \arguments{
-\item{spr}{\code{sf} LINESTRING object for river streams; legacy spatial
-input is accepted for compatibility.}
+\item{spr}{River line geometry. Defaults to the compatibility
+\code{\link{read_river_sp}()} reader; \code{sf} LINESTRING input is also
+accepted.}
 }
 \value{
 a list, c(points, FT_ID)

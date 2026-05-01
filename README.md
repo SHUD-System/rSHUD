@@ -24,7 +24,7 @@ SHUD is a multi-process, multi-scale hydrological model that fully couples major
 **rSHUD 2.3.0** follows the modern rSHUD v3 spatial API using **terra** and **sf** packages by default:
 - 🚀 **150-400% performance improvement** on spatial operations
 - 🎯 **Modern API**: Uses terra/sf directly; modern functions reject legacy raster/sp inputs
-- ✅ **Consistent naming**: All functions follow snake_case convention
+- ✅ **Consistent naming**: Modern APIs use snake_case; remaining legacy-named exports are marked as compatibility or low-level helpers
 - 📚 **Complete documentation**: Migration guide and comprehensive examples
 - 🧪 **Robust testing**: 70%+ test coverage with parameter validation
 
@@ -172,10 +172,11 @@ rSHUD/
 - `read_att()`, `read_para()`, `read_calib()` - Read model configuration
 
 ### GIS Functions (terra/sf)
-- `watershed_delineation()` - Watershed delineation
 - `vector_to_raster()` - Convert vector to raster (terra)
 - `mesh_to_raster()` - Convert mesh data to raster
-- `mesh_to_shapefile()` - Export mesh as shapefile
+- `mesh_to_sf()` - Convert mesh data to sf polygons
+- `writeshape()` - Write sf data to Shapefile
+- `watershedDelineation()` - Legacy-named watershed delineation helper; output paths are compatible with older workflows
 
 ### Visualization
 - `plot_hydrograph()` - Hydrograph analysis
@@ -183,10 +184,14 @@ rSHUD/
 - `compare_maps()` - Side-by-side map comparison
 
 ### Hydrological Calculations
-- `calc_pet_pm()` - Penman-Monteith evapotranspiration
-- `calc_melt_factor()` - Melt factor calculation
+- `PET_PM()` - Legacy-named Penman-Monteith evapotranspiration helper
+- `MeltFactor()` - Legacy-named melt factor time-series helper
 - `calc_river_order()` - River order calculation
 - `ts_to_daily()` - Time series aggregation
+
+### Low-Level Compatibility and Advanced APIs
+- `shud.triangle()`, `shud.mesh()`, `shud.att()` - Advanced mesh and attribute builders used by `auto_build_model()`; prefer the automated workflow unless you need manual control
+- `shud.rivseg()`, `shud.ic()` - Low-level SHUD table builders with legacy naming
 
 ### Deprecated Functions (migration compatibility only)
 - `autoBuildModel()` → use `auto_build_model()`
@@ -291,4 +296,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 *If this project helps you, please give us a ⭐️ star!*
-

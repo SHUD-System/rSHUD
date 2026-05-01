@@ -130,11 +130,13 @@ sf_to_pslg <- function(sp_obj) {
 }
 
 
-#' Generate triangular mesh domain
+#' Low-level compatibility triangular mesh builder
 #'
 #' Creates an unstructured triangular mesh using constrained Delaunay
-#' triangulation. The modern rSHUD workflow supplies \code{sf} vector
-#' objects and, when elevation data is needed, \code{terra::SpatRaster}.
+#' triangulation. This is a low-level compatibility/advanced API used by the
+#' automated model builder; most users should call
+#' \code{\link{auto_build_model}} and pass \code{sf} vector objects and
+#' \code{terra::SpatRaster} rasters there.
 #'
 #' @param wb Watershed boundary as an \code{sf} object with POLYGON geometry.
 #' @param riv River network as an \code{sf} object with LINESTRING geometry
@@ -156,10 +158,11 @@ sf_to_pslg <- function(sp_obj) {
 #'
 #' @details
 #' This low-level mesh builder uses \code{sf} and \code{terra} internally for
-#' better performance and maintainability. Legacy \code{sp}/\code{raster}
-#' inputs are accepted only for compatibility with older low-level scripts;
-#' new workflows should call \code{\link{auto_build_model}} or pass
-#' \code{sf}/\code{terra} objects directly.
+#' better performance and maintainability. It is retained for advanced manual
+#' workflows and compatibility with older scripts. Legacy \code{sp}/
+#' \code{raster} inputs are accepted only for compatibility; new workflows
+#' should call \code{\link{auto_build_model}} or pass \code{sf}/\code{terra}
+#' objects directly.
 #'
 #' The function uses RTriangle for constrained Delaunay triangulation with
 #' quality constraints. The minimum angle parameter (q) controls triangle

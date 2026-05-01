@@ -21,8 +21,10 @@ knitr::opts_chunk$set(
 ## Introduction
 
 This vignette provides detailed guidance on building SHUD hydrological models
-using rSHUD. It covers the complete workflow from data preparation through
-mesh generation, attribute calculation, and input file creation.
+using rSHUD. For most projects, start with the modern `auto_build_model()`
+workflow and pass `terra::SpatRaster` and `sf` objects. Later sections show
+low-level table builders for advanced users who need manual control over mesh
+generation, attribute extraction, river-mesh integration, or SHUD input tables.
 
 ## Prerequisites
 
@@ -34,7 +36,22 @@ library(sf)
 
 ## Model Building Overview
 
-The SHUD model building process consists of several key steps:
+The recommended modern workflow is `auto_build_model()`:
+
+```{r}
+model <- auto_build_model(
+  project_name = "watershed",
+  domain = domain,
+  rivers = rivers,
+  dem = dem,
+  soil = soil,
+  geology = geology,
+  landcover = landcover,
+  output_dir = "model_output"
+)
+```
+
+The full SHUD model building process consists of several key steps:
 
 1. **Data Preparation**: Load and preprocess geospatial data
 2. **Domain Definition**: Define watershed boundary and river network
@@ -123,6 +140,11 @@ if (res(dem_crop)[1] != target_res) {
 ```
 
 ## Mesh Generation
+
+`auto_build_model()` runs mesh generation as part of the standard workflow.
+The functions in this section, including `shud.triangle()` and `shud.mesh()`,
+are low-level compatibility/advanced APIs. Use them when you need to inspect or
+override individual mesh-building steps; otherwise prefer `auto_build_model()`.
 
 ### Understanding Mesh Parameters
 
@@ -241,6 +263,10 @@ river_buffer <- st_buffer(rivers, dist = 500)
 
 ## Attribute Calculation
 
+`auto_build_model()` calculates the standard mesh attributes automatically. The
+`shud.att()` examples below use a low-level compatibility/advanced API for
+manual attribute extraction from `terra::SpatRaster` and `sf` inputs.
+
 ### Soil and Geology Attributes
 
 ```{r}
@@ -339,21 +365,18 @@ write_df(att_complete, "model/watershed.att")
 river_network <- build_river_network(
   rivers = rivers,
   dem = dem_crop,
-  min_length = 100,
-  simplify = TRUE,
-  tolerance = 50
+  area = as.numeric(st_area(domain)) * 1e-6
 )
 
 # Access components
 river_sf <- river_network$network
-river_order <- river_network$order
-river_downstream <- river_network$downstream
-river_props <- river_network$properties
+river_types <- river_network$river_types
+river_points <- river_network$points
 
 # Summary statistics
 cat("Total river segments:", nrow(river_sf), "\n")
-cat("Stream orders:", paste(unique(river_order), collapse = ", "), "\n")
-cat("Number of outlets:", sum(river_downstream == -1), "\n")
+cat("Stream orders:", paste(unique(river_sf$Type), collapse = ", "), "\n")
+cat("Number of outlets:", sum(river_sf$Down == -1), "\n")
 ```
 
 ### River Properties
@@ -376,6 +399,10 @@ plot(rivers_with_props["order"], main = "Stream Order",
 
 ### River-Mesh Integration
 
+`shud.rivseg()` is a low-level SHUD river-segment table builder used after you
+already have mesh polygons and river lines. The automated model-building path
+calls it for you.
+
 ```{r}
 # Cut rivers with mesh triangles
 mesh_sf <- mesh_to_sf(mesh, crs = st_crs(domain))
@@ -395,16 +422,17 @@ write_df(river_segments, "model/watershed.rivseg")
 # Estimate river width from drainage area
 watershed_area <- as.numeric(st_area(domain)) * 1e-6  # km²
 
-river_widths <- calc_river_width_from_area(
-  area = watershed_area,
-  order = river_order
-)
+river_widths <- calc_river_width_from_area(watershed_area, n_types = max(river_sf$Type))
 
 # Add to river properties
-river_props$Width <- river_widths
+river_types$Width <- river_widths
 ```
 
 ## Initial Conditions
+
+`shud.ic()` is a low-level SHUD initial-condition table builder with legacy
+naming. It remains useful for advanced manual workflows, while
+`auto_build_model()` creates and writes initial-condition files by default.
 
 ### Setting Initial Conditions
 
@@ -414,22 +442,21 @@ n_cells <- nrow(mesh@mesh)
 n_rivers <- nrow(river_network$network)
 
 ic <- shud.ic(
-  nelem = n_cells,
-  nriver = n_rivers,
+  ncell = n_cells,
+  nriv = n_rivers,
   AqD = 10  # Aquifer depth
 )
 
 # Customize initial conditions
 # Set initial water table depth
-ic$Canopy <- 0  # No canopy storage
-ic$Snow <- 0    # No snow
-ic$Surf <- 0    # No surface water
-ic$Unsat <- 0.3 * mesh@mesh$zmax  # 30% of soil depth
-ic$Gw <- 0.5 * 10  # 50% of aquifer depth
+ic$mic$Canopy <- 0  # No canopy storage
+ic$mic$Snow <- 0    # No snow
+ic$mic$Surface <- 0 # No surface water
+ic$mic$Unsat <- 0.3 * 10  # 30% of aquifer depth
+ic$mic$GW <- 0.5 * 10     # 50% of aquifer depth
 
 # Set river initial conditions
-ic$RivStg <- 0.1  # 10 cm stage
-ic$RivGw <- 0.5   # 50 cm groundwater
+ic$ric$Stage <- 0.1  # 10 cm stage
 
 # Write initial conditions
 write_ic(ic, "model/watershed.ic")

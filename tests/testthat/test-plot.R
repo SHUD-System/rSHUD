@@ -22,6 +22,106 @@ with_temp_pdf <- function(code) {
   force(code)
 }
 
+test_that("ts2map uses modern mesh_to_raster by default", {
+  skip_if_not_installed("terra")
+
+  raster_result <- terra::rast(ncol = 2, nrow = 2)
+  terra::values(raster_result) <- 1:terra::ncell(raster_result)
+  seen <- NULL
+  x <- matrix(1:6, nrow = 2, ncol = 3)
+
+  testthat::local_mocked_bindings(
+    mesh_to_raster = function(data, ...) {
+      seen <<- data
+      raster_result
+    },
+    .mesh_data_to_raster_legacy = function(...) {
+      stop("legacy rasterizer called")
+    },
+    .package = "rSHUD"
+  )
+
+  out <- with_temp_pdf(ts2map(x, raster = TRUE))
+
+  expect_s4_class(out, "SpatRaster")
+  expect_equal(seen, colMeans(x))
+})
+
+test_that("plot_animate builds default rasters with modern mesh_to_raster", {
+  skip_if_not_installed("terra")
+
+  raster_result <- terra::rast(ncol = 2, nrow = 2, nlyr = 2)
+  terra::values(raster_result) <- seq_len(terra::ncell(raster_result) * terra::nlyr(raster_result))
+  seen <- NULL
+  x <- xts::xts(
+    matrix(1:6, nrow = 2, ncol = 3),
+    order.by = as.Date("2020-01-01") + 0:1
+  )
+
+  testthat::local_mocked_bindings(
+    mesh_to_raster = function(data, stack = FALSE, ...) {
+      seen <<- list(data = data, stack = stack)
+      raster_result
+    },
+    .mesh_data_to_raster_legacy = function(...) {
+      stop("legacy rasterizer called")
+    },
+    .package = "rSHUD"
+  )
+
+  out <- with_temp_pdf(plot_animate(x, id = 1:2))
+
+  expect_s4_class(out, "SpatRaster")
+  expect_equal(unname(seen$data), unname(as.matrix(x)))
+  expect_true(seen$stack)
+})
+
+test_that("BasicPlot imap uses modern mesh_to_raster", {
+  skip_if_not_installed("terra")
+
+  old_exists <- exists("PRJNAME", envir = .shud, inherits = FALSE)
+  old_value <- if (old_exists) get("PRJNAME", envir = .shud) else NULL
+  on.exit({
+    if (old_exists) {
+      assign("PRJNAME", old_value, envir = .shud)
+    } else if (exists("PRJNAME", envir = .shud, inherits = FALSE)) {
+      rm("PRJNAME", envir = .shud)
+    }
+  }, add = TRUE)
+  assign("PRJNAME", "test", envir = .shud)
+
+  raster_result <- terra::rast(ncol = 2, nrow = 2)
+  terra::values(raster_result) <- 1:terra::ncell(raster_result)
+  seen <- NULL
+  x <- xts::xts(
+    matrix(1:6, nrow = 2, ncol = 3),
+    order.by = as.Date("2020-01-01") + 0:1
+  )
+
+  testthat::local_mocked_bindings(
+    mesh_to_raster = function(data, stack = FALSE, ...) {
+      seen <<- list(data = data, stack = stack)
+      raster_result
+    },
+    .mesh_data_to_raster_legacy = function(...) {
+      stop("legacy rasterizer called")
+    },
+    .package = "rSHUD"
+  )
+
+  out <- BasicPlot(
+    xl = list(elevprcp = x),
+    plot = FALSE,
+    imap = TRUE,
+    w.focal = NULL,
+    path = tempfile("basicplot")
+  )
+
+  expect_named(out, "elevprcp")
+  expect_equal(seen$data, colMeans(x))
+  expect_false(seen$stack)
+})
+
 # Test plot_polygons function ------------------------------------------------
 
 test_that("plot_polygons requires x parameter", {

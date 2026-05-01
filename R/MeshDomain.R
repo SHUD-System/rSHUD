@@ -1,7 +1,9 @@
-#' Generate SHUD mesh domain from triangulation
+#' Low-level compatibility SHUD mesh domain builder
 #'
 #' Creates a SHUD.MESH S4 object from a triangulation, extracting elevation
-#' and aquifer depth from \code{terra::SpatRaster} data.
+#' and aquifer depth from \code{terra::SpatRaster} data. This is a low-level
+#' compatibility/advanced API used by the automated model builder; most users
+#' should call \code{\link{auto_build_model}}.
 #'
 #' @param tri Triangulation object from RTriangle or shud.triangle()
 #' @param dem Elevation data as a \code{terra::SpatRaster}
@@ -13,9 +15,11 @@
 #'
 #' @details
 #' This function has been modernized to use terra for raster operations,
-#' providing better performance. Deprecated low-level callers may still pass
-#' legacy objects, which are converted for compatibility; new code should pass
-#' \code{terra::SpatRaster} directly.
+#' providing better performance. It is retained for advanced manual workflows
+#' and compatibility with older scripts. Deprecated low-level callers may still
+#' pass legacy objects, which are converted for compatibility; new code should
+#' pass \code{terra::SpatRaster} directly or use
+#' \code{\link{auto_build_model}} for the full workflow.
 #'
 #' @export
 #' @examples
@@ -141,10 +145,12 @@ shud.mesh <- function(tri, dem, AqDepth = 10, r.aq = dem * 0 + AqDepth) {
 }
 
 
-#' Calculate mesh attributes from raster data
+#' Low-level compatibility mesh attribute builder
 #'
 #' Extracts attribute values from \code{terra::SpatRaster} layers and
-#' \code{sf} polygons to mesh triangle centroids.
+#' \code{sf} polygons to mesh triangle centroids. This is a low-level
+#' compatibility/advanced API used by the automated model builder; most users
+#' should call \code{\link{auto_build_model}}.
 #'
 #' @param tri Triangulation object from RTriangle or shud.triangle()
 #' @param r.soil Soil classification as a \code{terra::SpatRaster} (optional)
@@ -162,9 +168,11 @@ shud.mesh <- function(tri, dem, AqDepth = 10, r.aq = dem * 0 + AqDepth) {
 #'
 #' @details
 #' This function has been modernized to use terra for raster operations,
-#' providing 2-5x better performance. Deprecated low-level callers may still
-#' pass legacy objects, which are converted for compatibility; new code should
-#' pass \code{terra::SpatRaster} and \code{sf} objects directly.
+#' providing 2-5x better performance. It is retained for advanced manual
+#' workflows and compatibility with older scripts. Deprecated low-level callers
+#' may still pass legacy objects, which are converted for compatibility; new
+#' code should pass \code{terra::SpatRaster} and \code{sf} objects directly or
+#' use \code{\link{auto_build_model}} for the full workflow.
 #'
 #' @export
 #' @examples

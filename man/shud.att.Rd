@@ -2,7 +2,7 @@
 % Please edit documentation in R/MeshDomain.R
 \name{shud.att}
 \alias{shud.att}
-\title{Calculate mesh attributes from raster data}
+\title{Low-level compatibility mesh attribute builder}
 \usage{
 shud.att(
   tri,
@@ -42,13 +42,17 @@ data.frame with attribute indices for each mesh triangle
 }
 \description{
 Extracts attribute values from \code{terra::SpatRaster} layers and
-\code{sf} polygons to mesh triangle centroids.
+\code{sf} polygons to mesh triangle centroids. This is a low-level
+compatibility/advanced API used by the automated model builder; most users
+should call \code{\link{auto_build_model}}.
 }
 \details{
 This function has been modernized to use terra for raster operations,
-providing 2-5x better performance. Deprecated low-level callers may still
-pass legacy objects, which are converted for compatibility; new code should
-pass \code{terra::SpatRaster} and \code{sf} objects directly.
+providing 2-5x better performance. It is retained for advanced manual
+workflows and compatibility with older scripts. Deprecated low-level callers
+may still pass legacy objects, which are converted for compatibility; new
+code should pass \code{terra::SpatRaster} and \code{sf} objects directly or
+use \code{\link{auto_build_model}} for the full workflow.
 }
 \examples{
 \dontrun{

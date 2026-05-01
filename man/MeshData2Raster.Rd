@@ -5,30 +5,14 @@
 \title{Deprecated: convert mesh data to raster
 \code{MeshData2Raster}}
 \usage{
-MeshData2Raster(
-  x = getElevation(),
-  rmask = shud.mask(proj = proj),
-  pm = read_mesh(),
-  proj = NULL,
-  stack = FALSE,
-  method = "ide",
-  plot = FALSE
-)
+MeshData2Raster(...)
 }
 \arguments{
-\item{x}{vector or matrix, length/nrow is number of cells.}
-
-\item{rmask}{\code{terra::SpatRaster} mask of the mesh file}
-
-\item{pm}{shud mesh}
-
-\item{proj}{Projejction parameter}
-
-\item{stack}{Whether export the stack, only when the x is a matrix, i.e. (Ntime x Ncell).}
-
-\item{method}{method for interpolation, default = 'idw'}
-
-\item{plot}{Whether plot the result.}
+\item{...}{Arguments passed to \code{\link{mesh_to_raster}}. Deprecated
+legacy names are mapped before forwarding: \code{x} to \code{data},
+\code{rmask} to \code{template}, \code{pm} to \code{mesh}, and
+\code{proj} to \code{crs}. The legacy \code{plot} argument is handled by
+plotting the returned \code{terra::SpatRaster}; it is not forwarded.}
 }
 \value{
 \code{terra::SpatRaster}

@@ -231,32 +231,76 @@ shud.mask  <- function (pm = read_mesh(), proj = NULL,
 
 #' Deprecated: convert mesh data to raster
 #' \code{MeshData2Raster}
-#' @param x vector or matrix, length/nrow is number of cells.
-#' @param rmask \code{terra::SpatRaster} mask of the mesh file
-#' @param stack Whether export the stack, only when the x is a matrix, i.e. (Ntime x Ncell).
-#' @param proj Projejction parameter
-#' @param pm shud mesh
-#' @param method method for interpolation, default = 'idw'
-#' @param plot Whether plot the result.
+#' @param ... Arguments passed to \code{\link{mesh_to_raster}}. Deprecated
+#'   legacy names are mapped before forwarding: \code{x} to \code{data},
+#'   \code{rmask} to \code{template}, \code{pm} to \code{mesh}, and
+#'   \code{proj} to \code{crs}. The legacy \code{plot} argument is handled by
+#'   plotting the returned \code{terra::SpatRaster}; it is not forwarded.
 #' @return \code{terra::SpatRaster}
 #' @keywords deprecated
 #' @export
-MeshData2Raster <- function(x = getElevation(),
-                            rmask = shud.mask(proj = proj),
-                            pm = read_mesh(), proj = NULL,
-                            stack = FALSE, method = 'ide',
-                            plot = FALSE){
+MeshData2Raster <- function(...){
   .Deprecated("mesh_to_raster",
               msg = "MeshData2Raster() is deprecated. Use mesh_to_raster() for modern terra workflows.")
-  .mesh_data_to_raster_legacy(
-    x = x,
-    rmask = rmask,
-    pm = pm,
-    proj = proj,
-    stack = stack,
-    method = method,
-    plot = plot
-  )
+  args <- list(...)
+  has_named_arg <- function(x, name) {
+    arg_names <- names(x)
+    !is.null(arg_names) && name %in% arg_names
+  }
+  arg_value <- function(x, name) {
+    x[[name, exact = TRUE]]
+  }
+  has_first_unnamed_arg <- function(x) {
+    arg_names <- names(x)
+    length(x) > 0 && (is.null(arg_names) || !nzchar(arg_names[[1]]))
+  }
+
+  if (has_named_arg(args, "x")) {
+    if (!has_named_arg(args, "data") && !has_first_unnamed_arg(args)) {
+      args$data <- args$x
+    }
+    args$x <- NULL
+  }
+  if (has_named_arg(args, "rmask")) {
+    if (!has_named_arg(args, "template")) {
+      args$template <- args$rmask
+    }
+    args$rmask <- NULL
+  }
+  if (has_named_arg(args, "pm")) {
+    if (!has_named_arg(args, "mesh")) {
+      args$mesh <- args$pm
+    }
+    args$pm <- NULL
+  }
+  if (has_named_arg(args, "proj")) {
+    if (!has_named_arg(args, "crs")) {
+      args$crs <- args$proj
+    }
+    args$proj <- NULL
+  }
+
+  plot_result <- isTRUE(args$plot)
+  args$plot <- NULL
+
+  if (!has_named_arg(args, "data") && !has_first_unnamed_arg(args)) {
+    args$data <- getElevation()
+  }
+  if (!has_named_arg(args, "mesh") || is.null(arg_value(args, "mesh"))) {
+    args$mesh <- read_mesh()
+  }
+  if (!has_named_arg(args, "template")) {
+    args$template <- shud.mask(
+      pm = arg_value(args, "mesh"),
+      proj = arg_value(args, "crs")
+    )
+  }
+
+  ret <- do.call(mesh_to_raster, args)
+  if (plot_result) {
+    terra::plot(ret)
+  }
+  ret
 }
 
 
