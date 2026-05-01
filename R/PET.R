@@ -181,6 +181,25 @@ WindSpeed2m <- function(Uz, zm = 10){
   Uz * 4.87 / log(67.8 * zm - 5.42)
 }
 
+# Internal helper used by PET_PM().
+validate_pet_lengths <- function(x) {
+  len <- vapply(x, length, integer(1))
+  if (any(len < 1L)) {
+    stop("PET_PM inputs must not be empty: ",
+         paste(names(len)[len < 1L], collapse = ", "),
+         call. = FALSE)
+  }
+
+  vector_len <- unique(len[len > 1L])
+  if (length(vector_len) > 1L) {
+    stop("PET_PM inputs must have length 1 or share one common length: ",
+         paste(paste0(names(len), "=", len), collapse = ", "),
+         call. = FALSE)
+  }
+
+  invisible(if (length(vector_len) == 0L) 1L else vector_len)
+}
+
 #' Potential Evapotranspiration with Pennmann-Monteith equation.
 #' \code{PET_PM} 
 #' @param Wind Windspeed in m s^-1.
@@ -283,7 +302,12 @@ PET_PM <- function(Wind, Temp, RH, RadNet, Press,
   #define CONST_RH 0.01  #0.01 is the minimum value for Relative Humidity. [m]
   #define CONST_HC 0.01  #0.01 is the minimum Height of CROP. [m]
   if(is.null(Press)){
+    validate_pet_lengths(list(Wind = Wind, Temp = Temp, RH = RH, RadNet = RadNet,
+                              Elevation = Elevation))
     Press = PressureElevation(Elevation)
+  }else{
+    validate_pet_lengths(list(Wind = Wind, Temp = Temp, RH = RH, RadNet = RadNet,
+                              Press = Press))
   }
   lambda = LatentHeat(Temp);                      #  eq 4.2.1  [MJ/kg]
   Gamma = PsychrometricConstant(Press, lambda); #  eq 4.2.28  [kPa C-1]

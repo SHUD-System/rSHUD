@@ -350,22 +350,22 @@ legend("topright", legend = c(
 fdc_data <- fdc(river_discharge[, outlet_id])
 
 # Plot FDC
-plot(fdc_data, main = "Flow Duration Curve",
-     xlab = "Exceedance Probability (%)",
-     ylab = "Discharge (m³/s)",
-     log = "y")
+fdc_data +
+  ggplot2::labs(
+    title = "Flow Duration Curve",
+    x = "Exceedance Probability (%)",
+    y = "Discharge (m³/s)"
+  ) +
+  ggplot2::scale_y_log10()
 
 # Compare observed and simulated FDC
-fdc_obs <- fdc(obs_discharge)
-fdc_sim <- fdc(sim_aligned)
-
-plot(fdc_obs, main = "Flow Duration Curves",
-     xlab = "Exceedance Probability (%)",
-     ylab = "Discharge (m³/s)",
-     log = "y", col = "black", lwd = 2)
-lines(fdc_sim, col = "red", lwd = 2)
-legend("topright", legend = c("Observed", "Simulated"),
-       col = c("black", "red"), lwd = 2)
+fdc(cbind(Observed = obs_discharge, Simulated = sim_aligned)) +
+  ggplot2::labs(
+    title = "Flow Duration Curves",
+    x = "Exceedance Probability (%)",
+    y = "Discharge (m³/s)"
+  ) +
+  ggplot2::scale_y_log10()
 ```
 
 ### Peak Flow Analysis
