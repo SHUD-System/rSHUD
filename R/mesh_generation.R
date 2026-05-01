@@ -440,7 +440,7 @@ mesh_to_sf <- function(pm = read_mesh(), dbf = NULL, crs = NULL) {
 #' @keywords deprecated
 #' @export
 sp.mesh2Shape <- function(pm = readmesh(), dbf = NULL, crs = NULL) {
-  warning("sp.mesh2Shape is deprecated. Please use mesh_to_sf instead.")
+  .Deprecated("mesh_to_sf", msg = "sp.mesh2Shape is deprecated. Please use mesh_to_sf instead.")
   mesh_to_sf(pm, dbf, crs)
 }
 
@@ -462,6 +462,6 @@ sp.Tri2Shape <- function(tri, dbf = NULL, crs = NA) {
     crs <- NULL
   }
   
-  warning("sp.Tri2Shape is deprecated. Please use mesh_to_sf instead.")
+  .Deprecated("mesh_to_sf", msg = "sp.Tri2Shape is deprecated. Please use mesh_to_sf instead.")
   mesh_to_sf(pm = tri, dbf = dbf, crs = crs)
 }
