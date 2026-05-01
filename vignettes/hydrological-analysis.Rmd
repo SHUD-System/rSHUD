@@ -724,7 +724,9 @@ analyze_shud_output <- function(
   
   # Flow duration curve
   fdc_data <- fdc(discharge)
-  plot(fdc_data, main = "Flow Duration Curve", log = "y")
+  fdc_data +
+    ggplot2::labs(title = "Flow Duration Curve") +
+    ggplot2::scale_y_log10()
   
   # If observed data available, calculate GOF
   if (!is.null(obs_file)) {

@@ -212,7 +212,7 @@ validate_pet_lengths <- function(x) {
 #' @param albedo Albedo as a fraction.
 #' @param Res_surf Aerodynamic surface resistance in s m^-1.
 #' @param Elevation Elevation in m.
-#' @return Potential evapotranspiration in mm m^-2 s^-1 or kg m^-2 s^-1.
+#' @return Potential evapotranspiration in mm day^-1.
 #' @export
 PET_PM <- function(Wind, Temp, RH, RadNet, Press, 
                    WindHeight=10, 
@@ -226,81 +226,6 @@ PET_PM <- function(Wind, Temp, RH, RadNet, Press,
   # an albedo of 0.23, closely resembling the evaporation of an extension surface 
   # of green grass of uniform height, actively growing and adequately watered, 
   # the FAO Penman-Monteith method was developed.
-  eqn <- function(Press, Rad, rho,
-                  ed, Delta, r_a, r_s,
-                  Gamma, lambda){
-    ETp <- NULL
-    # http:#www.fao.org/docrep/X0490E/x0490e06.htm#penman%20monteith%20equation
-    # Rn net radiation at the crop surface [MJ m-2 min-1],
-    # G soil heat flux density [MJ m-2 min-1],
-    # es saturation vapour pressure [kPa],
-    # ea actual vapour pressure [kPa],
-    # es - ea saturation vapour pressure deficit [kPa],
-    # ∆ slope vapour pressure curve [kPa °C-1],
-    # γ psychrometric constant [kPa °C-1].
-    #       Gamma;  # psychrometric constant
-    #       Delta;  # the slope of the saturation vapour pressure temperature relationship
-    U2 = WindSpeed2m(Wind, WindHeight)
-    # r_a = 208/U2
-    Cp = 1.013e-3    # cp specific heat at constant pressure, 1.013E-3 [MJ kg-1 °C-1] Allen(1998) eq(8) 
-    gm = Gamma * (1+0.33 * U2)
-    Rad_MJ =  Rad*1e-6 * (1-albedo)
-    method1 <- function(){
-      ETp = (Delta * Rad  / lambda + rho * Cp * ed / r_a / lambda) /
-        (Delta + Gamma * (1 + r_s / r_a)); # eq 4.2.27 [ ]
-      x = ETp / lambda; # [ kg/s = 0.001 m3/m2/s=0.001 m/s ]
-      message('\n x1: ')
-      message('Delta * Rad  / lambda\t', Delta * Rad  / lambda)
-      message('rho * Cp * ed / r_a  / lambda\t' , rho * Cp * ed / r_a/ lambda)
-      message('Delta + Gamma * (1 + r_s / r_a)  \t' ,Delta + Gamma * (1 + r_s / r_a) )
-      
-      x
-    }
-    method2 <- function(){
-      tsec = 24*3600
-      Rad = RadNet * 24*3600 * 1e-6  # [W m-2] to [MJ m-2 day-1]  24hour daylight
-      ETp1 = Delta*(Rad)  / lambda / (Delta + Gamma)
-      ETp2 = Gamma * (6.43 * (1+0.536 * U2) * ed) /(Delta + Gamma)
-      x = (ETp1 + ETp2)
-      # x2 = x2* tsec #4.2.30
-      message('\n x2: ')
-      message('Etp1\t',ETp1, '\tETP2', ETp2)
-      message(' Delta*(Rad)  / lambda  \t' ,  Delta*(Rad)  / lambda )
-      message('(Delta + Gamma) \t' , (Delta + Gamma))
-      x
-    }
-
-    method3 <- function(){
-      x = (Delta*Rad / lambda + Gamma * (900 / (Temp + 275)) * ed * U2 ) / (Delta + gm)  # 4.2.31
-      # x3=x3 * tsec
-      message('\n x3: ')
-      message(' x3 (Delta*Rad / lambda + Gamma * (900 / (Temp + 275)) * ed * U2 ) \t' ,
-              (Delta*Rad / lambda + Gamma * (900 / (Temp + 275)) * ed * U2 )  )
-      message(' (Delta + gm)\t' , (Delta + gm))
-      x
-    }
-
-    method4 <-function(){
-      x = (0.408*Delta*Rad + Gamma*900/(Temp+273)*U2 * ed ) / (Delta + gm)  # FAO (6)
-      # x4 = x4 * tsec
-      message('\n x4: ')
-      message('(0.408*Delta*Rad /lambda + Gamma*900/(Temp+273)*U2 * ed )  \t' ,
-              (0.408*Delta*Rad /lambda + Gamma*900/(Temp+273)*U2 * ed ) )
-      message(' (Delta + gm)\t' , (Delta + gm))
-      x
-    }
-    x1=method1()
-    x2=method2()
-    x3=method3()
-    x4=method4()
-    message('PET results (methods 1-4): ', paste(c(x1, x2, x3, x4), collapse=', '))
-    
-    return (x4)
-  }
-  CONST_RC = 0.01
-  CONST_HC = 0.01
-  #define CONST_RH 0.01  #0.01 is the minimum value for Relative Humidity. [m]
-  #define CONST_HC 0.01  #0.01 is the minimum Height of CROP. [m]
   if(is.null(Press)){
     validate_pet_lengths(list(Wind = Wind, Temp = Temp, RH = RH, RadNet = RadNet,
                               Elevation = Elevation))
@@ -315,15 +240,14 @@ PET_PM <- function(Wind, Temp, RH, RadNet, Press,
   ea = es * RH;   #  [kPa]
   ed = es - ea ;  #  [kPa]
   Delta = SlopeSatVaporPressure(Temp, es);        #  eq 4.2.3 [kPa C-1]
-  rho = AirDensity(Press, Temp);    #  eq 4.2.4 [kg m-3]
-  rs = AerodynamicResistance(Wind, CONST_HC, WindHeight, 2.);     #  eq 4.2.25  [s m-1]
-  ra = AerodynamicResistance(Wind, Veg_height, WindHeight, 2.);     #  eq 4.2.25  [s m-1]
-  RG = RadNet * 0.9;  # R - G in the PM equation.*/
-  etp = eqn(Press, RG, rho, ed, Delta, ra, rs, Gamma, lambda);  # [m/s]
-  # xx=cbind(Press, RG, rho, ed, Delta, ra, rs, Gamma, lambda, etp);
-  # colnames(xx) = c('Press', 'RG', 'rho', 'ed', 'Delta', 'ra', 'rs', 'Gamma', 'lambda', 'ETP_mm-day');
-  # View(xx)
-  # print(xx[1, ])
+  U2 = WindSpeed2m(Wind, WindHeight)
+  gm = Gamma * (1 + 0.33 * U2)
+  RG = RadNet * 0.9
+  # RadNet is documented as W m^-2. Preserve the existing convention that
+  # R - G is 90% of RadNet, then convert W m^-2 to MJ m^-2 day^-1 for FAO-56.
+  RG_MJ_day = RG * 86400 * 1e-6
+  etp = (0.408 * Delta * RG_MJ_day + Gamma * 900 / (Temp + 273) * U2 * ed) /
+    (Delta + gm)
   return(etp)
 }
 
