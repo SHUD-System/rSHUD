@@ -470,6 +470,23 @@ test_that("plot_tsd dispatches generic time-series inputs to plot_timeseries", {
   expect_s3_class(p, "ggplot")
 })
 
+test_that("plot_tsd honors explicit tabular time and value columns", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("reshape2")
+
+  x <- data.frame(
+    day_number = 0:4,
+    q = 1:5
+  )
+
+  p <- suppressWarnings(plot_tsd(x, time_col = "day_number", value_col = "q"))
+
+  expect_s3_class(p, "ggplot")
+  plot_data <- ggplot2::ggplot_build(p)$plot$data
+  expect_identical(plot_data$Time, x$day_number)
+  expect_identical(plot_data$Value, x$q)
+})
+
 # Test deprecated functions --------------------------------------------------
 
 test_that("plot_polygons replaces plot_sp functionality", {

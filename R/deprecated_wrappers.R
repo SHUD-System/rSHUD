@@ -135,17 +135,34 @@ plot_sp <- function(x, field = NULL, zcol = field, ...) {
 #'
 #' @param x Time-series object to plot.
 #' @param ... Additional arguments passed to the selected plotting function.
+#'   For tabular inputs, named \code{time_col} or \code{value_col} arguments
+#'   are passed to \code{\link{plot_timeseries}}.
 #' @return A plot object from \code{\link{plot_timeseries}} for time-series
 #'   inputs, otherwise \code{x} invisibly.
 #' @export
 plot_tsd <- function(x, ...) {
   .Deprecated("plot_timeseries")
-  if (.is_generic_timeseries_input(x)) {
+  dots <- match.call(expand.dots = FALSE)$...
+  if (.is_generic_timeseries_input(x) ||
+      .has_explicit_timeseries_column_args(x, dots)) {
     return(plot_timeseries(x, ...))
   }
 
   graphics::plot(x, ...)
   invisible(x)
+}
+
+.has_explicit_timeseries_column_args <- function(x, dots) {
+  if (!(is.data.frame(x) || is.matrix(x)) || NCOL(x) < 2L) {
+    return(FALSE)
+  }
+
+  dot_names <- names(dots)
+  if (is.null(dot_names)) {
+    return(FALSE)
+  }
+
+  any(c("time_col", "value_col") %in% dot_names)
 }
 
 #' Deprecated wrapper for `png.control()`

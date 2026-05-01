@@ -9,7 +9,9 @@ plot_tsd(x, ...)
 \arguments{
 \item{x}{Time-series object to plot.}
 
-\item{...}{Additional arguments passed to the selected plotting function.}
+\item{...}{Additional arguments passed to the selected plotting function.
+For tabular inputs, named \code{time_col} or \code{value_col} arguments
+are passed to \code{\link{plot_timeseries}}.}
 }
 \value{
 A plot object from \code{\link{plot_timeseries}} for time-series
