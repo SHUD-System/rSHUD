@@ -219,7 +219,7 @@ plot(st_geometry(rivers), add = TRUE, col = "blue", lwd = 2)
 
 # Plot mesh with elevation
 elev <- getElevation(mesh)
-plot(mesh_sf["Elevation"], main = "Mesh Elevation")
+plot(mesh_sf["Zsurf"], main = "Mesh Elevation")
 ```
 
 ### Step 6: Read and Modify Input Files

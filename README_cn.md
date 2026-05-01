@@ -102,8 +102,6 @@ attributes <- read_att("model.att")
 dem <- rast("dem.tif")
 domain <- st_read("watershed.shp")
 rivers_sf <- st_read("rivers.shp")
-forcing_sites <- st_read("forcing_sites.shp")
-forcing_files <- paste0(forcing_sites$NLDAS_ID, ".csv")
 
 # 自动构建模型
 model <- auto_build_model(
@@ -111,8 +109,6 @@ model <- auto_build_model(
   domain = domain,
   rivers = rivers_sf,
   dem = dem,
-  forcing_sites = forcing_sites,
-  forcing_files = forcing_files,
   output_dir = "./output"
 )
 

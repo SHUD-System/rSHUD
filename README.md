@@ -120,11 +120,13 @@ attributes <- read_att("model.att")
 # Read spatial data with terra/sf
 dem <- rast("dem.tif")
 watershed <- st_read("watershed.shp")
+rivers_sf <- st_read("rivers.shp")
 
 # Auto-build model (modern API)
 model <- auto_build_model(
+  project_name = "example",
+  domain = watershed,
   dem = dem,
-  watershed = watershed,
   rivers = rivers_sf,
   output_dir = "./output"
 )
