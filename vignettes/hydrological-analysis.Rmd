@@ -319,7 +319,7 @@ legend(
 
 ```{r}
 # Load observed data
-obs_discharge <- read_tsd("data/observed_discharge.tsd")
+obs_discharge <- read_tsd("data/observed_discharge.tsd")[[1]]
 
 # Align time periods
 common_time <- index(obs_discharge)[index(obs_discharge) %in%
@@ -729,7 +729,7 @@ analyze_shud_output <- function(
   # If observed data available, calculate GOF
   if (!is.null(obs_file)) {
     cat("Evaluating model performance...\n")
-    obs <- read_tsd(obs_file)
+    obs <- read_tsd(obs_file)[[1]]
     
     # Align time periods
     common_time <- zoo::index(obs)[zoo::index(obs) %in% zoo::index(discharge)]

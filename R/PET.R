@@ -262,11 +262,11 @@ PET_PM <- function(Wind, Temp, RH, RadNet, Press,
     }
 
     method4 <-function(){
-      x = (0.408*Delta*Rad + Gamma*900/(T+273)*U2 * ed ) / (Delta + gm)  # FAO (6)
+      x = (0.408*Delta*Rad + Gamma*900/(Temp+273)*U2 * ed ) / (Delta + gm)  # FAO (6)
       # x4 = x4 * tsec
       message('\n x4: ')
-      message('(0.408*Delta*Rad /lambda + Gamma*900/(T+273)*U2 * ed )  \t' ,
-              (0.408*Delta*Rad /lambda + Gamma*900/(T+273)*U2 * ed ) )
+      message('(0.408*Delta*Rad /lambda + Gamma*900/(Temp+273)*U2 * ed )  \t' ,
+              (0.408*Delta*Rad /lambda + Gamma*900/(Temp+273)*U2 * ed ) )
       message(' (Delta + gm)\t' , (Delta + gm))
       x
     }
@@ -276,7 +276,7 @@ PET_PM <- function(Wind, Temp, RH, RadNet, Press,
     x4=method4()
     message('PET results (methods 1-4): ', paste(c(x1, x2, x3, x4), collapse=', '))
     
-    return (ETp)
+    return (x4)
   }
   CONST_RC = 0.01
   CONST_HC = 0.01

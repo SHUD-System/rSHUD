@@ -386,7 +386,7 @@ soil_raster <- vector_to_raster(
 
 ```{r}
 # Read time series data
-discharge <- read_tsd("forcing/discharge.tsd")
+discharge <- read_tsd("forcing/discharge.tsd")[[1]]
 
 # Convert to daily values
 discharge_daily <- ts_to_daily(discharge, FUN = mean)
