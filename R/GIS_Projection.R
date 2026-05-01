@@ -75,7 +75,7 @@ crs.Albers <- function(spx = NULL, ext = NULL) {
         stop("Spatial object must have a defined CRS", call. = FALSE)
       }
       # Transform to EPSG:4326 if not already
-      if (sf::st_crs(spx)$epsg != 4326) {
+      if (!isTRUE(sf::st_crs(spx)$epsg == 4326)) {
         spx <- sf::st_transform(spx, 4326)
       }
       bb <- sf::st_bbox(spx)
@@ -192,7 +192,7 @@ crs.Lambert <- function(spx = NULL, ext = NULL) {
         stop("Spatial object must have a defined CRS", call. = FALSE)
       }
       # Transform to EPSG:4326 if not already
-      if (sf::st_crs(spx)$epsg != 4326) {
+      if (!isTRUE(sf::st_crs(spx)$epsg == 4326)) {
         spx <- sf::st_transform(spx, 4326)
       }
       bb <- sf::st_bbox(spx)
