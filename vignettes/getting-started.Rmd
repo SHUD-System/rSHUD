@@ -247,15 +247,21 @@ After running the SHUD model, read the output files:
 
 ```{r}
 # Read time series output
-surf_flow <- read_output(
-  keyword = "surf",
+surf_depth <- read_output(
+  keyword = "eleysurf",
   path = "model_output"
 )
 
 # Read all variables
-variables <- c("surf", "unsat", "gw", "river")
+variables <- c(
+  surf = "eleysurf",
+  unsat = "eleyunsat",
+  gw = "eleygw",
+  river = "rivystage",
+  discharge = "rivqdown"
+)
 all_output <- lapply(
-  setNames(variables, variables),
+  variables,
   read_output,
   path = "model_output"
 )
@@ -266,20 +272,20 @@ all_output <- lapply(
 ```{r}
 # Plot the first output series
 plot(
-  zoo::as.zoo(surf_flow[, 1]),
-  main = "Surface Flow",
-  ylab = "Flow (m³/s)",
+  zoo::as.zoo(surf_depth[, 1]),
+  main = "Surface Water Depth",
+  ylab = "Depth (m)",
   xlab = "Time"
 )
 
 # Convert to raster for spatial visualization
 surf_raster <- mesh_to_raster(
-  data = surf_flow[1, ],  # First time step
+  data = surf_depth[1, ],  # First time step
   mesh = mesh,
   template = dem
 )
 
-plot(surf_raster, main = "Surface Flow at t=1")
+plot(surf_raster, main = "Surface Water Depth at t=1")
 ```
 
 ### Calculate Water Balance
@@ -378,9 +384,9 @@ fdc_data <- fdc(discharge)
 plot(fdc_data, main = "Flow Duration Curve")
 
 # Plot hydrograph
-hydrograph(
-  obs = observed_flow,
+QvsO(
   sim = simulated_flow,
+  obs = observed_flow,
   main = "Observed vs Simulated"
 )
 ```
@@ -516,19 +522,19 @@ plot(st_geometry(mesh_sf), main = "Model Domain")
 # system("shud model_2010/watershed_2010")
 
 # Read and analyze results
-surf <- read_output(keyword = "surf", path = "model_2010")
+surf <- read_output(keyword = "eleysurf", path = "model_2010")
 plot(
   zoo::as.zoo(surf[, 1]),
-  main = "Surface Flow - Cell 1",
-  ylab = "Flow",
+  main = "Surface Water Depth - Cell 1",
+  ylab = "Depth (m)",
   xlab = "Time"
 )
 
 # Calculate water balance
 wb <- wb.ele(
-  surf = read_output(keyword = "surf", path = "model_2010"),
-  unsat = read_output(keyword = "unsat", path = "model_2010"),
-  gw = read_output(keyword = "gw", path = "model_2010")
+  surf = read_output(keyword = "eleysurf", path = "model_2010"),
+  unsat = read_output(keyword = "eleyunsat", path = "model_2010"),
+  gw = read_output(keyword = "eleygw", path = "model_2010")
 )
 
 plot(wb$total, main = "Total Water Storage")

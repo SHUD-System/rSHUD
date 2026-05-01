@@ -58,7 +58,7 @@
 #' }
 plot_hydrograph <- function(x,
                             legend_position = "bottom",
-                            units = rep('', ncol(x)),
+                            units = rep('', NCOL(x)),
                             colors = c(3, 4),
                             heights = c(3, 7),
                             ylabs = NULL,
@@ -78,8 +78,10 @@ plot_hydrograph <- function(x,
     )
   }
 
+  n_columns <- NCOL(x)
+
   # Validate x has at least 2 columns
-  if (ncol(x) < 2) {
+  if (n_columns < 2) {
     stop(
       "Parameter 'x' must have at least 2 columns ",
       "(precipitation and discharge)",
@@ -93,7 +95,7 @@ plot_hydrograph <- function(x,
   # Get column names
   cn <- colnames(x)
   if (is.null(cn)) {
-    cn <- paste0("Var", seq_len(ncol(x)))
+    cn <- paste0("Var", seq_len(n_columns))
   }
 
   # Prepare precipitation data (first column)
@@ -152,8 +154,8 @@ plot_hydrograph <- function(x,
     ) +
     ggplot2::theme() +
     ggplot2::scale_colour_discrete("") +
-    ggplot2::scale_linetype_manual("", values = seq_len(ncol(x) - 1)) +
-    ggplot2::scale_shape_manual("", values = seq_len(ncol(x) - 1)) +
+    ggplot2::scale_linetype_manual("", values = seq_len(n_columns - 1)) +
+    ggplot2::scale_shape_manual("", values = seq_len(n_columns - 1)) +
     ggplot2::labs(x = "Time")
 
   # Set y-label for bottom plot
@@ -170,7 +172,7 @@ plot_hydrograph <- function(x,
   }
 
   # Handle legend position
-  if (ncol(x) > 2) {
+  if (n_columns > 2) {
     g_bottom <- g_bottom +
       ggplot2::theme(
         legend.position = legend_position,

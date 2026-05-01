@@ -7,7 +7,7 @@
 plot_hydrograph(
   x,
   legend_position = "bottom",
-  units = rep("", ncol(x)),
+  units = rep("", NCOL(x)),
   colors = c(3, 4),
   heights = c(3, 7),
   ylabs = NULL,

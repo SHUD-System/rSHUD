@@ -40,13 +40,14 @@ library(hydroGOF)
 
 SHUD model outputs are stored in binary or ASCII format:
 
-- `surf.dat`: Surface water depth
-- `unsat.dat`: Unsaturated zone storage
-- `gw.dat`: Groundwater storage
-- `river.dat`: River stage and discharge
-- `infil.dat`: Infiltration rate
-- `recharge.dat`: Groundwater recharge
-- `et.dat`: Evapotranspiration
+- `<project>.eleysurf.dat`: Surface water depth
+- `<project>.eleyunsat.dat`: Unsaturated zone storage
+- `<project>.eleygw.dat`: Groundwater storage
+- `<project>.rivystage.dat`: River stage
+- `<project>.rivqdown.dat`: River discharge
+- `<project>.elevinfil.dat`: Infiltration rate
+- `<project>.elevrech.dat`: Groundwater recharge
+- `<project>.eleveta.dat`: Actual evapotranspiration
 
 ### Reading Single Variable
 
@@ -54,7 +55,7 @@ SHUD model outputs are stored in binary or ASCII format:
 # Read surface water output
 surf <- read_output(
   path = "model_output",
-  keyword = "surf"
+  keyword = "eleysurf"
 )
 
 # Check dimensions
@@ -71,9 +72,15 @@ summary(surf[1, ])  # First time step
 
 ```{r}
 # Read all major variables
-variables <- c("surf", "unsat", "gw", "river")
+variables <- c(
+  surf = "eleysurf",
+  unsat = "eleyunsat",
+  gw = "eleygw",
+  river = "rivystage",
+  discharge = "rivqdown"
+)
 output <- lapply(
-  setNames(variables, variables),
+  variables,
   read_output,
   path = "model_output"
 )
@@ -83,6 +90,7 @@ surf <- output$surf
 unsat <- output$unsat
 gw <- output$gw
 river <- output$river
+river_discharge <- output$discharge
 ```
 
 ### Reading with Time Range
@@ -91,13 +99,13 @@ river <- output$river
 # Read specific time period
 output_subset <- read_output(
   path = "model_output",
-  keyword = "surf"
+  keyword = "eleysurf"
 )
 
 # Convert to daily values after reading
 output_daily <- read_output(
   path = "model_output",
-  keyword = "surf"
+  keyword = "eleysurf"
 )
 output_daily <- ts_to_daily(output_daily)
 ```
@@ -296,9 +304,9 @@ obs_aligned <- obs_discharge[common_time]
 sim_aligned <- river_discharge[common_time, outlet_id]
 
 # Plot comparison
-hydrograph(
-  obs = obs_aligned,
+QvsO(
   sim = sim_aligned,
+  obs = obs_aligned,
   main = "Observed vs Simulated Discharge"
 )
 
@@ -508,10 +516,10 @@ title("High Variability Cells (top 10%)")
 
 ```{r}
 # Read ET components
-et_total <- read_output(keyword = "et", path = "model_output")
-et_canopy <- read_output(keyword = "et_canopy", path = "model_output")
-et_transpiration <- read_output(keyword = "et_transp", path = "model_output")
-et_soil <- read_output(keyword = "et_soil", path = "model_output")
+et_total <- read_output(keyword = "eleveta", path = "model_output")
+et_canopy <- read_output(keyword = "elevetic", path = "model_output")
+et_transpiration <- read_output(keyword = "elevettr", path = "model_output")
+et_soil <- read_output(keyword = "elevetev", path = "model_output")
 
 # Calculate watershed-average ET
 et_mean <- apply(et_total, 1, mean)
@@ -653,9 +661,15 @@ analyze_shud_output <- function(
   
   # Read model output
   cat("Reading model output...\n")
-  variables <- c("surf", "unsat", "gw", "river")
+  variables <- c(
+    surf = "eleysurf",
+    unsat = "eleyunsat",
+    gw = "eleygw",
+    river = "rivystage",
+    discharge = "rivqdown"
+  )
   output <- lapply(
-    setNames(variables, variables),
+    variables,
     read_output,
     path = output_dir
   )
@@ -675,8 +689,8 @@ analyze_shud_output <- function(
   
   # Analyze discharge
   cat("Analyzing discharge...\n")
-  outlet_id <- nrow(output$river)
-  discharge <- output$river[, outlet_id]
+  outlet_id <- ncol(output$discharge)
+  discharge <- output$discharge[, outlet_id]
   
   # Flow duration curve
   fdc_data <- fdc(discharge)
@@ -697,7 +711,7 @@ analyze_shud_output <- function(
     print(gof_stats)
     
     # Plot comparison
-    hydrograph(obs = obs_aligned, sim = sim_aligned)
+    QvsO(sim = sim_aligned, obs = obs_aligned)
   }
   
   # Spatial analysis
