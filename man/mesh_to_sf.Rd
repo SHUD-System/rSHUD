@@ -6,8 +6,6 @@
 \title{Convert mesh triangulation to sf shapefile}
 \usage{
 mesh_to_sf(pm = readmesh(), dbf = NULL, crs = NULL)
-
-sp.mesh2Shape(pm = readmesh(), dbf = NULL, crs = NULL)
 }
 \arguments{
 \item{pm}{A \code{SHUD.MESH} object or list with \code{T} and \code{P} elements.}
@@ -48,7 +46,7 @@ boundary <- sf::st_as_sf(
 tri <- shud.triangle(wb = boundary, q = 30, a = 2)
 
 # Convert to sf
-mesh_sf <- sp.mesh2Shape(pm = tri, crs = 4326)
+mesh_sf <- mesh_to_sf(pm = tri, crs = 4326)
 plot(mesh_sf)
 }
 
