@@ -207,7 +207,7 @@ plot(cumulative_ds, main = "Cumulative Storage Change",
 surf_ts <- ts_to_df(surf)
 
 # Convert to daily values
-surf_daily <- ts_to_daily(surf, fun = mean)
+surf_daily <- ts_to_daily(surf, FUN = mean)
 
 # Extract specific cells
 cell_ids <- c(1, 100, 500)
@@ -218,9 +218,9 @@ surf_subset <- surf[, cell_ids]
 
 ```{r}
 # Daily aggregation
-surf_daily_mean <- ts_to_daily(surf, fun = mean)
-surf_daily_max <- ts_to_daily(surf, fun = max)
-surf_daily_min <- ts_to_daily(surf, fun = min)
+surf_daily_mean <- ts_to_daily(surf, FUN = mean)
+surf_daily_max <- ts_to_daily(surf, FUN = max)
+surf_daily_min <- ts_to_daily(surf, FUN = min)
 
 # Monthly aggregation
 surf_monthly <- apply.monthly(surf_daily_mean, mean)

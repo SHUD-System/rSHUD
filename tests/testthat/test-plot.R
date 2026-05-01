@@ -11,9 +11,11 @@
 with_temp_pdf <- function(code) {
   plot_file <- tempfile(fileext = ".pdf")
   grDevices::pdf(plot_file)
+  plot_dev <- grDevices::dev.cur()
   on.exit({
-    if (grDevices::dev.cur() > 1) {
-      grDevices::dev.off()
+    active_devs <- grDevices::dev.list()
+    if (!is.null(active_devs) && plot_dev %in% active_devs) {
+      grDevices::dev.off(which = plot_dev)
     }
     unlink(plot_file)
   }, add = TRUE)
