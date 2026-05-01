@@ -330,7 +330,7 @@ shud.triangle <- function(wb, dem = NULL, riv = NULL, hole = NULL,
 #' tri <- shud.triangle(wb = boundary, q = 30, a = 2)
 #'
 #' # Convert to sf
-#' mesh_sf <- sp.mesh2Shape(pm = tri, crs = 4326)
+#' mesh_sf <- mesh_to_sf(pm = tri, crs = 4326)
 #' plot(mesh_sf)
 #' }
 #'
@@ -464,6 +464,6 @@ sp.Tri2Shape <- function(tri, dbf = NULL, crs = NA) {
     crs <- NULL
   }
   
-  # Use sp.mesh2Shape implementation
-  sp.mesh2Shape(pm = tri, dbf = dbf, crs = crs)
+  warning("sp.Tri2Shape is deprecated. Please use mesh_to_sf instead.")
+  mesh_to_sf(pm = tri, dbf = dbf, crs = crs)
 }

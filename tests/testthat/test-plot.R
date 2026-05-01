@@ -546,7 +546,7 @@ test_that("visualization module integration test", {
   tri <- shud.triangle(wb = boundary, q = 30, a = 5)
 
   # Convert mesh to sf
-  mesh_sf <- sp.mesh2Shape(pm = tri)
+  mesh_sf <- mesh_to_sf(pm = tri)
   
   # Test plot_polygons
   result <- with_temp_pdf(plot_polygons(x = mesh_sf, field = "Area"))

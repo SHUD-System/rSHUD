@@ -134,9 +134,9 @@ test_that("shud.triangle works with additional constraint points", {
   expect_true(nrow(mesh$T) > 0)
 })
 
-# Test sp.mesh2Shape function -------------------------------------------------
+# Test mesh_to_sf function ----------------------------------------------------
 
-test_that("sp.mesh2Shape handles triangulation objects", {
+test_that("mesh_to_sf handles triangulation objects", {
   skip_if_not_installed("sf")
   skip_if_not_installed("RTriangle")
   
@@ -148,20 +148,20 @@ test_that("sp.mesh2Shape handles triangulation objects", {
   tri <- shud.triangle(wb = boundary, q = 30, a = 5)
   
   # Convert to sf
-  mesh_sf <- sp.mesh2Shape(pm = tri)
+  mesh_sf <- mesh_to_sf(pm = tri)
   
   expect_true(inherits(mesh_sf, "sf"))
   expect_true("Area" %in% colnames(mesh_sf))
 })
 
-test_that("sp.mesh2Shape validates input type", {
+test_that("mesh_to_sf validates input type", {
   expect_error(
-    sp.mesh2Shape(pm = "invalid"),
+    mesh_to_sf(pm = "invalid"),
     "must be either a SHUD.MESH object"
   )
 })
 
-test_that("sp.mesh2Shape applies CRS correctly", {
+test_that("mesh_to_sf applies CRS correctly", {
   skip_if_not_installed("sf")
   skip_if_not_installed("RTriangle")
   
@@ -173,12 +173,12 @@ test_that("sp.mesh2Shape applies CRS correctly", {
   tri <- shud.triangle(wb = boundary, q = 30, a = 5)
   
   # Convert with CRS
-  mesh_sf <- sp.mesh2Shape(pm = tri, crs = 4326)
+  mesh_sf <- mesh_to_sf(pm = tri, crs = 4326)
   
   expect_equal(sf::st_crs(mesh_sf)$epsg, 4326)
 })
 
-test_that("sp.mesh2Shape handles SHUD.MESH objects", {
+test_that("mesh_to_sf handles SHUD.MESH objects", {
   skip_if_not_installed("sf")
   skip_if_not_installed("terra")
   skip_if_not_installed("RTriangle")
@@ -198,7 +198,7 @@ test_that("sp.mesh2Shape handles SHUD.MESH objects", {
   mesh_obj <- shud.mesh(tri, dem = dem, AqDepth = 10)
   
   # Convert to sf
-  mesh_sf <- sp.mesh2Shape(pm = mesh_obj)
+  mesh_sf <- mesh_to_sf(pm = mesh_obj)
   
   expect_true(inherits(mesh_sf, "sf"))
   expect_true("Area" %in% colnames(mesh_sf))
@@ -206,7 +206,7 @@ test_that("sp.mesh2Shape handles SHUD.MESH objects", {
   expect_true("Zsurf" %in% colnames(mesh_sf))
 })
 
-test_that("sp.mesh2Shape with custom attributes", {
+test_that("mesh_to_sf handles custom attributes", {
   skip_if_not_installed("sf")
   skip_if_not_installed("RTriangle")
   
@@ -224,10 +224,60 @@ test_that("sp.mesh2Shape with custom attributes", {
   )
   
   # Convert with attributes
-  mesh_sf <- sp.mesh2Shape(pm = tri, dbf = attrs)
+  mesh_sf <- mesh_to_sf(pm = tri, dbf = attrs)
   
   expect_true(inherits(mesh_sf, "sf"))
   expect_true("value" %in% colnames(mesh_sf))
+})
+
+# Test deprecated mesh conversion wrappers ------------------------------------
+
+test_that("sp.mesh2Shape warns and forwards to mesh_to_sf", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("RTriangle")
+
+  boundary <- sf::st_as_sf(
+    sf::st_sfc(sf::st_polygon(list(matrix(c(0,0, 10,0, 10,10, 0,10, 0,0),
+                                           ncol=2, byrow=TRUE))))
+  )
+  tri <- shud.triangle(wb = boundary, q = 30, a = 5)
+
+  expect_warning(
+    mesh_sf <- sp.mesh2Shape(pm = tri),
+    "sp\\.mesh2Shape is deprecated.*mesh_to_sf"
+  )
+
+  expect_true(inherits(mesh_sf, "sf"))
+  expect_true("Area" %in% colnames(mesh_sf))
+})
+
+test_that("sp.mesh2Shape warns before validating invalid input", {
+  expect_warning(
+    expect_error(
+      sp.mesh2Shape(pm = "invalid"),
+      "must be either a SHUD.MESH object"
+    ),
+    "sp\\.mesh2Shape is deprecated.*mesh_to_sf"
+  )
+})
+
+test_that("sp.Tri2Shape warns with its own deprecated name", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("RTriangle")
+
+  boundary <- sf::st_as_sf(
+    sf::st_sfc(sf::st_polygon(list(matrix(c(0,0, 10,0, 10,10, 0,10, 0,0),
+                                           ncol=2, byrow=TRUE))))
+  )
+  tri <- shud.triangle(wb = boundary, q = 30, a = 5)
+
+  expect_warning(
+    mesh_sf <- sp.Tri2Shape(tri, crs = 4326),
+    "sp\\.Tri2Shape is deprecated.*mesh_to_sf"
+  )
+
+  expect_true(inherits(mesh_sf, "sf"))
+  expect_equal(sf::st_crs(mesh_sf)$epsg, 4326)
 })
 
 # Test Tri2Centroid function --------------------------------------------------

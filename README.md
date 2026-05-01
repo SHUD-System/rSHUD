@@ -130,7 +130,7 @@ model <- auto_build_model(
 )
 
 # Spatial visualization
-mesh_sf <- sp.mesh2Shape(model$mesh)
+mesh_sf <- mesh_to_sf(model$mesh)
 plot_polygons(mesh_sf, field = "Area")
 ```
 
@@ -289,7 +289,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 *If this project helps you, please give us a ⭐️ star!*
-
 
 
 

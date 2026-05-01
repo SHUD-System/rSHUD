@@ -275,7 +275,7 @@ q25_surf <- apply(surf, 2, quantile, probs = 0.25)
 q75_surf <- apply(surf, 2, quantile, probs = 0.75)
 
 # Plot spatial distribution of statistics
-mesh_sf <- sp.mesh2Shape(mesh)
+mesh_sf <- mesh_to_sf(mesh)
 mesh_sf$mean_surf <- mean_surf
 plot(mesh_sf["mean_surf"], main = "Mean Surface Water Depth")
 ```
