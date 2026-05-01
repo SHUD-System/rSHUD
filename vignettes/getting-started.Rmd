@@ -211,7 +211,7 @@ head(att)
 
 ```{r}
 # Convert mesh to spatial format for plotting
-mesh_sf <- sp.mesh2Shape(mesh, crs = st_crs(domain))
+mesh_sf <- mesh_to_sf(mesh, crs = st_crs(domain))
 
 # Plot mesh
 plot(st_geometry(mesh_sf), main = "Model Mesh")
@@ -219,7 +219,7 @@ plot(st_geometry(rivers), add = TRUE, col = "blue", lwd = 2)
 
 # Plot mesh with elevation
 elev <- getElevation(mesh)
-plot(mesh_sf["Elevation"], main = "Mesh Elevation")
+plot(mesh_sf["Zsurf"], main = "Mesh Elevation")
 ```
 
 ### Step 6: Read and Modify Input Files
@@ -528,7 +528,7 @@ model <- auto_build_model(
 )
 
 # Visualize mesh
-mesh_sf <- sp.mesh2Shape(model$mesh, crs = st_crs(domain))
+mesh_sf <- mesh_to_sf(model$mesh, crs = st_crs(domain))
 plot(st_geometry(mesh_sf), main = "Model Domain")
 
 # Run SHUD model (external command)

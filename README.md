@@ -120,17 +120,19 @@ attributes <- read_att("model.att")
 # Read spatial data with terra/sf
 dem <- rast("dem.tif")
 watershed <- st_read("watershed.shp")
+rivers_sf <- st_read("rivers.shp")
 
 # Auto-build model (modern API)
 model <- auto_build_model(
+  project_name = "example",
+  domain = watershed,
   dem = dem,
-  watershed = watershed,
   rivers = rivers_sf,
   output_dir = "./output"
 )
 
 # Spatial visualization
-mesh_sf <- sp.mesh2Shape(model$mesh)
+mesh_sf <- mesh_to_sf(model$mesh)
 plot_polygons(mesh_sf, field = "Area")
 ```
 
@@ -289,7 +291,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 *If this project helps you, please give us a ⭐️ star!*
-
 
 
 

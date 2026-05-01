@@ -298,16 +298,20 @@ shud.triangle <- function(wb, dem = NULL, riv = NULL, hole = NULL,
 }
 
 
-#' Convert mesh triangulation to sf shapefile
+#' Convert SHUD mesh to sf object
 #'
-#' Converts a triangular mesh to an sf object with POLYGON geometry.
-#' Modernized implementation using sf, with automatic sp conversion.
+#' Converts a SHUD mesh structure (from \code{\link{read_mesh}} or
+#' \code{\link{shud.mesh}}) or triangulation object to an sf object with POLYGON
+#' geometry.
 #'
-#' @param pm SHUD.MESH S4 object, or triangulation object from RTriangle/shud.triangle
-#' @param dbf data.frame of attributes to attach to polygons (optional)
-#' @param crs Coordinate reference system (CRS) as EPSG code, proj4string, or WKT
+#' @param pm A \code{SHUD.MESH} object or list with \code{T} and \code{P}
+#'   elements.
+#' @param dbf A \code{data.frame} of attributes to attach to polygons. Default
+#'   is NULL.
+#' @param crs Coordinate reference system (e.g., EPSG code or proj4string).
+#'   Default is NULL.
 #'
-#' @return sf object with POLYGON geometry and attributes
+#' @return An \code{sf} object with POLYGON geometry.
 #'
 #' @details
 #' This function has been modernized to return sf objects instead of sp
@@ -330,27 +334,12 @@ shud.triangle <- function(wb, dem = NULL, riv = NULL, hole = NULL,
 #' tri <- shud.triangle(wb = boundary, q = 30, a = 2)
 #'
 #' # Convert to sf
-#' mesh_sf <- sp.mesh2Shape(pm = tri, crs = 4326)
+#' mesh_sf <- mesh_to_sf(pm = tri, crs = 4326)
 #' plot(mesh_sf)
 #' }
 #'
-#' @name sp.mesh2Shape
-#' @rdname mesh_to_sf
-NULL
-
-#' Convert SHUD mesh to sf object
-#'
-#' Converts a SHUD mesh structure (from \code{\link{readmesh}} or \code{\link{shud.mesh}})
-#' to an sf object with POLYGON geometry.
-#'
-#' @param pm A \code{SHUD.MESH} object or list with \code{T} and \code{P} elements.
-#' @param dbf A \code{data.frame} of attributes to attach to polygons. Default is NULL.
-#' @param crs Coordinate reference system (e.g., EPSG code or proj4string). Default is NULL.
-#'
-#' @return An \code{sf} object with POLYGON geometry.
 #' @export
-#' @aliases mesh_to_sf
-mesh_to_sf <- function(pm = readmesh(), dbf = NULL, crs = NULL) {
+mesh_to_sf <- function(pm = read_mesh(), dbf = NULL, crs = NULL) {
   
   mesh <- pm
   attributes <- dbf
@@ -440,30 +429,39 @@ mesh_to_sf <- function(pm = readmesh(), dbf = NULL, crs = NULL) {
   return(mesh_sf)
 }
 
-#' @rdname mesh_to_sf
+#' Deprecated mesh conversion wrapper
+#'
+#' \code{sp.mesh2Shape()} is a backward-compatibility wrapper for
+#' \code{\link{mesh_to_sf}}.
+#'
+#' @inheritParams mesh_to_sf
+#'
+#' @return An \code{sf} object with POLYGON geometry.
+#' @keywords deprecated
 #' @export
 sp.mesh2Shape <- function(pm = readmesh(), dbf = NULL, crs = NULL) {
-  warning("sp.mesh2Shape is deprecated. Please use mesh_to_sf instead.")
+  .Deprecated("mesh_to_sf", msg = "sp.mesh2Shape is deprecated. Please use mesh_to_sf instead.")
   mesh_to_sf(pm, dbf, crs)
 }
 
 
-#' Convert triangulation to shapefile
+#' Deprecated triangulation conversion wrapper
 #'
-#' Converts a triangular mesh to an sf object with POLYGON geometry.
-#' Modernized implementation using sf.
+#' \code{sp.Tri2Shape()} is a backward-compatibility wrapper for
+#' \code{\link{mesh_to_sf}}.
 #'
 #' @param tri Triangulation object from RTriangle/shud.triangle
 #' @param dbf data.frame of attributes to attach to polygons (optional)
 #' @param crs Coordinate reference system (optional)
 #'
 #' @return sf object with POLYGON geometry
+#' @keywords deprecated
 #' @export
 sp.Tri2Shape <- function(tri, dbf = NULL, crs = NA) {
   if (is.na(crs)) {
     crs <- NULL
   }
   
-  # Use sp.mesh2Shape implementation
-  sp.mesh2Shape(pm = tri, dbf = dbf, crs = crs)
+  .Deprecated("mesh_to_sf", msg = "sp.Tri2Shape is deprecated. Please use mesh_to_sf instead.")
+  mesh_to_sf(pm = tri, dbf = dbf, crs = crs)
 }

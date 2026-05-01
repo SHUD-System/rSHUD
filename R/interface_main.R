@@ -356,7 +356,7 @@ auto_build_model <- function(
   mesh_obj <- shud.mesh(tri, dem = dem_cropped, AqDepth = aquifer_depth)
 
   # Convert to shapefile and save
-  mesh_sf <- sp.mesh2Shape(mesh_obj, crs = sf::st_crs(domain))
+  mesh_sf <- mesh_to_sf(mesh_obj, crs = sf::st_crs(domain))
   sf::st_write(mesh_sf, file.path(gis_dir, "domain.shp"),
                delete_dsn = TRUE, quiet = TRUE)
 

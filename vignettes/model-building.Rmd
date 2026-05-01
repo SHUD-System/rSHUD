@@ -220,7 +220,7 @@ poor_quality <- sum(min_angles < 20)
 cat("Triangles with min angle < 20°:", poor_quality, "\n")
 
 # Plot mesh
-mesh_sf <- sp.mesh2Shape(mesh, crs = st_crs(domain))
+mesh_sf <- mesh_to_sf(mesh, crs = st_crs(domain))
 plot(st_geometry(mesh_sf), main = "Generated Mesh", border = "gray")
 plot(st_geometry(domain), add = TRUE, border = "red", lwd = 2)
 ```
@@ -378,7 +378,7 @@ plot(rivers_with_props["order"], main = "Stream Order",
 
 ```{r}
 # Cut rivers with mesh triangles
-mesh_sf <- sp.mesh2Shape(mesh, crs = st_crs(domain))
+mesh_sf <- mesh_to_sf(mesh, crs = st_crs(domain))
 river_segments <- shud.rivseg(mesh_sf, river_sf)
 
 # Check connectivity

@@ -2,7 +2,7 @@
 % Please edit documentation in R/mesh_generation.R
 \name{sp.Tri2Shape}
 \alias{sp.Tri2Shape}
-\title{Convert triangulation to shapefile}
+\title{Deprecated triangulation conversion wrapper}
 \usage{
 sp.Tri2Shape(tri, dbf = NULL, crs = NA)
 }
@@ -17,6 +17,7 @@ sp.Tri2Shape(tri, dbf = NULL, crs = NA)
 sf object with POLYGON geometry
 }
 \description{
-Converts a triangular mesh to an sf object with POLYGON geometry.
-Modernized implementation using sf.
+\code{sp.Tri2Shape()} is a backward-compatibility wrapper for
+\code{\link{mesh_to_sf}}.
 }
+\keyword{deprecated}
