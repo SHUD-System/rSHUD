@@ -90,18 +90,34 @@ devtools::install_github("SHUD-System/rSHUD")
 ### 基本使用
 ```r
 library(rSHUD)
+library(terra)
+library(sf)
 
-# 加载示例数据
-data(sac)
-indata = sac
+# 读取已有SHUD模型文件
+mesh <- read_mesh("model.mesh")
+river <- read_river("model.riv")
+attributes <- read_att("model.att")
+
+# 使用terra/sf读取空间数据
+dem <- rast("dem.tif")
+domain <- st_read("watershed.shp")
+rivers_sf <- st_read("rivers.shp")
+forcing_sites <- st_read("forcing_sites.shp")
+forcing_files <- paste0(forcing_sites$NLDAS_ID, ".csv")
 
 # 自动构建模型
-sp.forc = indata[['forc']]
-forc.fns = paste0(sp.forc@data[, 'NLDAS_ID'], '.csv')
-pm = autoBuildModel(sac, forcfiles = forc.fns, outdir='./output')
+model <- auto_build_model(
+  project_name = "example",
+  domain = domain,
+  rivers = rivers_sf,
+  dem = dem,
+  forcing_sites = forcing_sites,
+  forcing_files = forcing_files,
+  output_dir = "./output"
+)
 
 # 转换为sf对象
-spm = mesh_to_sf(pm)
+mesh_sf <- mesh_to_sf(model$mesh)
 ```
 
 ### 查看可用示例
@@ -133,19 +149,19 @@ rSHUD/
 ## 🔧 主要函数分类
 
 ### 模型构建
-- `autoBuildModel()` - 自动构建SHUD模型
-- `readmesh()`, `readriv()` - 读取网格和河流数据
+- `auto_build_model()` - 自动构建SHUD模型
+- `read_mesh()`, `read_river()` - 读取网格和河流数据
 - `write_mesh()`, `write_river()` - 写入网格和河流数据
 
 ### GIS功能
 - `watershedDelineation()` - 流域划分
-- `sp2raster()` - 空间数据转栅格
+- `vector_to_raster()` - 空间数据转栅格
 - `writeshape()` - 输出Shapefile
 
 ### 水文计算
 - `PET_PM()` - 彭曼-蒙蒂斯蒸散发计算
 - `MeltFactor()` - 融雪因子
-- `hydrograph()` - 水文图分析
+- `plot_hydrograph()` - 水文图分析
 
 ---
 
