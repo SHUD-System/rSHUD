@@ -7,13 +7,14 @@
 sf_to_pslg(sp_obj)
 }
 \arguments{
-\item{sp_obj}{sf or sp object (POLYGON or LINESTRING)}
+\item{sp_obj}{sf object with POLYGON or LINESTRING geometry.}
 }
 \value{
 list with P (points matrix) and S (segments matrix)
 }
 \description{
-Internal helper function to convert sf or sp objects to PSLG format
-for RTriangle triangulation. Automatically handles sp to sf conversion.
+Internal helper function to convert sf objects to PSLG format for
+RTriangle triangulation. Deprecated callers may still supply legacy
+\code{sp} objects, which are converted before processing.
 }
 \keyword{internal}

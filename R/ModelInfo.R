@@ -7,7 +7,8 @@
 #' @return Basic model infomation, figures and tables
 #' @export
 ModelInfo <- function(path = shud.filein()['outpath'],
-                      spr = readriv.sp(),
+                      spr = sf::st_read(file.path(shud.filein()['inpath'], 'gis', 'river.shp'),
+                                        quiet = TRUE),
                       crs.pcs = sf::st_crs(sf::st_as_sf(spr))){
   # path=pp$outpath
   outdir = file.path(path, 'ModelInfo')
@@ -16,7 +17,7 @@ ModelInfo <- function(path = shud.filein()['outpath'],
   files = shud.filein()
   # colnames(files)='shud_files'
   
-  pm = readmesh(); pr = readriv(); pseg = readrivseg()
+  pm = read_mesh(); pr = read_river(); pseg = read_rivseg()
   ia = getArea(pm = pm); 
   
   #======Basic Info ============
@@ -112,13 +113,13 @@ ModelInfo <- function(path = shud.filein()['outpath'],
     }
   }
   #======Soil============
-  s = readsoil()
+  s = read_soil()
   grDevices::png(filename = file.path(figdir, paste0('Para_soil', '.png')), height = 6, width = 8, units = "in", res = 144) 
   myhist(s, icols = c(2, 3, 6, 7, 9), pp = c(2, 3))
   dev.off()
   
   #======Geol============
-  g = readgeol()
+  g = read_geol()
   grDevices::png(filename = file.path(figdir, paste0('Para_geol', '.png')), height = 6, width = 8, units = "in", res = 144) 
   myhist(g, icols = c(2, 3, 4, 4, 7, 8), pp = c(2, 3))
   dev.off()
@@ -127,18 +128,18 @@ ModelInfo <- function(path = shud.filein()['outpath'],
 
 #' Summary of the attributions on Mesh
 #' \code{MeshAtt} 
-#' @param  pm SHUD.MESH, .sp.mesh
-#' @param  att .sp.att of input
+#' @param  pm SHUD.MESH object
+#' @param  att SHUD attribute table
 #' @param  soil .para.soil of input
 #' @param  geol .para.geol of input
 #' @param  lc .para.lc of input
 #' @return Attributes of each element.
 #' @export
-MeshAtt <- function(pm = readmesh(), att = readatt(), 
-                    soil = readsoil(), geol = readgeol(), lc = readlc()){
-  # pm=readmesh();att=readatt();
-  # soil=readsoil(); geol=readgeol();
-  # lc=readlc()
+MeshAtt <- function(pm = read_mesh(), att = read_att(),
+                    soil = read_soil(), geol = read_geol(), lc = read_lc()){
+  # pm=read_mesh();att=read_att();
+  # soil=read_soil(); geol=read_geol();
+  # lc=read_lc()
   y = data.frame('MESH' = pm@mesh,
                   'ATT' = att,
                   'SOIL' = soil[att$SOIL, ],
@@ -152,8 +153,8 @@ MeshAtt <- function(pm = readmesh(), att = readatt(),
 #' @param  riv SHUD.RIVER 
 #' @return Attributes of each river reach
 #' @export
-RiverAtt <- function(riv = readriv()){
-  riv = readriv()
+RiverAtt <- function(riv = read_river()){
+  riv = read_river()
   it = riv@river$Type
   y = data.frame(riv@river, 
                   riv@rivertype[it, -1])

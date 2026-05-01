@@ -2,7 +2,7 @@
 % Please edit documentation in R/GIS_SimplifyPolylines.R
 \name{SimplifybyLen}
 \alias{SimplifybyLen}
-\title{Simplify Polylines by length
+\title{Deprecated: split legacy polylines by length
 \code{SimplifybyLen}}
 \source{
 https://stackoverflow.com/questions/38700246/how-do-i-split-divide-polyline-shapefiles-into-equally-length-smaller-segments
@@ -11,16 +11,18 @@ https://stackoverflow.com/questions/38700246/how-do-i-split-divide-polyline-shap
 SimplifybyLen(sp, split_length = 20, plot.results = FALSE)
 }
 \arguments{
-\item{sp}{a SpatialLines or SpatialPoygons object}
+\item{sp}{\code{sf} line object; legacy \code{SpatialLines} input is accepted
+for compatibility.}
 
-\item{split_length}{the length of the segments to split the lines into, in units of the SpatialLine object}
+\item{split_length}{the length of the segments to split the lines into, in
+map units.}
 
 \item{plot.results}{TRUE/FALSE}
 }
 \value{
-simplified SpatialLines
+Legacy \code{SpatialLinesDataFrame} for compatibility.
 }
 \description{
-Simplify Polylines by length
+Deprecated: split legacy polylines by length
 \code{SimplifybyLen}
 }

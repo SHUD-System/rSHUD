@@ -16,8 +16,8 @@ datafilter.riv <- function(x, filter = NULL, plot = TRUE){
   # y = x[['YRivstage']]
   y = x
   # plot(y)
-  pr = readriv()
-  cb = readcalib()
+  pr = read_river()
+  cb = read_calib()
   tid = pr@river[, 'Type']
   uid = sort(unique(tid))
   st = pr@rivertype[tid, 'Depth'] + cb['RIV_DPTH']

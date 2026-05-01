@@ -28,7 +28,7 @@ order of the higher-order stream
 }
 \section{Migration Note}{
 
-This function replaces \code{sp.RiverOrder()} and uses sf instead of sp.
+This function replaces deprecated \code{sp.RiverOrder()} and uses sf.
 The algorithm and results are equivalent, but the input must be an sf object.
 }
 

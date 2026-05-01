@@ -19,16 +19,16 @@
 ### SHUD Model Features
 SHUD is a multi-process, multi-scale hydrological model that fully couples major hydrological processes using the semi-discrete finite volume method. This package can be used with the AutoSHUD project to automatically build modeling domains.
 
-### ⚡ Version 2.2.0 - Modern Spatial Libraries
+### ⚡ Version 2.3.0 - Modern Spatial Libraries
 
-**rSHUD v2.2.0** has been completely modernized to use **terra** and **sf** packages exclusively:
+**rSHUD 2.3.0** follows the modern rSHUD v3 spatial API using **terra** and **sf** packages by default:
 - 🚀 **150-400% performance improvement** on spatial operations
-- 🎯 **Modern API**: Uses terra/sf directly - no legacy raster/sp support
+- 🎯 **Modern API**: Uses terra/sf directly; modern functions reject legacy raster/sp inputs
 - ✅ **Consistent naming**: All functions follow snake_case convention
 - 📚 **Complete documentation**: Migration guide and comprehensive examples
 - 🧪 **Robust testing**: 70%+ test coverage with parameter validation
 
-**⚠️ Breaking Change**: This version requires terra (≥1.7-0) and sf (≥1.0-0). Legacy raster/sp objects are no longer supported. See [Migration Guide](#-migration-from-v21x) below.
+**⚠️ Breaking Change**: This version requires terra (≥1.7-0) and sf (≥1.0-0). Modern APIs no longer accept legacy raster/sp objects. Deprecated wrappers are retained only as migration compatibility entry points and may perform limited conversion before forwarding. See [Migration Guide](#-migration-from-v21x) below.
 
 ## 📚 Project Docs Index
 
@@ -41,7 +41,7 @@ Process and governance documents are organized under `docs/`:
 
 ### 1. Data Conversion and Preprocessing
 - Convert geospatial data to SHUD format
-- Process raster and vector data
+- Process terra `SpatRaster` and sf vector data
 - Build unstructured triangular mesh domains
 
 ### 2. Model File Management
@@ -55,7 +55,7 @@ Process and governance documents are organized under `docs/`:
 - Hydrograph analysis
 
 ### 4. GIS Functions
-- Convert unstructured data to spatial data (Shapefile or Raster)
+- Convert unstructured data to modern spatial outputs (`sf`/Shapefile or terra `SpatRaster`)
 - Watershed delineation and river network processing
 - Spatial analysis and visualization
 
@@ -97,7 +97,7 @@ devtools::install_github("SHUD-System/rSHUD")
 ### Verify Installation
 ```r
 library(rSHUD)
-packageVersion("rSHUD")  # Should be 2.2.0
+packageVersion("rSHUD")  # Should be 2.3.0
 packageVersion("terra")  # Should be >= 1.7.0
 packageVersion("sf")     # Should be >= 1.0.0
 ```
@@ -106,7 +106,7 @@ packageVersion("sf")     # Should be >= 1.0.0
 
 ## 📚 Usage Examples
 
-### Basic Usage (v2.2.0)
+### Basic Usage (v2.3.0)
 ```r
 library(rSHUD)
 library(terra)
@@ -188,7 +188,7 @@ rSHUD/
 - `calc_river_order()` - River order calculation
 - `ts_to_daily()` - Time series aggregation
 
-### Deprecated Functions (still available)
+### Deprecated Functions (migration compatibility only)
 - `autoBuildModel()` → use `auto_build_model()`
 - `readmesh()` → use `read_mesh()`
 - `sp2raster()` → use `vector_to_raster()`
@@ -204,13 +204,13 @@ See `NEWS.md` for complete list of deprecated functions.
 
 **1. Update spatial object types:**
 ```r
-# Old (v2.1.x - no longer works)
+# Old legacy code (v2.1.x; deprecated and not accepted by modern functions)
 library(raster)
 library(sp)
 dem <- raster("dem.tif")
 watershed <- readOGR("watershed.shp")
 
-# New (v2.2.0)
+# New (v2.3.0 / rSHUD v3 API)
 library(terra)
 library(sf)
 dem <- rast("dem.tif")
@@ -219,7 +219,7 @@ watershed <- st_read("watershed.shp")
 
 **2. Update function names:**
 ```r
-# Old function names (deprecated but still work with warnings)
+# Old function names (deprecated compatibility wrappers)
 mesh <- readmesh("model.mesh")
 river <- readriv("model.riv")
 ts_data <- read.tsd("data.tsd")
@@ -232,7 +232,7 @@ ts_data <- read_tsd("data.tsd")
 
 **3. Update spatial operations:**
 ```r
-# Old (raster package)
+# Old legacy code (raster/sp packages; deprecated)
 cropped <- crop(raster_obj, extent_obj)
 buffered <- buffer(sp_obj, width = 100)
 
@@ -245,7 +245,7 @@ buffered <- st_buffer(sf_obj, dist = 100)
 
 For detailed migration instructions, see:
 - `NEWS.md` - Complete list of changes and deprecated functions
-- Package vignettes: `vignette("migration", package = "rSHUD")`
+- Package vignettes: `vignette("migration-guide", package = "rSHUD")`
 - Online documentation: [www.shud.xyz](https://www.shud.xyz/)
 
 ### Getting Help
@@ -291,6 +291,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 *If this project helps you, please give us a ⭐️ star!*
-
-
 

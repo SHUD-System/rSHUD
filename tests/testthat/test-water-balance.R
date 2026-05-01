@@ -22,6 +22,10 @@ test_that("wb.DS respects supplied initial conditions", {
 
   testthat::local_mocked_bindings(
     readic = function(...) fallback_ic,
+    read_geol = function(...) data.frame(ThetaS.m3_m3. = 0.5),
+    read_att = function(...) data.frame(GEOL = c(1, 1)),
+    read_calib = function(...) data.frame(GEOL_THETAS = 1),
+    read_river = function(...) river,
     readgeol = function(...) data.frame(ThetaS.m3_m3. = 0.5),
     readatt = function(...) data.frame(GEOL = c(1, 1)),
     readcalib = function(...) data.frame(GEOL_THETAS = 1),

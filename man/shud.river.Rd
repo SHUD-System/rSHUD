@@ -2,15 +2,16 @@
 % Please edit documentation in R/River.R
 \name{shud.river}
 \alias{shud.river}
-\title{calculate river order, downstream, slope and length
+\title{Calculate river order, downstream, slope, and length
 \code{shud.river}}
 \usage{
 shud.river(sl, dem, rivord = NULL, rivdown = NULL, AREA = NULL)
 }
 \arguments{
-\item{sl}{SpatialLines*}
+\item{sl}{\code{sf} LINESTRING object; legacy \code{SpatialLines*} is
+accepted for compatibility.}
 
-\item{dem}{Raster of elevation}
+\item{dem}{Elevation as a \code{terra::SpatRaster}}
 
 \item{rivord}{Order of each river reach}
 
@@ -22,6 +23,6 @@ shud.river(sl, dem, rivord = NULL, rivdown = NULL, AREA = NULL)
 SHUD.RIVER
 }
 \description{
-calculate river order, downstream, slope and length
+Calculate river order, downstream, slope, and length
 \code{shud.river}
 }

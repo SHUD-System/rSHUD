@@ -18,14 +18,16 @@ read_nc_data(
 
 \item{extent}{Numeric vector c(xmin, xmax, ymin, ymax) for spatial subset}
 
-\item{format}{Character. Output format ("modern" uses terra, "legacy" uses raster)}
+\item{format}{Character. Output format. \code{"modern"} uses terra;
+\code{"legacy"} is retained only for migration compatibility.}
 }
 \value{
 List containing coordinates, data array, and time information
 }
 \description{
 Reads NetCDF data with optional spatial and variable subsetting.
-Supports both legacy raster and modern terra output formats.
+Supports modern terra output by default, with an optional legacy-compatible
+format for migration.
 }
 \examples{
 \dontrun{

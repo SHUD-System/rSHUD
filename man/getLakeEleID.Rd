@@ -5,7 +5,7 @@
 \title{Get the Lake Element Index
 \code{getLakeEleID}}
 \usage{
-getLakeEleID(pa = readatt())
+getLakeEleID(pa = read_att())
 }
 \arguments{
 \item{pa}{\code{shud.att}}

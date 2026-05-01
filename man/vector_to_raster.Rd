@@ -48,10 +48,10 @@ resolution settings and multiple aggregation functions.
 \section{Migration Note}{
 
 This function replaces \code{sp2raster()} and uses terra/sf instead of
-raster/sp. Key differences:
+legacy spatial packages. Key differences:
 \itemize{
 \item Returns SpatRaster instead of RasterLayer
-\item Accepts sf or SpatVector instead of Spatial* objects
+\item Accepts sf or SpatVector objects
 \item Does not use global MASK environment variable
 \item Parameter 'mask' renamed to 'template'
 \item More flexible field specification

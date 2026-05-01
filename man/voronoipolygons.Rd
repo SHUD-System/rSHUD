@@ -2,13 +2,13 @@
 % Please edit documentation in R/Func_GIS.R
 \name{voronoipolygons}
 \alias{voronoipolygons}
-\title{Generate Thiesson Polygons from a point data
+\title{Generate Thiessen polygons from point data
 \code{voronoipolygons}}
 \usage{
 voronoipolygons(x = NULL, pts = NULL, rw = NULL, crs = NULL)
 }
 \arguments{
-\item{x}{ShapePoints* in PCS}
+\item{x}{\code{sf} point object in projected coordinates}
 
 \item{pts}{Coordinates (x,y) of the points}
 
@@ -17,10 +17,10 @@ voronoipolygons(x = NULL, pts = NULL, rw = NULL, crs = NULL)
 \item{crs}{projection parameters (default = NULL)}
 }
 \value{
-ShapePolygon*
+Legacy \code{SpatialPolygons*} object for compatibility.
 }
 \description{
-Generate Thiesson Polygons from a point data
+Generate Thiessen polygons from point data
 \code{voronoipolygons}
 }
 \examples{

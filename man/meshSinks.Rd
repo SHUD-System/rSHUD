@@ -5,7 +5,7 @@
 \title{Get the Sink cells in SHUD mesh
 \code{meshSinks}}
 \usage{
-meshSinks(pm = readmesh(), details = FALSE)
+meshSinks(pm = read_mesh(), details = FALSE)
 }
 \arguments{
 \item{pm}{SHUD mesh}

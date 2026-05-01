@@ -5,7 +5,7 @@
 #' @param details Whether return details of sinks infomration.
 #' @return Vector of TRUE/FALSE or data.frame
 #' @export
-meshSinks <- function(pm = readmesh(), details = FALSE){
+meshSinks <- function(pm = read_mesh(), details = FALSE){
   ze = getElevation(pm = pm)
   nab = pm@mesh[4 + 1:3]
   zi = cbind(ze, ze, ze)

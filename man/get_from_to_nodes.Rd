@@ -7,7 +7,9 @@
 get_from_to_nodes(sf_line, coords = get_coords(sf_line))
 }
 \arguments{
-\item{sf_line}{sf object with LINESTRING geometry or SpatialLines object}
+\item{sf_line}{\code{sf} object with LINESTRING geometry. Deprecated river
+wrappers may pass legacy line objects, which are converted internally for
+compatibility.}
 
 \item{coords}{Matrix of unique coordinates (default: get_coords(sf_line))}
 }

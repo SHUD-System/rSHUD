@@ -2,19 +2,20 @@
 % Please edit documentation in R/Func_Misc.R
 \name{sp2PSLG}
 \alias{sp2PSLG}
-\title{Convert SpatialLines or SpatialPolygons a Planar Straight Line Graph object
+\title{Deprecated: convert spatial lines or polygons to a PSLG object
 \code{sp2PSLG}}
 \usage{
 sp2PSLG(sp)
 }
 \arguments{
-\item{sp}{SpatialLines or SpatialPolygons}
+\item{sp}{\code{sf} line/polygon object; legacy \code{SpatialLines} or
+\code{SpatialPolygons} objects are accepted for compatibility.}
 }
 \value{
 pslg class
 }
 \description{
-Convert SpatialLines or SpatialPolygons a Planar Straight Line Graph object
+Deprecated: convert spatial lines or polygons to a PSLG object
 \code{sp2PSLG}
 }
 \examples{
@@ -24,3 +25,4 @@ if (requireNamespace("sf", quietly = TRUE) && requireNamespace("sp", quietly = T
   x <- sp2PSLG(sl)
 }
 }
+\keyword{deprecated}

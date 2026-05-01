@@ -5,7 +5,7 @@
 \title{Get the centroids of the cells
 \code{getCentroid}}
 \usage{
-getCentroid(pm = readmesh())
+getCentroid(pm = read_mesh())
 }
 \arguments{
 \item{pm}{\code{shud.mesh}}

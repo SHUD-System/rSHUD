@@ -8,14 +8,14 @@
 writeshape(shp, file = NULL, crs = NULL)
 }
 \arguments{
-\item{shp}{\code{sf} object, or legacy \code{sp} \code{Spatial*} object (converted
-with \code{sf::st_as_sf()} before writing).}
+\item{shp}{\code{sf} object. Legacy \code{sp} \code{Spatial*} objects are
+accepted only for deprecated compatibility and are converted with
+\code{sf::st_as_sf()} before writing.}
 
 \item{file}{file path, with or without \code{.shp} extension.}
 
 \item{crs}{CRS to assign before write (default: CRS taken from \code{shp} via
-\code{sf::st_crs()} or \code{sf::st_crs(sf::st_as_sf(shp))} for legacy
-vector objects). Use
+\code{sf::st_crs()}). Use
 \code{NA} to skip \code{st_set_crs} (not recommended for new data).}
 }
 \description{
@@ -23,9 +23,9 @@ Write ESRI shapefile out
 \code{writeshape}
 }
 \details{
-All outputs are written with \code{sf::st_write()}. \code{SpatialPolygons},
-\code{SpatialLines}, and \code{SpatialPoints} without a data slot are given
-a synthetic \code{ID} column so conversion to \code{sf} is well-defined.
+All outputs are written with \code{sf::st_write()}. Deprecated
+compatibility inputs without a data slot are given a synthetic \code{ID}
+column so conversion to \code{sf} is well-defined.
 }
 \examples{
 \dontrun{

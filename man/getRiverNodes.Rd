@@ -5,10 +5,13 @@
 \title{Get the From/To nodes of the river.
 \code{getRiverNodes}}
 \usage{
-getRiverNodes(spr = readriv.sp())
+getRiverNodes(
+  spr = sf::st_read(file.path(shud.filein()["inpath"], "gis", "river.shp"), quiet = TRUE)
+)
 }
 \arguments{
-\item{spr}{SpatialLine* of river streams.}
+\item{spr}{\code{sf} LINESTRING object for river streams; legacy spatial
+input is accepted for compatibility.}
 }
 \value{
 a list, c(points, FT_ID)

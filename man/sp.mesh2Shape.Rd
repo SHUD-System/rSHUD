@@ -4,7 +4,7 @@
 \alias{sp.mesh2Shape}
 \title{Deprecated mesh conversion wrapper}
 \usage{
-sp.mesh2Shape(pm = readmesh(), dbf = NULL, crs = NULL)
+sp.mesh2Shape(pm = read_mesh(), dbf = NULL, crs = NULL)
 }
 \arguments{
 \item{pm}{A \code{SHUD.MESH} object or list with \code{T} and \code{P}

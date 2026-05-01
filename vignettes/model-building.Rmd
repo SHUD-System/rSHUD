@@ -614,8 +614,11 @@ if (!domain_valid) {
 **Issue: Missing attribute values**
 ```{r}
 # Check raster coverage
-coverage <- ForcingCoverage(mesh, dem)
-cat("DEM coverage:", coverage, "%\n")
+mesh_sf <- mesh_to_sf(mesh, crs = st_crs(domain))
+mesh_centroids <- st_centroid(mesh_sf)
+dem_values <- extract(dem, vect(mesh_centroids))[, 2]
+coverage <- mean(!is.na(dem_values)) * 100
+cat("DEM coverage of mesh centroids:", coverage, "%\n")
 
 # Fill missing values
 att$Soil[is.na(att$Soil)] <- median(att$Soil, na.rm = TRUE)

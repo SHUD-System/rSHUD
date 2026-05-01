@@ -2,10 +2,10 @@
 % Please edit documentation in R/Func_GIS.R
 \name{shud.mask}
 \alias{shud.mask}
-\title{Generate the raster mask of Mesh domain
+\title{Generate the terra raster mask of a mesh domain
 \code{shud.mask}}
 \usage{
-shud.mask(pm = readmesh(), proj = NULL, rr = NULL, n = 10000, cellsize = NULL)
+shud.mask(pm = read_mesh(), proj = NULL, rr = NULL, n = 10000, cellsize = NULL)
 }
 \arguments{
 \item{pm}{\code{shud.mesh}}
@@ -19,9 +19,9 @@ shud.mask(pm = readmesh(), proj = NULL, rr = NULL, n = 10000, cellsize = NULL)
 \item{cellsize}{Resolution, defaul = NULL, resolution = extent / ngrids}
 }
 \value{
-Raster map
+\code{terra::SpatRaster} mask
 }
 \description{
-Generate the raster mask of Mesh domain
+Generate the terra raster mask of a mesh domain
 \code{shud.mask}
 }

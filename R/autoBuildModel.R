@@ -28,8 +28,8 @@
 #' @examples
 #' data(sac)
 #' indata = sac
-#' sp.forc = indata[['forc']]
-#' forc.fns = paste0(sp.forc@data[, 'NLDAS_ID'], '.csv')
+#' forc = sf::st_as_sf(indata[['forc']])
+#' forc.fns = paste0(forc$NLDAS_ID, '.csv')
 #' forc.fns
 # shud_auto_build(sac, forcfiles = forc.fns, outdir=tempdir())
 shud_auto_build <- function(

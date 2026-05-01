@@ -7,7 +7,9 @@
 get_coords(x)
 }
 \arguments{
-\item{x}{sf object with LINESTRING geometry or SpatialLines object}
+\item{x}{\code{sf} object with LINESTRING geometry. Deprecated river
+wrappers may pass legacy line objects, which are converted internally for
+compatibility.}
 }
 \value{
 Matrix of unique coordinates

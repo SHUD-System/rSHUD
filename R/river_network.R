@@ -322,7 +322,8 @@ calc_river_width_from_area <- function(area, n_types = 10) {
 #' The output is ready for use in SHUD model input files.
 #'
 #' @section Migration Note:
-#' This function replaces \code{shud.river()} and uses sf/terra instead of sp/raster.
+#' This function replaces \code{shud.river()} and uses sf/terra instead of
+#' legacy spatial packages.
 #' The output structure is similar but uses modern spatial formats.
 #'
 #' @export
@@ -530,9 +531,9 @@ get_river_outlets <- function(rivers) {
 #' @return SHUD.RIVER S4 object
 #'
 #' @details
-#' This function creates a SHUD.RIVER object that includes both the legacy
-#' data.frame format (for backward compatibility) and the modern sf format
-#' (stored in the network slot).
+#' This function creates a SHUD.RIVER object that includes both the SHUD tabular
+#' river fields and the modern sf network representation stored in the
+#' \code{network} slot.
 #'
 #' @export
 #' @examples
@@ -563,7 +564,7 @@ as_shud_river <- function(network_list) {
   river_types <- network_list$river_types
   points <- network_list$points
   
-  # Build river data frame (legacy format)
+  # Build SHUD tabular river fields.
   river_df <- data.frame(
     Index = network_sf$Index,
     Down = network_sf$Down,
@@ -591,22 +592,21 @@ as_shud_river <- function(network_list) {
 
 #' Convert SHUD.RIVER to sf Object
 #'
-#' Extracts the sf network from a SHUD.RIVER object, or reconstructs it
-#' from the legacy data.frame format if needed.
+#' Extracts the sf network from a SHUD.RIVER object, or reconstructs it from
+#' tabular river fields if needed.
 #'
 #' @param shud_river SHUD.RIVER S4 object
 #' @return sf object with river network
 #'
 #' @details
-#' If the SHUD.RIVER object has a network slot (modern format), it is
-#' returned directly. Otherwise, the function attempts to reconstruct
-#' an sf object from the point coordinates.
+#' If the SHUD.RIVER object has a network slot, it is returned directly.
+#' Otherwise, the function attempts to reconstruct an sf object from the point
+#' coordinates.
 #'
 #' @export
 #' @examples
 #' \dontrun{
-#' # Load legacy SHUD.RIVER object
-#' shud_river <- readriv("model.riv")
+#' shud_river <- read_river("model.riv")
 #' # Convert to sf
 #' rivers_sf <- shud_river_to_sf(shud_river)
 #' }
@@ -621,8 +621,8 @@ shud_river_to_sf <- function(shud_river) {
     return(shud_river@network)
   }
   
-  # Reconstruct from legacy format
-  message("Reconstructing sf object from legacy format...")
+  # Reconstruct from SHUD tabular river fields.
+  message("Reconstructing sf object from SHUD tabular river fields...")
   
   river_df <- shud_river@river
   point_df <- shud_river@point
@@ -662,7 +662,7 @@ shud_river_to_sf <- function(shud_river) {
 #' Check if SHUD.RIVER Uses Modern Format
 #'
 #' Determines if a SHUD.RIVER object uses the modern sf-based format
-#' or the legacy data.frame-only format.
+#' or tabular fields only.
 #'
 #' @param shud_river SHUD.RIVER S4 object
 #' @return Logical, TRUE if modern format

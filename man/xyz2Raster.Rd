@@ -20,7 +20,7 @@ xyz2Raster(x, y = NULL, arr = NULL, Dxy = NULL, flip = TRUE, plot = TRUE)
 \item{plot}{Whether plot the raster.}
 }
 \value{
-a Raster/RasterStack
+\code{terra::SpatRaster}
 }
 \description{
 Read the time tage from (x, y, matrix).

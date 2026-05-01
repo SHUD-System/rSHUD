@@ -9,26 +9,25 @@ shud.mesh(tri, dem, AqDepth = 10, r.aq = dem * 0 + AqDepth)
 \arguments{
 \item{tri}{Triangulation object from RTriangle or shud.triangle()}
 
-\item{dem}{Elevation data - terra SpatRaster or legacy raster object
-(auto-converted to SpatRaster)}
+\item{dem}{Elevation data as a \code{terra::SpatRaster}}
 
 \item{AqDepth}{Numeric value for uniform aquifer depth (default: 10)}
 
-\item{r.aq}{Aquifer thickness raster - terra SpatRaster or legacy raster
-(optional, overrides AqDepth if provided)}
+\item{r.aq}{Aquifer thickness as a \code{terra::SpatRaster} (optional,
+overrides AqDepth if provided)}
 }
 \value{
 SHUD.MESH S4 object with mesh and point data
 }
 \description{
 Creates a SHUD.MESH S4 object from a triangulation, extracting elevation
-and aquifer depth from raster data. Modernized implementation using terra
-for raster operations, with automatic raster to terra conversion.
+and aquifer depth from \code{terra::SpatRaster} data.
 }
 \details{
 This function has been modernized to use terra for raster operations,
-providing better performance. Legacy raster objects are automatically
-converted to terra SpatRaster format.
+providing better performance. Deprecated low-level callers may still pass
+legacy objects, which are converted for compatibility; new code should pass
+\code{terra::SpatRaster} directly.
 }
 \examples{
 \dontrun{

@@ -54,7 +54,10 @@ NULL
 #' Key differences:
 #' \itemize{
 #'   \item Only accepts terra::SpatRaster and sf objects
-#'   \item Rejects legacy raster/sp objects with clear error messages
+#'   \item Rejects legacy spatial objects with clear error messages
+#'   \item Legacy inputs belong in deprecated wrapper workflows such as
+#'     \code{\link{autoBuildModel}}, which may perform limited conversion before
+#'     forwarding to this modern API
 #'   \item Uses snake_case parameter names (e.g., project_name vs prjname)
 #'   \item Returns structured list instead of just mesh object
 #'   \item Provides verbose progress reporting
@@ -62,13 +65,12 @@ NULL
 #'
 #' To migrate from legacy code:
 #' \preformatted{
-#' # Old code (raster/sp):
-#' # wbd <- readOGR("boundary.shp")
-#' # dem <- raster("dem.tif")
-#'
-#' # New code (sf/terra):
+#' # Modern code (sf/terra):
 #' wbd <- sf::st_read("boundary.shp")
 #' dem <- terra::rast("dem.tif")
+#'
+#' # Deprecated autoBuildModel() remains the migration compatibility entry point
+#' # for limited legacy conversion/forwarding.
 #' }
 #'
 #' @export
@@ -158,7 +160,6 @@ auto_build_model <- function(
     stop(
       "Legacy sp objects are not supported.\n\n",
       "To migrate your code:\n",
-      "  OLD: domain <- readOGR('boundary.shp')\n",
       "  NEW: domain <- sf::st_read('boundary.shp')\n\n",
       "See inst/MIGRATION_GUIDE.md for complete migration instructions.",
       call. = FALSE
@@ -169,7 +170,6 @@ auto_build_model <- function(
     stop(
       "Legacy raster objects are not supported.\n\n",
       "To migrate your code:\n",
-      "  OLD: dem <- raster('dem.tif')\n",
       "  NEW: dem <- terra::rast('dem.tif')\n\n",
       "See inst/MIGRATION_GUIDE.md for complete migration instructions.",
       call. = FALSE
@@ -538,7 +538,10 @@ auto_build_model <- function(
 #' @title Deprecated: Build SHUD Model (Legacy Interface)
 #' @description
 #' This function is deprecated. Use \code{\link{auto_build_model}} instead.
-#' It auto-converts legacy sp/raster inputs to sf/terra before forwarding.
+#' It is retained only as a migration compatibility entry point. It performs
+#' limited conversion of legacy \code{sp}/\code{raster} inputs to
+#' \code{sf}/\code{terra} before forwarding to \code{auto_build_model()}; new
+#' code should pass \code{sf} and \code{terra::SpatRaster} objects directly.
 #'
 #' @param indata Named list with components: wbd (domain), riv (rivers), dem, rsoil, rgeol, rlc, forc
 #' @param forcfiles Forcing file paths or data.frame

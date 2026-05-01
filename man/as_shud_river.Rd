@@ -17,9 +17,9 @@ Converts a river network (from build_river_network) to the SHUD.RIVER
 S4 class format for compatibility with existing SHUD workflows.
 }
 \details{
-This function creates a SHUD.RIVER object that includes both the legacy
-data.frame format (for backward compatibility) and the modern sf format
-(stored in the network slot).
+This function creates a SHUD.RIVER object that includes both the SHUD tabular
+river fields and the modern sf network representation stored in the
+\code{network} slot.
 }
 \examples{
 \dontrun{

@@ -8,12 +8,14 @@
 rmDuplicatedLines(x, ...)
 }
 \arguments{
-\item{x}{\code{sf} data or \code{sp} ShapeLine*}
+\item{x}{\code{sf} line object; legacy spatial input is accepted for
+compatibility.}
 
 \item{...}{More options in duplicated()}
 }
 \value{
-ShapeLine* without duplicated lines.
+Line object without duplicated from/to nodes, preserving the input
+class where possible.
 }
 \description{
 Remove the duplicated lines, which means the FROM and TO points are identical.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/io_netcdf.R
 \name{nc_to_raster}
 \alias{nc_to_raster}
-\title{Convert NetCDF data to raster/terra format}
+\title{Convert NetCDF data to terra raster format}
 \usage{
 nc_to_raster(
   nc_data = NULL,
@@ -27,13 +27,15 @@ nc_to_raster(
 
 \item{flip}{Logical. Whether to flip the array vertically}
 
-\item{format}{Character. Output format ("modern" or "legacy")}
+\item{format}{Character. Output format ("modern" or "legacy").}
 }
 \value{
-SpatRaster (modern) or RasterStack/RasterLayer (legacy)
+\code{terra::SpatRaster} by default, or a legacy raster object when
+\code{format = "legacy"} and the raster package is available.
 }
 \description{
-Converts NetCDF data arrays to raster (legacy) or terra (modern) format.
+Converts NetCDF data arrays to \code{terra::SpatRaster} by default. A
+legacy-compatible return can be requested only for migration workflows.
 Handles both single layers and multi-layer datasets.
 }
 \examples{
@@ -42,10 +44,10 @@ library(ncdf4)
 nc <- nc_open("climate_data.nc")
 nc_data <- read_nc_data(nc)
 
-# Convert to terra format (modern)
+# Convert to terra format (modern default)
 raster_data <- nc_to_raster(nc_data, format = "modern")
 
-# Convert to raster format (legacy)
+# Legacy migration compatibility only
 raster_data <- nc_to_raster(nc_data, format = "legacy")
 
 nc_close(nc)

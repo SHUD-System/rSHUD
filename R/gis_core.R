@@ -17,7 +17,7 @@ NULL
 #'   If matrix, each row represents a time step and each column a mesh cell.
 #'   Length/ncol must equal the number of mesh cells.
 #' @param mesh Mesh object (optional). If NULL, uses default mesh from
-#'   \code{readmesh()}.
+#'   \code{read_mesh()}.
 #' @param template SpatRaster template defining output grid (optional).
 #'   If NULL, creates template from mesh extent.
 #' @param method Character, interpolation method. One of:
@@ -37,10 +37,10 @@ NULL
 #'
 #' @section Migration Note:
 #' This function replaces \code{MeshData2Raster()} and uses terra instead of
-#' raster. Key differences:
+#' the legacy raster package. Key differences:
 #' \itemize{
 #'   \item Returns SpatRaster instead of RasterLayer
-#'   \item Does not accept raster/sp objects - use terra/sf only
+#'   \item Does not accept legacy spatial objects - use terra/sf only
 #'   \item Method names simplified: "ide" -> "idw"
 #'   \item Removed plot parameter - use terra::plot() on result
 #' }
@@ -49,7 +49,7 @@ NULL
 #' @examples
 #' \dontrun{
 #' # Basic usage with vector data
-#' mesh <- readmesh()
+#' mesh <- read_mesh("model.mesh")
 #' elevation <- getElevation()
 #' r <- mesh_to_raster(elevation, mesh = mesh)
 #' terra::plot(r)
@@ -77,7 +77,7 @@ mesh_to_raster <- function(data,
     stop("Parameter 'data' is required", call. = FALSE)
   }
 
-  # Check for legacy raster/sp objects and reject them
+  # Modern API rejects legacy raster/sp objects.
   if (inherits(data, c("Raster", "RasterLayer", "RasterStack", "RasterBrick",
                        "Spatial", "SpatialPoints", "SpatialPolygons"))) {
     stop(
@@ -147,7 +147,7 @@ mesh_to_raster <- function(data,
 
   # Get mesh if not provided
   if (is.null(mesh)) {
-    mesh <- readmesh()
+    mesh <- read_mesh()
   }
 
   # Get mesh centroids
@@ -167,7 +167,7 @@ mesh_to_raster <- function(data,
     # Create template from mesh extent
     template <- shud.mask(pm = mesh, proj = crs)
 
-    # Convert to terra if it's a raster object
+    # Internal mask helpers now return terra; keep this guard for legacy masks.
     if (inherits(template, c("RasterLayer", "RasterStack", "RasterBrick"))) {
       template <- terra::rast(template)
     }
@@ -313,10 +313,10 @@ mesh_to_raster <- function(data,
 #'
 #' @section Migration Note:
 #' This function replaces \code{sp2raster()} and uses terra/sf instead of
-#' raster/sp. Key differences:
+#' legacy spatial packages. Key differences:
 #' \itemize{
 #'   \item Returns SpatRaster instead of RasterLayer
-#'   \item Accepts sf or SpatVector instead of Spatial* objects
+#'   \item Accepts sf or SpatVector objects
 #'   \item Does not use global MASK environment variable
 #'   \item Parameter 'mask' renamed to 'template'
 #'   \item More flexible field specification
@@ -515,43 +515,4 @@ sp2raster <- function(...) {
 
   # Call new function
   do.call(vector_to_raster, args)
-}
-
-#' Deprecated: MeshData2Raster
-#'
-#' @description
-#' This function is deprecated. Use \code{\link{mesh_to_raster}} instead.
-#'
-#' @param ... Arguments passed to \code{mesh_to_raster}
-#' @export
-#' @keywords internal
-MeshData2Raster <- function(...) {
-  .Deprecated("mesh_to_raster")
-
-  # Get arguments
-  args <- list(...)
-
-  # Map old parameter names to new ones
-  if ("x" %in% names(args)) {
-    args$data <- args$x
-    args$x <- NULL
-  }
-  if ("rmask" %in% names(args)) {
-    args$template <- args$rmask
-    args$rmask <- NULL
-  }
-  if ("pm" %in% names(args)) {
-    args$mesh <- args$pm
-    args$pm <- NULL
-  }
-  if ("proj" %in% names(args)) {
-    args$crs <- args$proj
-    args$proj <- NULL
-  }
-
-  # Remove unsupported parameters
-  args$plot <- NULL
-
-  # Call new function
-  do.call(mesh_to_raster, args)
 }

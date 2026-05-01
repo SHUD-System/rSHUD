@@ -2,7 +2,7 @@
 % Please edit documentation in R/ModelConfigure.R
 \name{shud.ic}
 \alias{shud.ic}
-\title{extract Coordinates of SpatialLines or  SpatialPolygons
+\title{Generate SHUD initial condition tables
 \code{shud.ic}}
 \usage{
 shud.ic(
@@ -34,6 +34,6 @@ shud.ic(
 List of initial condition
 }
 \description{
-extract Coordinates of SpatialLines or  SpatialPolygons
+Generate SHUD initial condition tables
 \code{shud.ic}
 }

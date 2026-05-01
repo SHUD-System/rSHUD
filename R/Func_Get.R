@@ -3,7 +3,7 @@
 #' @param pm \code{shud.mesh}
 #' @return elevation
 #' @export
-getElevation <- function(pm = readmesh()){
+getElevation <- function(pm = read_mesh()){
   tt <- pm@mesh[, 2:4];
   zz = pm@point[, 5]
   zs = (zz[tt[, 1]] + zz[tt[, 2]] + zz[tt[, 3]]) / 3
@@ -16,7 +16,7 @@ getElevation <- function(pm = readmesh()){
 #' @param pm \code{shud.mesh}
 #' @return aquifer thickness
 #' @export
-getAquiferDepth <- function(pm = readmesh()){
+getAquiferDepth <- function(pm = read_mesh()){
   tt <- pm@mesh[, 2:4]
   dd = pm@point[, 4]
   aqd = (dd[tt[, 1]] + dd[tt[, 2]] + dd[tt[, 3]]) / 3
@@ -30,7 +30,7 @@ getAquiferDepth <- function(pm = readmesh()){
 #' @param pa \code{shud.att}
 #' @return index of lake element index
 #' @export
-getLakeEleID <- function(pa = readatt()){
+getLakeEleID <- function(pa = read_att()){
   id = which(pa$LAKE > 0)
   return(id)
 }
@@ -41,7 +41,7 @@ getLakeEleID <- function(pa = readatt()){
 #' @param pm \code{shud.mesh}
 #' @return Area of cells
 #' @export
-getArea <- function(pm = readmesh()){
+getArea <- function(pm = read_mesh()){
   spm = mesh_to_sf(pm = pm)
   
   if (inherits(spm, "sf")) {
@@ -69,7 +69,7 @@ getArea <- function(pm = readmesh()){
 #' @param pm \code{shud.mesh}
 #' @return Vertex of \code{shud.mesh}, dim = c(ncell, vertex, 4), 3-dimension = c('x','y','AqD', 'zmax')
 #' @export
-getVertex <- function(pm = readmesh()){
+getVertex <- function(pm = read_mesh()){
   msh <- pm@mesh;
   pts <- pm@point;
   nabr <- pm@mesh[, 5:7]   #nabor or each cell.
@@ -91,10 +91,13 @@ getVertex <- function(pm = readmesh()){
 
 #' Get the From/To nodes of the river.
 #' \code{getRiverNodes} 
-#' @param spr SpatialLine* of river streams.
+#' @param spr \code{sf} LINESTRING object for river streams; legacy spatial
+#'   input is accepted for compatibility.
 #' @return a list, c(points, FT_ID)
 #' @export
-getRiverNodes <- function(spr = readriv.sp()){
+getRiverNodes <- function(
+    spr = sf::st_read(file.path(shud.filein()["inpath"], "gis", "river.shp"),
+                      quiet = TRUE)){
   crs.pcs = sf::st_crs(sf::st_as_sf(spr))
   pts = get_coords(spr)
   ft0 = get_from_to_nodes(spr, coords = pts)
@@ -116,7 +119,7 @@ getRiverNodes <- function(spr = readriv.sp()){
 #' @param pm \code{shud.mesh}
 #' @return centroids of \code{shud.mesh}, ncell x 4 c('x','y','AqD', 'zmax')
 #' @export
-getCentroid <- function(pm = readmesh()){
+getCentroid <- function(pm = read_mesh()){
   x = getVertex(pm = pm);
   xc = rowMeans(x[, , 1]);      #end of c, means centroid of the triangles.
   yc = rowMeans(x[, , 2]);

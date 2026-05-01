@@ -2,15 +2,16 @@
 % Please edit documentation in R/Func_GIS.R
 \name{SinglePolygon}
 \alias{SinglePolygon}
-\title{Conver the MULTIPOLYGONS to SINGLEPOLYGONS.}
+\title{Convert MULTIPOLYGON geometry to single POLYGON features.}
 \usage{
 SinglePolygon(x, id = 0)
 }
 \arguments{
-\item{x}{the spatialpolygon*}
+\item{x}{\code{sf} polygon object; legacy spatial input is accepted for
+compatibility.}
 
 \item{id}{Index of the sorted (decreasing) polygons to return. default = 0;}
 }
 \description{
-Conver the MULTIPOLYGONS to SINGLEPOLYGONS.
+Convert MULTIPOLYGON geometry to single POLYGON features.
 }

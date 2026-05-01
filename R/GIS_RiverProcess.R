@@ -1,8 +1,9 @@
-#' determine index of downstream
-#' \code{sp.RiverOrder}
-#' @param sp SpatialLines*
+#' Deprecated: determine downstream index for legacy river lines
+#' \code{sp.RiverDown}
+#' @param sp Legacy \code{SpatialLines*} or \code{sf} LINESTRING object.
 #' @param coord coordinates of \code{sp}.
 #' @return Index of downstream for each segements
+#' @keywords deprecated
 #' @export
 sp.RiverDown <- function(sp, coord = get_coords(sp)){
   msg = 'sp.RiverDown::'
@@ -31,20 +32,24 @@ sp.RiverDown <- function(sp, coord = get_coords(sp)){
 }
 # sp.slt = spr
 # rivdown = sp.RiverDown(sp.slt)
-#' determine River path, disolve the river network based on downstream-relationship.
+#' Deprecated: determine river path from downstream relationships
 #' \code{sp.RiverPath}
-#' @param sp SpatialLines*
+#' @param sp Legacy \code{SpatialLines*} or \code{sf} LINESTRING object.
 #' @param idown downstream index of \code{sp}.
 #' @param coord coordinates of \code{sp}.
 #' @param tol.simplify tolerance for simplification of river lines.
 #' @return List of River Path(SegIDs, PointIDs, sp)
+#' @keywords deprecated
 #' @export
 #' @examples
+#' \dontrun{
+#' # Deprecated compatibility example. Prefer calc_river_path() with sf input.
 #' data(sh)
 #' riv = sh$riv
 #' x = sp.CutSptialLines(riv, tol = 200)
 #' xx = sp.RiverPath(x)
 #' names(xx)
+#' }
 sp.RiverPath <- function(sp, 
                          coord = get_coords(sp), 
                          idown = sp.RiverDown(sp, coord = coord),
@@ -110,13 +115,15 @@ sp.RiverPath <- function(sp,
 }
 
 
-#' calculate river order
+#' Deprecated: calculate river order for legacy river lines
 #' \code{sp.RiverOrder}
-#' @param sp SpatialLines*
+#' @param sp Legacy \code{SpatialLines*} or \code{sf} LINESTRING object.
 #' @param coord coordinates of \code{sp}.
-#' @return Stream Order of SpatialLines*
+#' @return Stream order vector.
+#' @keywords deprecated
 #' @export
 #' @examples 
+#' \dontrun{
 #' if (requireNamespace("sp", quietly = TRUE)) {
 #'   library(sp)
 #'   data(sac)
@@ -126,6 +133,7 @@ sp.RiverPath <- function(sp,
 #'   idx = sort(unique(ord))
 #'   plot(riv, col=ord)
 #'   legend('topleft', legend=idx, col=idx, lwd=1, lty=1)
+#' }
 #' }
 sp.RiverOrder <- function(sp, coord = get_coords(sp)){
   msg='sp.RiverOrder::'
@@ -188,11 +196,12 @@ sp.RiverOrder <- function(sp, coord = get_coords(sp)){
   }
   x.ord
 }
-#' return the Index of nodes in SpatialData
+#' Return node indices for line geometry
 #' \code{NodeIDList}
-#' @param sp SpatialLines*
+#' @param sp \code{sf} LINESTRING object; legacy \code{SpatialLines*} is accepted
+#'   for compatibility.
 #' @param coord Coordinate of vertex in \code{sp}
-#' @return list of Index of each SpatialData, line or polygon
+#' @return list of node indices for each line feature.
 #' @export
 NodeIDList <- function(sp, 
             coord = get_coords(sp) ){
@@ -238,8 +247,7 @@ RiverType <- function(n, width = 2 * (1:n) ){
 #' from \code{sf::st_length()}.
 #'
 #' @param sf_mesh Mesh polygons as \code{sf} (e.g. from \code{\link{mesh_to_sf}}).
-#' @param sf_riv River reaches as \code{sf} line geometries only; convert with
-#'   \code{sf::st_as_sf()} if you still have \code{SpatialLines*}.
+#' @param sf_riv River reaches as \code{sf} line geometries.
 #' @return \code{sf} line object with columns \code{Index}, original attributes,
 #'   and \code{Length} (geometry retained for mapping and \code{st_write}).
 #' @export
@@ -252,7 +260,7 @@ shud.rivseg <- function(sf_mesh, sf_riv) {
   }
   if (!inherits(sf_riv, "sf")) {
     stop(
-      "'sf_riv' must be an sf object (use sf::st_as_sf() on SpatialLines*)",
+      "'sf_riv' must be an sf object",
       call. = FALSE
     )
   }
@@ -380,11 +388,12 @@ shud.rivseg <- function(sf_mesh, sf_riv) {
   )
 }
 
-#' Find Shared points in SpatialLine*
+#' Find shared points in line geometries
 #' \code{SharedPoints}
-#' @param sp SpatialLines
+#' @param sp \code{sf} LINESTRING object; legacy \code{SpatialLines} is accepted
+#'   for compatibility.
 #' @param plot Whether to plot the results for debugging
-#' @return Topologic relationship between components of SpatialLines.
+#' @return Topologic relationship between line components.
 #' @export
 SharedPoints <- function(sp, plot=FALSE){
   msg='SharedPoints::'

@@ -13,18 +13,17 @@ shud_river_to_sf(shud_river)
 sf object with river network
 }
 \description{
-Extracts the sf network from a SHUD.RIVER object, or reconstructs it
-from the legacy data.frame format if needed.
+Extracts the sf network from a SHUD.RIVER object, or reconstructs it from
+tabular river fields if needed.
 }
 \details{
-If the SHUD.RIVER object has a network slot (modern format), it is
-returned directly. Otherwise, the function attempts to reconstruct
-an sf object from the point coordinates.
+If the SHUD.RIVER object has a network slot, it is returned directly.
+Otherwise, the function attempts to reconstruct an sf object from the point
+coordinates.
 }
 \examples{
 \dontrun{
-# Load legacy SHUD.RIVER object
-shud_river <- readriv("model.riv")
+shud_river <- read_river("model.riv")
 # Convert to sf
 rivers_sf <- shud_river_to_sf(shud_river)
 }

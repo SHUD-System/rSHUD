@@ -16,7 +16,8 @@ ForcingCoverage(
 )
 }
 \arguments{
-\item{sp.meteoSite}{sf POINT object or SpatialPoints*}
+\item{sp.meteoSite}{\code{sf} POINT object; legacy \code{SpatialPoints*}
+input is accepted for compatibility.}
 
 \item{filenames}{Output filenames associated with the forcing sites.}
 
@@ -24,14 +25,15 @@ ForcingCoverage(
 
 \item{gcs}{Geographic Coordinate System (crs object)}
 
-\item{dem}{DEM raster (SpatRaster or RasterLayer)}
+\item{dem}{DEM as a \code{terra::SpatRaster}}
 
-\item{wbd}{watershed boundary (sf or SpatialPolygons*)}
+\item{wbd}{watershed boundary as \code{sf}; legacy \code{SpatialPolygons*}
+input is accepted for compatibility.}
 
 \item{enlarge}{enlarge factor for the boundary.}
 }
 \value{
-sf object
+Legacy \code{SpatialPolygonsDataFrame} forcing coverage object.
 }
 \description{
 Generate the coverage map for forcing sites.

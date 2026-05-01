@@ -20,5 +20,8 @@ Same as auto_build_model()
 }
 \description{
 This function is deprecated. Use \code{\link{auto_build_model}} instead.
-It auto-converts legacy sp/raster inputs to sf/terra before forwarding.
+It is retained only as a migration compatibility entry point. It performs
+limited conversion of legacy \code{sp}/\code{raster} inputs to
+\code{sf}/\code{terra} before forwarding to \code{auto_build_model()}; new
+code should pass \code{sf} and \code{terra::SpatRaster} objects directly.
 }

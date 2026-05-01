@@ -16,10 +16,11 @@ xy2shp(xy, df = NULL, crs = NULL, shape = "points", output = c("sp", "sf"))
 
 \item{shape}{Shape of the result in points, lines or polygons}
 
-\item{output}{Output class: \code{"sp"} (legacy) or \code{"sf"} (modern)}
+\item{output}{Output class: \code{"sf"} (modern) or \code{"sp"} (legacy).}
 }
 \value{
-Spatial*DataFrame objects when \code{output = "sp"}, or an \code{sf} object when \code{output = "sf"}
+\code{sf} object when \code{output = "sf"}, or legacy
+\code{Spatial*DataFrame} when \code{output = "sp"}.
 }
 \description{
 Generate a shapefile from coordinates.
@@ -28,18 +29,6 @@ Generate a shapefile from coordinates.
 \examples{
 library(sf)
 xy = list(cbind(c(0, 2, 1), c(0, 0, 2)),  cbind(c(0, 2, 1), c(0, 0, 2)) + 2)
-
-# Legacy output (default): sp
-if (requireNamespace("sp", quietly = TRUE)) {
-library(sp)
-sp1 = xy2shp(xy = xy, shape = 'polygon')
-plot(sf::st_geometry(sf::st_as_sf(sp1)), axes = TRUE, col = 'gray')
-
-sp2 = xy2shp(xy = xy, shape = 'lines')
-plot(sf::st_geometry(sf::st_as_sf(sp2)), add = TRUE, lty = 2, lwd = 3, col = 'red')
-sp3 = xy2shp(xy = xy, shape = 'POINTS')
-plot(sf::st_geometry(sf::st_as_sf(sp3)), add = TRUE, pch = 1, cex = 2)
-}
 
 # Modern output: sf
 sf1 = xy2shp(xy = xy[[1]], shape = 'polygon', output = 'sf')

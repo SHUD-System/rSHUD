@@ -2,16 +2,17 @@
 % Please edit documentation in R/Func_GIS.R
 \name{SimpleSpatial}
 \alias{SimpleSpatial}
-\title{Simplify SpatialData.}
+\title{Simplify polygon geometry.}
 \usage{
 SimpleSpatial(x)
 }
 \arguments{
-\item{x}{SpatialData}
+\item{x}{\code{sf} polygon object; legacy spatial input is accepted for
+compatibility.}
 }
 \value{
-Simplified SpatialData
+Simplified \code{sf} geometry collection
 }
 \description{
-Simplify SpatialData.
+Simplify polygon geometry.
 }

@@ -2,17 +2,19 @@
 % Please edit documentation in R/Func_GIS.R
 \name{AddHoleToPolygon}
 \alias{AddHoleToPolygon}
-\title{Add holes into Polygons
+\title{Add holes into polygons
 \code{AddHoleToPolygon}}
 \usage{
 AddHoleToPolygon(poly, hole)
 }
 \arguments{
-\item{poly}{SpatialPolygons}
+\item{poly}{\code{sf} polygon object; legacy \code{SpatialPolygons} is
+accepted for compatibility.}
 
-\item{hole}{Hole Polygon}
+\item{hole}{Hole polygon as \code{sf}; legacy spatial input is accepted for
+compatibility.}
 }
 \description{
-Add holes into Polygons
+Add holes into polygons
 \code{AddHoleToPolygon}
 }

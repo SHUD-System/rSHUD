@@ -2,20 +2,22 @@
 % Please edit documentation in R/River.R
 \name{sp.riv2shp}
 \alias{sp.riv2shp}
-\title{Convert the SHUD.RIVER class to SpatialLines
+\title{Deprecated: read the SHUD.RIVER shapefile as legacy SpatialLines
 \code{sp.riv2shp}}
 \usage{
-sp.riv2shp(pr = readriv(), dbf = NULL)
+sp.riv2shp(pr = read_river(), dbf = NULL)
 }
 \arguments{
 \item{pr}{SHUD.RIVER class}
 
-\item{dbf}{Attribute data for exported SpatialLines}
+\item{dbf}{Attribute data for exported line features; retained for
+compatibility.}
 }
 \value{
-SpatialLinesDataFrame
+Legacy \code{SpatialLinesDataFrame}
 }
 \description{
-Convert the SHUD.RIVER class to SpatialLines
+Deprecated: read the SHUD.RIVER shapefile as legacy SpatialLines
 \code{sp.riv2shp}
 }
+\keyword{deprecated}

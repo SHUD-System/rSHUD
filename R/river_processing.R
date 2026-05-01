@@ -23,7 +23,7 @@ NULL
 #'   order of the higher-order stream
 #'
 #' @section Migration Note:
-#' This function replaces \code{sp.RiverOrder()} and uses sf instead of sp.
+#' This function replaces deprecated \code{sp.RiverOrder()} and uses sf.
 #' The algorithm and results are equivalent, but the input must be an sf object.
 #'
 #' @export
@@ -139,7 +139,9 @@ calc_river_order <- function(rivers) {
 #'
 #' Extract unique coordinates from river network
 #'
-#' @param x sf object with LINESTRING geometry or SpatialLines object
+#' @param x \code{sf} object with LINESTRING geometry. Deprecated river
+#'   wrappers may pass legacy line objects, which are converted internally for
+#'   compatibility.
 #' @return Matrix of unique coordinates
 #' @export
 #' @examples
@@ -179,7 +181,9 @@ get_coords <- function(x) {
 #'
 #' Identifies the start and end node indices for each river segment
 #'
-#' @param sf_line sf object with LINESTRING geometry or SpatialLines object
+#' @param sf_line \code{sf} object with LINESTRING geometry. Deprecated river
+#'   wrappers may pass legacy line objects, which are converted internally for
+#'   compatibility.
 #' @param coords Matrix of unique coordinates (default: get_coords(sf_line))
 #' @return Matrix with columns: ID, FrNode, ToNode
 #' @export
@@ -247,7 +251,7 @@ get_from_to_nodes <- function(sf_line, coords = get_coords(sf_line)) {
 #' and a message is displayed.
 #'
 #' @section Migration Note:
-#' This function replaces \code{sp.RiverDown()} and uses sf instead of sp.
+#' This function replaces deprecated \code{sp.RiverDown()} and uses sf.
 #'
 #' @export
 #' @examples
@@ -331,8 +335,8 @@ calc_river_downstream <- function(sf_line, coords = NULL) {
 #' main stems vs. tributaries.
 #'
 #' @section Migration Note:
-#' This function replaces \code{sp.RiverPath()} and uses sf instead of sp.
-#' The output structure is similar but uses sf objects instead of SpatialLines.
+#' This function replaces deprecated \code{sp.RiverPath()} and uses sf.
+#' The output structure is similar but uses sf objects.
 #'
 #' @export
 #' @examples

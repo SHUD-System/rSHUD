@@ -14,7 +14,7 @@ plot_animate(x, id = NULL, nmap = 10, rlist = NULL)
 
 \item{nmap}{Number of maps to be plot.}
 
-\item{rlist}{RasterStack of the maps.}
+\item{rlist}{\code{terra::SpatRaster} with one layer per map.}
 }
 \description{
 Plot animation maps

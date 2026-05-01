@@ -30,8 +30,8 @@ main stems vs. tributaries.
 }
 \section{Migration Note}{
 
-This function replaces \code{sp.RiverPath()} and uses sf instead of sp.
-The output structure is similar but uses sf objects instead of SpatialLines.
+This function replaces deprecated \code{sp.RiverPath()} and uses sf.
+The output structure is similar but uses sf objects.
 }
 
 \examples{

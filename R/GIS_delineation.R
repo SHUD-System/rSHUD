@@ -1,6 +1,6 @@
 #' Do Watershed Delineation
 #' \code{watershedDelineation} 
-#' @param fn.wbd  file of watershed SpatialPolygons
+#' @param fn.wbd File of watershed boundary polygons.
 #' @param fnr.dem  file of DEM in raster
 #' @param fsp.outlets  file of watershed outlet
 #' @param dirout  dir for out data(dem_filled.tif, dem_stm.shp, dem_wbd.shp, dem_outlets.shp) saved. Default = tempdir()
@@ -16,7 +16,6 @@ watershedDelineation <- function(fn.wbd,
                                  dirtemp = tempdir(),
                                  FlowAccCell.min = NULL, 
                                  plot = FALSE){
-  # library(raster)
   # library(whitebox)
   # library(terra)
   dir.create(dirtemp, showWarnings = FALSE, recursive = TRUE)
@@ -50,7 +49,7 @@ watershedDelineation <- function(fn.wbd,
   # writelog(paste0('2. Flow Accumulation and Pointer Grids'), caller = caller)
   whitebox::wbt_d8_flow_accumulation(input = fnr.filled, output = fnr.d8fa)
   whitebox::wbt_d8_pointer(dem = fnr.filled, output = fnr.d8ptr)
-  # plot(raster(fnr.d8fa))
+  # plot(terra::rast(fnr.d8fa))
   
   # 3. Watershed.
   # writelog(paste0('3. Watershed.'), caller = caller)
@@ -121,4 +120,3 @@ watershedDelineation <- function(fn.wbd,
               wbd = fsp.wbd)
   return(ret)
 }
-

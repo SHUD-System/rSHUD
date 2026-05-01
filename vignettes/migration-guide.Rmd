@@ -1,10 +1,10 @@
 ---
-title: "Migration Guide: rSHUD v2.1 to v2.2"
+title: "Migration Guide: rSHUD v2.1 to v2.3/v3 API"
 author: "rSHUD Development Team"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Migration Guide: rSHUD v2.1 to v2.2}
+  %\VignetteIndexEntry{Migration Guide: rSHUD v2.1 to v2.3/v3 API}
   %\VignetteEngine{knitr::rmarkdown_notangle}
   %\VignetteEncoding{UTF-8}
 ---
@@ -20,9 +20,11 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-rSHUD v2.2 represents a major modernization of the package, transitioning from
+rSHUD 2.3.0 represents a major modernization of the package, transitioning from
 legacy spatial libraries (raster, sp, rgeos) to modern alternatives (terra, sf).
 This guide will help you migrate your existing code to work with the new version.
+All examples labeled **OLD** are legacy/deprecated patterns kept only for
+comparison. New code should use the **NEW** terra/sf and snake_case examples.
 
 ## Key Changes
 
@@ -34,13 +36,13 @@ The `raster` package has been completely replaced with `terra`, which offers
 significantly better performance and a more consistent API.
 
 ```{r}
-# OLD (v2.1 and earlier)
+# OLD legacy/deprecated (v2.1 and earlier)
 library(raster)
 dem <- raster("dem.tif")
 dem_crop <- crop(dem, extent(boundary))
 slope <- terrain(dem_crop, "slope")
 
-# NEW (v2.2)
+# NEW (v2.3.0 / rSHUD v3 API)
 library(terra)
 dem <- rast("dem.tif")
 dem_crop <- crop(dem, boundary)
@@ -52,14 +54,14 @@ slope <- terrain(dem_crop, "slope")
 The `sp` package has been replaced with `sf` for vector data operations.
 
 ```{r}
-# OLD (v2.1 and earlier)
+# OLD legacy/deprecated (v2.1 and earlier)
 library(sp)
 library(rgdal)
 watershed <- readOGR("watershed.shp")
 watershed_buf <- gBuffer(watershed, width = 1000)
 area <- gArea(watershed_buf)
 
-# NEW (v2.2)
+# NEW (v2.3.0 / rSHUD v3 API)
 library(sf)
 watershed <- st_read("watershed.shp")
 watershed_buf <- st_buffer(watershed, dist = 1000)
@@ -111,14 +113,14 @@ Some function parameters have been renamed or changed:
 
 ```{r}
 # mesh_to_raster (formerly MeshData2Raster)
-# OLD
+# OLD legacy/deprecated
 r <- MeshData2Raster(x = data, pm = mesh, rmask = template, proj = crs)
 
 # NEW
 r <- mesh_to_raster(data = data, mesh = mesh, template = template, crs = crs)
 
 # vector_to_raster (formerly sp2raster)
-# OLD
+# OLD legacy/deprecated
 r <- sp2raster(sp = polygons, mask = template)
 
 # NEW
@@ -130,7 +132,7 @@ r <- vector_to_raster(vector = polygons, template = template)
 Functions now return modern spatial objects:
 
 ```{r}
-# OLD - Returns RasterLayer
+# OLD legacy/deprecated - Returns RasterLayer
 dem <- raster("dem.tif")
 class(dem)  # "RasterLayer"
 
@@ -138,7 +140,7 @@ class(dem)  # "RasterLayer"
 dem <- terra::rast("dem.tif")
 class(dem)  # "SpatRaster"
 
-# OLD - Returns SpatialPolygonsDataFrame
+# OLD legacy/deprecated - Returns SpatialPolygonsDataFrame
 watershed <- readOGR("watershed.shp")
 class(watershed)  # "SpatialPolygonsDataFrame"
 
@@ -164,7 +166,7 @@ install.packages(c("terra", "sf"))
 Replace all `raster` and `sp` data loading with `terra` and `sf`:
 
 ```{r}
-# OLD
+# OLD legacy/deprecated
 library(raster)
 library(rgdal)
 dem <- raster("data/dem.tif")
@@ -186,7 +188,7 @@ rivers <- st_read("data/rivers.shp")
 Replace deprecated function names with new ones:
 
 ```{r}
-# OLD
+# OLD legacy/deprecated
 mesh <- readmesh("model.mesh")
 river <- readriv("model.riv")
 att <- readatt("model.att")
@@ -202,11 +204,11 @@ att <- read_att("model.att")
 The main model building function has been significantly updated:
 
 ```{r}
-# OLD (v2.1)
+# OLD legacy/deprecated (v2.1)
 library(raster)
 library(rgdal)
 
-# Load data with old libraries
+# Load data with legacy libraries
 dem <- raster("dem.tif")
 soil <- raster("soil.tif")
 lc <- raster("landcover.tif")
@@ -226,7 +228,7 @@ model <- autoBuildModel(
   outpath = "output"
 )
 
-# NEW (v2.2)
+# NEW (v2.3.0 / rSHUD v3 API)
 library(terra)
 library(sf)
 
@@ -256,7 +258,7 @@ model <- auto_build_model(
 ### Pattern 1: Raster Operations
 
 ```{r}
-# OLD
+# OLD legacy/deprecated
 library(raster)
 r1 <- raster("file1.tif")
 r2 <- raster("file2.tif")
@@ -278,7 +280,7 @@ r1[r1 < 0] <- 0
 ### Pattern 2: Vector Operations
 
 ```{r}
-# OLD
+# OLD legacy/deprecated
 library(sp)
 library(rgeos)
 poly <- readOGR("polygon.shp")
@@ -297,7 +299,7 @@ area <- st_area(poly)
 ### Pattern 3: Coordinate Projection
 
 ```{r}
-# OLD
+# OLD legacy/deprecated
 library(sp)
 library(rgdal)
 poly_ll <- spTransform(poly, CRS("+proj=longlat +datum=WGS84"))
@@ -312,7 +314,7 @@ poly_ll <- st_transform(poly, crs = "+proj=longlat +datum=WGS84")
 ### Pattern 4: Raster-Vector Conversion
 
 ```{r}
-# OLD
+# OLD legacy/deprecated
 library(raster)
 library(sp)
 r <- raster("data.tif")
@@ -369,7 +371,7 @@ update.packages(c("terra", "sf"))
 
 ## Benefits of Migration
 
-Migrating to v2.2 provides several benefits:
+Migrating to rSHUD 2.3.0 provides several benefits:
 
 1. **Performance**: terra is 2-10x faster than raster for most operations
 2. **Memory**: Better memory management for large datasets
@@ -392,7 +394,7 @@ Here's a complete before/after example:
 
 ```{r}
 # ============================================================================
-# OLD CODE (v2.1)
+# OLD LEGACY/DEPRECATED CODE (v2.1)
 # ============================================================================
 library(raster)
 library(rgdal)
@@ -424,7 +426,7 @@ elev_raster <- MeshData2Raster(
 )
 
 # ============================================================================
-# NEW CODE (v2.2)
+# NEW CODE (v2.3.0 / rSHUD v3 API)
 # ============================================================================
 library(terra)
 library(sf)
@@ -463,7 +465,7 @@ elev_raster <- mesh_to_raster(
 
 ## Summary
 
-The migration from v2.1 to v2.2 primarily involves:
+The migration from v2.1 to rSHUD 2.3.0 primarily involves:
 
 1. Replacing `raster` with `terra`
 2. Replacing `sp` with `sf`

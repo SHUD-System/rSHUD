@@ -20,7 +20,7 @@ If matrix, each row represents a time step and each column a mesh cell.
 Length/ncol must equal the number of mesh cells.}
 
 \item{mesh}{Mesh object (optional). If NULL, uses default mesh from
-\code{readmesh()}.}
+\code{read_mesh()}.}
 
 \item{template}{SpatRaster template defining output grid (optional).
 If NULL, creates template from mesh extent.}
@@ -52,10 +52,10 @@ operations and supports multiple interpolation methods.
 \section{Migration Note}{
 
 This function replaces \code{MeshData2Raster()} and uses terra instead of
-raster. Key differences:
+the legacy raster package. Key differences:
 \itemize{
 \item Returns SpatRaster instead of RasterLayer
-\item Does not accept raster/sp objects - use terra/sf only
+\item Does not accept legacy spatial objects - use terra/sf only
 \item Method names simplified: "ide" -> "idw"
 \item Removed plot parameter - use terra::plot() on result
 }
@@ -64,7 +64,7 @@ raster. Key differences:
 \examples{
 \dontrun{
 # Basic usage with vector data
-mesh <- readmesh()
+mesh <- read_mesh("model.mesh")
 elevation <- getElevation()
 r <- mesh_to_raster(elevation, mesh = mesh)
 terra::plot(r)

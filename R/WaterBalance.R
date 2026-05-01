@@ -16,7 +16,7 @@ wb.all <-function(xl=loaddata(varname=c(paste0('elev', c('prcp', 'eta', 'etp') )
   ia=getArea()
   aa=sum(ia)
   w = ia/aa
-  pr = readriv()
+  pr = read_river()
   oid=getOutlets(pr)
   P = fun( func(xl$elevprcp, w ), FUN=sum)
   Q = fun(xl$rivqdown[,oid], FUN=sum) / aa
@@ -83,7 +83,7 @@ wb.riv <-function(
   }
   ia=getArea()
   aa=sum(ia)
-  pr = readriv()
+  pr = read_river()
   oid=getOutlets(pr)
   qr = fun.read(xl, 'rivqdown')[,oid]
   qsf = fun.read(xl, 'rivqsurf')[,]
@@ -199,10 +199,10 @@ DeltaS<-function(x, x0=x[t1, ], t1=1, t2=nrow(x)){
 wb.DS<-function(xl=loaddata(varname = c(paste0('eley', c('surf', 'unsat', 'gw')),
                                          paste0('rivy', 'stage'))),
                 ic=readic() ){
-  g=readgeol()
-  att=readatt()
-  cfg.calib=readcalib()
-  pr=readriv()
+  g=read_geol()
+  att=read_att()
+  cfg.calib=read_calib()
+  pr=read_river()
   rtype = pr@river$Type
   ra = pr@rivertype$Width[rtype] * pr@river$Length
   AA = sum(getArea())
