@@ -16,6 +16,21 @@ test_that("PET_PM returns positive finite scalar PET", {
   expect_gt(pet, 0)
 })
 
+test_that("PET_PM computes pressure from elevation when Press is omitted", {
+  expect_silent(pet <- PET_PM(
+    Wind = 1,
+    Temp = 25,
+    RH = 0.5,
+    RadNet = 400,
+    Elevation = 100
+  ))
+
+  expect_true(is.numeric(pet))
+  expect_length(pet, 1)
+  expect_true(is.finite(pet))
+  expect_gt(pet, 0)
+})
+
 test_that("PET_PM matches FAO-56 daily reference ET with W to MJ conversion", {
   wind <- 1.8
   temp <- 24

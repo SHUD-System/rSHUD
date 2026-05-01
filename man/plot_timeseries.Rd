@@ -2,27 +2,53 @@
 % Please edit documentation in R/plot_timeseries.R
 \name{plot_timeseries}
 \alias{plot_timeseries}
-\title{Plot time-series hydrograph}
+\title{Plot generic time-series data}
 \usage{
-plot_timeseries(x, ...)
+plot_timeseries(
+  x,
+  time_col = NULL,
+  value_col = NULL,
+  xlab = "Time",
+  ylab = "Value",
+  title = NULL,
+  legend_position = "right",
+  ...
+)
 }
 \arguments{
-\item{x}{xts or zoo time-series matrix.}
+\item{x}{Time-series object or tabular data with a time column.}
 
-\item{...}{Additional arguments passed to \code{\link{plot_hydrograph}}.}
+\item{time_col}{Optional time column name or index for matrix/data frame
+inputs. If omitted, common names such as \code{time}, \code{date}, or
+\code{datetime} are used when present; otherwise the first column is used.}
+
+\item{value_col}{Optional value column name(s) or index(es) for matrix/data
+frame inputs. Defaults to all columns except the time column.}
+
+\item{xlab}{Character. X-axis label.}
+
+\item{ylab}{Character. Y-axis label.}
+
+\item{title}{Character. Plot title.}
+
+\item{legend_position}{Character. Position of the legend for multi-series
+inputs.}
+
+\item{...}{Additional arguments passed to \code{\link[ggplot2]{geom_line}}.}
 }
 \value{
-A combined plot object from \code{\link{plot_hydrograph}}.
+A \code{\link[ggplot2]{ggplot}} object.
 }
 \description{
-Compatibility alias for \code{\link{plot_hydrograph}} retained for code that
-used the transitional \code{plot_timeseries()} name.
+Creates a ggplot line chart for ordinary \code{ts}, \code{zoo},
+\code{xts}, matrix, or data frame time-series data. For hydrograph plots
+with precipitation and discharge panels, use \code{\link{plot_hydrograph}}.
 }
 \examples{
 \dontrun{
 library(xts)
-dates <- as.POSIXct(as.Date("2020-01-01") + 1:10)
-x <- xts(cbind(precip = 1:10, discharge = 11:20), order.by = dates)
+dates <- as.Date("2020-01-01") + 1:10
+x <- xts(cbind(simulated = 1:10, observed = 11:20), order.by = dates)
 plot_timeseries(x)
 }
 }

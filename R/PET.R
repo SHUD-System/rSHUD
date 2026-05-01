@@ -206,7 +206,8 @@ validate_pet_lengths <- function(x) {
 #' @param Temp Air temperature in C.
 #' @param RH Relative humidity as a fraction from 0 to 1.
 #' @param RadNet Net solar radiation in W m^-2.
-#' @param Press Pressure in kPa.
+#' @param Press Pressure in kPa. If \code{NULL}, pressure is computed from
+#'   \code{Elevation}.
 #' @param WindHeight Height that wind was measured in m.
 #' @param Veg_height Height of vegetation in m.
 #' @param albedo Albedo as a fraction.
@@ -214,7 +215,7 @@ validate_pet_lengths <- function(x) {
 #' @param Elevation Elevation in m.
 #' @return Potential evapotranspiration in mm day^-1.
 #' @export
-PET_PM <- function(Wind, Temp, RH, RadNet, Press, 
+PET_PM <- function(Wind, Temp, RH, RadNet, Press = NULL,
                    WindHeight=10, 
                    Veg_height=0.12, 
                    albedo= 0.23, 

@@ -350,26 +350,46 @@ test_that("plot_hydrograph rejects one-dimensional zoo inputs clearly", {
   )
 })
 
-test_that("plot_timeseries preserves hydrograph input validation", {
+test_that("plot_timeseries requires supported time-series input", {
   skip_if_not_installed("zoo")
-
-  dates <- as.POSIXct(as.Date("2000-01-01") + 1:10)
-  x <- zoo::zoo(1:10, order.by = dates)
-
-  expect_error(
-    plot_timeseries(x),
-    "must have at least 2 columns"
-  )
 
   expect_error(
     plot_timeseries(1:10),
-    "must be an xts or zoo object"
+    "must be a time-series object or tabular data"
   )
+})
 
-  expect_error(
-    plot_timeseries(stats::ts(1:10)),
-    "must be an xts or zoo object"
-  )
+test_that("plot_timeseries returns ggplot for ts inputs", {
+  skip_if_not_installed("ggplot2")
+
+  p <- plot_timeseries(stats::ts(1:10))
+
+  expect_s3_class(p, "ggplot")
+})
+
+test_that("plot_timeseries returns ggplot for one-column xts inputs", {
+  skip_if_not_installed("xts")
+  skip_if_not_installed("ggplot2")
+
+  dates <- as.POSIXct(as.Date("2000-01-01") + 1:10)
+  x <- xts::xts(1:10, order.by = dates)
+
+  p <- plot_timeseries(x)
+
+  expect_s3_class(p, "ggplot")
+})
+
+test_that("plot_timeseries returns ggplot for multi-column xts inputs", {
+  skip_if_not_installed("xts")
+  skip_if_not_installed("ggplot2")
+
+  dates <- as.POSIXct(as.Date("2000-01-01") + 1:10)
+  x <- xts::xts(cbind(simulated = 1:10, observed = 11:20), order.by = dates)
+
+  p <- plot_timeseries(x)
+
+  expect_s3_class(p, "ggplot")
+  expect_equal(length(unique(ggplot2::ggplot_build(p)$data[[1]]$group)), 2)
 })
 
 test_that("plot_hydrograph works with 2 columns", {
@@ -378,21 +398,15 @@ test_that("plot_hydrograph works with 2 columns", {
   skip_if_not_installed("gridExtra")
   skip_if_not_installed("reshape2")
 
-  expect_r_subprocess_ok(paste(
-    'library(rSHUD)',
-    'library(xts)',
-    'dates <- as.POSIXct(as.Date("2000-01-01") + 1:100)',
-    'precip <- abs(rnorm(100, mean = 2, sd = 1))',
-    'discharge <- abs(rnorm(100, mean = 10, sd = 3))',
-    'x <- xts::xts(cbind(precip, discharge), order.by = dates)',
-    'colnames(x) <- c("Precipitation", "Discharge")',
-    'plot_file <- tempfile(fileext = ".pdf")',
-    'grDevices::pdf(plot_file)',
-    'on.exit({ grDevices::dev.off(); unlink(plot_file) })',
-    'p <- plot_hydrograph(x)',
-    'stopifnot(!is.null(p))',
-    sep = "; "
-  ))
+  dates <- as.POSIXct(as.Date("2000-01-01") + 1:100)
+  precip <- abs(rnorm(100, mean = 2, sd = 1))
+  discharge <- abs(rnorm(100, mean = 10, sd = 3))
+  x <- xts::xts(cbind(precip, discharge), order.by = dates)
+  colnames(x) <- c("Precipitation", "Discharge")
+
+  p <- with_temp_pdf(plot_hydrograph(x))
+
+  expect_false(is.null(p))
 })
 
 test_that("plot_hydrograph works with multiple discharge columns", {
@@ -401,22 +415,16 @@ test_that("plot_hydrograph works with multiple discharge columns", {
   skip_if_not_installed("gridExtra")
   skip_if_not_installed("reshape2")
 
-  expect_r_subprocess_ok(paste(
-    'library(rSHUD)',
-    'library(xts)',
-    'dates <- as.POSIXct(as.Date("2000-01-01") + 1:100)',
-    'precip <- abs(rnorm(100, mean = 2, sd = 1))',
-    'discharge1 <- abs(rnorm(100, mean = 10, sd = 3))',
-    'discharge2 <- abs(rnorm(100, mean = 10, sd = 3))',
-    'x <- xts::xts(cbind(precip, discharge1, discharge2), order.by = dates)',
-    'colnames(x) <- c("Precip", "Simulated", "Observed")',
-    'plot_file <- tempfile(fileext = ".pdf")',
-    'grDevices::pdf(plot_file)',
-    'on.exit({ grDevices::dev.off(); unlink(plot_file) })',
-    'p <- plot_hydrograph(x)',
-    'stopifnot(!is.null(p))',
-    sep = "; "
-  ))
+  dates <- as.POSIXct(as.Date("2000-01-01") + 1:100)
+  precip <- abs(rnorm(100, mean = 2, sd = 1))
+  discharge1 <- abs(rnorm(100, mean = 10, sd = 3))
+  discharge2 <- abs(rnorm(100, mean = 10, sd = 3))
+  x <- xts::xts(cbind(precip, discharge1, discharge2), order.by = dates)
+  colnames(x) <- c("Precip", "Simulated", "Observed")
+
+  p <- with_temp_pdf(plot_hydrograph(x))
+
+  expect_false(is.null(p))
 })
 
 test_that("plot_hydrograph works with custom units", {
@@ -425,23 +433,17 @@ test_that("plot_hydrograph works with custom units", {
   skip_if_not_installed("gridExtra")
   skip_if_not_installed("reshape2")
 
-  expect_r_subprocess_ok(paste(
-    'library(rSHUD)',
-    'library(xts)',
-    'dates <- as.POSIXct(as.Date("2000-01-01") + 1:100)',
-    'precip <- abs(rnorm(100, mean = 2, sd = 1))',
-    'discharge <- abs(rnorm(100, mean = 10, sd = 3))',
-    'x <- xts::xts(cbind(precip, discharge), order.by = dates)',
-    'plot_file <- tempfile(fileext = ".pdf")',
-    'grDevices::pdf(plot_file)',
-    'on.exit({ grDevices::dev.off(); unlink(plot_file) })',
-    'p <- plot_hydrograph(x, units = c("mm/day", "m³/s"))',
-    'stopifnot(!is.null(p))',
-    sep = "; "
-  ))
+  dates <- as.POSIXct(as.Date("2000-01-01") + 1:100)
+  precip <- abs(rnorm(100, mean = 2, sd = 1))
+  discharge <- abs(rnorm(100, mean = 10, sd = 3))
+  x <- xts::xts(cbind(precip, discharge), order.by = dates)
+
+  p <- with_temp_pdf(plot_hydrograph(x, units = c("mm/day", "m³/s")))
+
+  expect_false(is.null(p))
 })
 
-test_that("plot_tsd preserves base plotting fallback for legacy inputs", {
+test_that("plot_tsd preserves base plotting fallback for non-time-series inputs", {
   plot_file <- tempfile(fileext = ".pdf")
   grDevices::pdf(plot_file)
   on.exit({
@@ -449,31 +451,23 @@ test_that("plot_tsd preserves base plotting fallback for legacy inputs", {
     unlink(plot_file)
   })
 
-  x <- stats::ts(1:10)
+  x <- 1:10
   result <- suppressWarnings(withVisible(plot_tsd(x)))
 
   expect_false(result$visible)
   expect_identical(result$value, x)
 })
 
-test_that("plot_tsd dispatches hydrograph inputs to plot_timeseries", {
+test_that("plot_tsd dispatches generic time-series inputs to plot_timeseries", {
   skip_if_not_installed("xts")
   skip_if_not_installed("ggplot2")
-  skip_if_not_installed("gridExtra")
-  skip_if_not_installed("reshape2")
 
-  expect_r_subprocess_ok(paste(
-    'library(rSHUD)',
-    'library(xts)',
-    'dates <- as.POSIXct(as.Date("2000-01-01") + 1:10)',
-    'x <- xts::xts(cbind(precip = 1:10, discharge = 11:20), order.by = dates)',
-    'plot_file <- tempfile(fileext = ".pdf")',
-    'grDevices::pdf(plot_file)',
-    'on.exit({ grDevices::dev.off(); unlink(plot_file) })',
-    'p <- suppressWarnings(plot_tsd(x))',
-    'stopifnot(inherits(p, "gtable"))',
-    sep = "; "
-  ))
+  dates <- as.POSIXct(as.Date("2000-01-01") + 1:10)
+  x <- xts::xts(cbind(precip = 1:10, discharge = 11:20), order.by = dates)
+
+  p <- suppressWarnings(plot_tsd(x))
+
+  expect_s3_class(p, "ggplot")
 })
 
 # Test deprecated functions --------------------------------------------------

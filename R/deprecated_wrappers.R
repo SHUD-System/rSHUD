@@ -128,29 +128,24 @@ plot_sp <- function(x, field = NULL, zcol = field, ...) {
 
 #' Deprecated wrapper for `plot_tsd()`
 #'
-#' Legacy compatibility wrapper for \code{\link{plot_timeseries}}. Hydrograph
-#' inputs are forwarded to \code{\link{plot_timeseries}}; other base-plottable
-#' inputs use \code{\link[graphics]{plot}} to preserve legacy behavior.
+#' Legacy compatibility wrapper for \code{\link{plot_timeseries}}. Generic
+#' time-series inputs are forwarded to \code{\link{plot_timeseries}}; other
+#' base-plottable inputs use \code{\link[graphics]{plot}} to preserve legacy
+#' behavior.
 #'
 #' @param x Time-series object to plot.
 #' @param ... Additional arguments passed to the selected plotting function.
-#' @return A plot object from \code{\link{plot_timeseries}} for hydrograph
+#' @return A plot object from \code{\link{plot_timeseries}} for time-series
 #'   inputs, otherwise \code{x} invisibly.
 #' @export
 plot_tsd <- function(x, ...) {
   .Deprecated("plot_timeseries")
-  if (.is_hydrograph_timeseries(x)) {
+  if (.is_generic_timeseries_input(x)) {
     return(plot_timeseries(x, ...))
   }
 
   graphics::plot(x, ...)
   invisible(x)
-}
-
-.is_hydrograph_timeseries <- function(x) {
-  inherits(x, c("xts", "zoo")) &&
-    !is.null(ncol(x)) &&
-    ncol(x) >= 2
 }
 
 #' Deprecated wrapper for `png.control()`
