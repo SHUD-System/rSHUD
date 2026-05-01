@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Hydrological Analysis with rSHUD}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::rmarkdown_notangle}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -13,7 +13,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = FALSE
+  eval = FALSE,
+  purl = FALSE
 )
 ```
 
@@ -39,13 +40,23 @@ library(hydroGOF)
 
 SHUD model outputs are stored in binary or ASCII format:
 
-- `surf.dat`: Surface water depth
-- `unsat.dat`: Unsaturated zone storage
-- `gw.dat`: Groundwater storage
-- `river.dat`: River stage and discharge
-- `infil.dat`: Infiltration rate
-- `recharge.dat`: Groundwater recharge
-- `et.dat`: Evapotranspiration
+- `<project>.eleysurf.dat`: Surface water depth
+- `<project>.eleyunsat.dat`: Unsaturated zone storage
+- `<project>.eleygw.dat`: Groundwater storage
+- `<project>.rivystage.dat`: River stage
+- `<project>.rivqdown.dat`: River discharge
+- `<project>.elevprcp.dat`: Precipitation
+- `<project>.elevinfil.dat`: Infiltration rate
+- `<project>.elevrech.dat`: Groundwater recharge
+- `<project>.eleveta.dat`: Actual evapotranspiration
+- `<project>.elevetp.dat`: Potential evapotranspiration
+- `<project>.elevetic.dat`: Canopy interception evaporation
+- `<project>.elevettr.dat`: Transpiration
+- `<project>.elevetev.dat`: Soil evaporation
+- `<project>.eleqsurf.dat`: Element surface flow
+- `<project>.eleqsub.dat`: Element subsurface flow
+- `<project>.rivqsurf.dat`: Surface inflow to river
+- `<project>.rivqsub.dat`: Groundwater inflow to river
 
 ### Reading Single Variable
 
@@ -53,7 +64,7 @@ SHUD model outputs are stored in binary or ASCII format:
 # Read surface water output
 surf <- read_output(
   path = "model_output",
-  variable = "surf"
+  keyword = "eleysurf"
 )
 
 # Check dimensions
@@ -69,17 +80,29 @@ summary(surf[1, ])  # First time step
 ### Reading Multiple Variables
 
 ```{r}
-# Read all major variables
-output <- read_output(
-  path = "model_output",
-  variables = c("surf", "unsat", "gw", "river")
+# Read outputs used in this analysis
+variables <- c(
+  "eleysurf", "eleyunsat", "eleygw",
+  "elevprcp", "eleveta", "elevetp",
+  "elevetic", "elevettr", "elevetev",
+  "eleqsurf", "eleqsub",
+  "rivystage", "rivqdown", "rivqsurf", "rivqsub"
+)
+output <- setNames(
+  lapply(
+    variables,
+    read_output,
+    path = "model_output"
+  ),
+  variables
 )
 
 # Access individual variables
-surf <- output$surf
-unsat <- output$unsat
-gw <- output$gw
-river <- output$river
+surf <- output$eleysurf
+unsat <- output$eleyunsat
+gw <- output$eleygw
+river_stage <- output$rivystage
+river_discharge <- output$rivqdown
 ```
 
 ### Reading with Time Range
@@ -88,16 +111,15 @@ river <- output$river
 # Read specific time period
 output_subset <- read_output(
   path = "model_output",
-  variable = "surf",
-  time_range = c("2010-01-01", "2010-12-31")
+  keyword = "eleysurf"
 )
 
-# Read with time step filtering
+# Convert to daily values after reading
 output_daily <- read_output(
   path = "model_output",
-  variable = "surf",
-  time_step = "daily"  # Aggregate to daily
+  keyword = "eleysurf"
 )
+output_daily <- ts_to_daily(output_daily)
 ```
 
 ## Water Balance Analysis
@@ -106,36 +128,47 @@ output_daily <- read_output(
 
 ```{r}
 # Calculate water balance for mesh elements
+elem_xl <- output[c(
+  "elevprcp", "elevetic", "elevettr", "elevetev",
+  "eleqsurf", "eleqsub",
+  "eleysurf", "eleyunsat", "eleygw"
+)]
 wb_elem <- wb.ele(
-  surf = surf,
-  unsat = unsat,
-  gw = gw
+  xl = elem_xl,
+  fun = xts::apply.daily,
+  plot = FALSE
 )
 
 # Components
-storage_surf <- wb_elem$surf      # Surface storage
-storage_unsat <- wb_elem$unsat    # Unsaturated zone storage
-storage_gw <- wb_elem$gw          # Groundwater storage
-storage_total <- wb_elem$total    # Total storage
+storage_surf <- wb_elem[, , "dys"]    # Surface storage change
+storage_unsat <- wb_elem[, , "dyu"]   # Unsaturated zone storage change
+storage_gw <- wb_elem[, , "dyg"]      # Groundwater storage change
+storage_total <- apply(wb_elem[, , c("dys", "dyu", "dyg")], 1, sum,
+                       na.rm = TRUE)
 
 # Plot total storage over time
-plot(storage_total, main = "Total Water Storage",
-     ylab = "Storage (m³)", xlab = "Time")
+plot(storage_total, type = "l", main = "Total Element Storage Change",
+     ylab = "Storage change (m)", xlab = "Time")
 ```
 
 ### River Water Balance
 
 ```{r}
 # Calculate river water balance
-wb_riv <- wb.riv(river = river)
+river_xl <- output[c("rivqdown", "rivqsurf", "rivqsub")]
+wb_riv <- wb.riv(
+  xl = river_xl,
+  fun = xts::apply.daily,
+  plot = FALSE
+)
 
 # Components
-river_stage <- wb_riv$stage       # River stage
-river_discharge <- wb_riv$discharge  # River discharge
-river_storage <- wb_riv$storage   # River storage
+river_outflow <- wb_riv[, "Qout"]     # Outlet discharge
+river_surface_in <- wb_riv[, "Qin_sf"]  # Surface inflow
+river_gw_in <- wb_riv[, "Qin_gw"]     # Groundwater inflow
 
 # Plot discharge at outlet
-outlet_id <- nrow(river)
+outlet_id <- ncol(river_discharge)
 plot(river_discharge[, outlet_id],
      main = "Outlet Discharge",
      ylab = "Discharge (m³/s)", xlab = "Time")
@@ -145,47 +178,48 @@ plot(river_discharge[, outlet_id],
 
 ```{r}
 # Calculate watershed-scale water balance
+watershed_xl <- output[c(
+  "elevprcp", "eleveta", "elevetp", "rivqdown",
+  "eleysurf", "eleyunsat", "eleygw", "rivystage"
+)]
 wb_all <- wb.all(
-  surf = surf,
-  unsat = unsat,
-  gw = gw,
-  river = river,
-  mesh = mesh
+  xl = watershed_xl,
+  ic = read_ic(shud.filein(inpath = "model_input")["md.ic"]),
+  fun = xts::apply.monthly,
+  plot = FALSE
 )
 
-# Total watershed storage
-total_storage <- wb_all$total_storage
-
 # Water balance components
-precipitation <- wb_all$precipitation
-evapotranspiration <- wb_all$et
-runoff <- wb_all$runoff
-baseflow <- wb_all$baseflow
+storage_residual <- wb_all[, "D_pqe"]
+precipitation <- wb_all[, "P"]
+evapotranspiration <- wb_all[, "AET"]
+runoff <- wb_all[, "Q"]
+potential_et <- wb_all[, "PET"]
 
 # Plot water balance
-plot(total_storage, main = "Watershed Water Balance",
-     ylab = "Storage (mm)", xlab = "Time")
+plot(storage_residual, main = "Watershed Water Balance Residual",
+     ylab = "Depth (mm)", xlab = "Time")
 ```
 
 ### Storage Change Analysis
 
 ```{r}
 # Calculate storage change
-delta_storage <- DeltaS(
-  surf = surf,
-  unsat = unsat,
-  gw = gw
-)
+surface_storage_change <- DeltaS(surf)
+unsat_storage_change <- DeltaS(unsat)
+gw_storage_change <- DeltaS(gw)
+delta_storage <- surface_storage_change + unsat_storage_change +
+  gw_storage_change
 
-# Plot storage change
+# Plot storage change by element
 plot(delta_storage, main = "Storage Change",
-     ylab = "ΔS (mm/day)", xlab = "Time")
+     ylab = "ΔS (m)", xlab = "Element")
 abline(h = 0, col = "red", lty = 2)
 
 # Cumulative storage change
 cumulative_ds <- cumsum(delta_storage)
 plot(cumulative_ds, main = "Cumulative Storage Change",
-     ylab = "Cumulative ΔS (mm)", xlab = "Time")
+     ylab = "Cumulative ΔS (m)", xlab = "Element")
 ```
 
 ## Time Series Analysis
@@ -197,7 +231,7 @@ plot(cumulative_ds, main = "Cumulative Storage Change",
 surf_ts <- ts_to_df(surf)
 
 # Convert to daily values
-surf_daily <- ts_to_daily(surf, fun = mean)
+surf_daily <- ts_to_daily(surf, FUN = mean)
 
 # Extract specific cells
 cell_ids <- c(1, 100, 500)
@@ -208,9 +242,9 @@ surf_subset <- surf[, cell_ids]
 
 ```{r}
 # Daily aggregation
-surf_daily_mean <- ts_to_daily(surf, fun = mean)
-surf_daily_max <- ts_to_daily(surf, fun = max)
-surf_daily_min <- ts_to_daily(surf, fun = min)
+surf_daily_mean <- ts_to_daily(surf, FUN = mean)
+surf_daily_max <- ts_to_daily(surf, FUN = max)
+surf_daily_min <- ts_to_daily(surf, FUN = min)
 
 # Monthly aggregation
 surf_monthly <- apply.monthly(surf_daily_mean, mean)
@@ -285,7 +319,7 @@ legend(
 
 ```{r}
 # Load observed data
-obs_discharge <- read_tsd("data/observed_discharge.tsd")
+obs_discharge <- read_tsd("data/observed_discharge.tsd")[[1]]
 
 # Align time periods
 common_time <- index(obs_discharge)[index(obs_discharge) %in%
@@ -294,9 +328,9 @@ obs_aligned <- obs_discharge[common_time]
 sim_aligned <- river_discharge[common_time, outlet_id]
 
 # Plot comparison
-hydrograph(
-  obs = obs_aligned,
+QvsO(
   sim = sim_aligned,
+  obs = obs_aligned,
   main = "Observed vs Simulated Discharge"
 )
 
@@ -316,22 +350,22 @@ legend("topright", legend = c(
 fdc_data <- fdc(river_discharge[, outlet_id])
 
 # Plot FDC
-plot(fdc_data, main = "Flow Duration Curve",
-     xlab = "Exceedance Probability (%)",
-     ylab = "Discharge (m³/s)",
-     log = "y")
+fdc_data +
+  ggplot2::labs(
+    title = "Flow Duration Curve",
+    x = "Exceedance Probability (%)",
+    y = "Discharge (m³/s)"
+  ) +
+  ggplot2::scale_y_log10()
 
 # Compare observed and simulated FDC
-fdc_obs <- fdc(obs_discharge)
-fdc_sim <- fdc(sim_aligned)
-
-plot(fdc_obs, main = "Flow Duration Curves",
-     xlab = "Exceedance Probability (%)",
-     ylab = "Discharge (m³/s)",
-     log = "y", col = "black", lwd = 2)
-lines(fdc_sim, col = "red", lwd = 2)
-legend("topright", legend = c("Observed", "Simulated"),
-       col = c("black", "red"), lwd = 2)
+fdc(cbind(Observed = obs_discharge, Simulated = sim_aligned)) +
+  ggplot2::labs(
+    title = "Flow Duration Curves",
+    x = "Exceedance Probability (%)",
+    y = "Discharge (m³/s)"
+  ) +
+  ggplot2::scale_y_log10()
 ```
 
 ### Peak Flow Analysis
@@ -506,10 +540,10 @@ title("High Variability Cells (top 10%)")
 
 ```{r}
 # Read ET components
-et_total <- read_output("model_output", variable = "et")
-et_canopy <- read_output("model_output", variable = "et_canopy")
-et_transpiration <- read_output("model_output", variable = "et_transp")
-et_soil <- read_output("model_output", variable = "et_soil")
+et_total <- read_output(keyword = "eleveta", path = "model_output")
+et_canopy <- read_output(keyword = "elevetic", path = "model_output")
+et_transpiration <- read_output(keyword = "elevettr", path = "model_output")
+et_soil <- read_output(keyword = "elevetev", path = "model_output")
 
 # Calculate watershed-average ET
 et_mean <- apply(et_total, 1, mean)
@@ -549,14 +583,15 @@ ggplot(et_components, aes(x = time)) +
 
 ```{r}
 # Calculate potential ET using Penman-Monteith
-forcing_data <- read_tsd("forcing/meteo.tsd")
+forcing_data <- read_tsd("forcing/meteo.tsd")[[1]]
 
 pet <- PET_PM(
-  Tair = forcing_data$temp,
-  RH = forcing_data$rh,
   Wind = forcing_data$wind,
-  Rn = forcing_data$radiation,
-  elevation = mean(getElevation(mesh))
+  Temp = forcing_data$temp,
+  RH = forcing_data$rh,
+  RadNet = forcing_data$radiation,
+  Press = NULL,
+  Elevation = mean(getElevation(mesh))
 )
 
 # Compare PET and actual ET
@@ -640,6 +675,7 @@ cat("Baseflow Index:", bfi, "\n")
 analyze_shud_output <- function(
   output_dir,
   mesh_file,
+  input_dir = dirname(mesh_file),
   obs_file = NULL,
   start_date = NULL,
   end_date = NULL
@@ -651,38 +687,51 @@ analyze_shud_output <- function(
   
   # Read model output
   cat("Reading model output...\n")
-  output <- read_output(
-    path = output_dir,
-    variables = c("surf", "unsat", "gw", "river"),
-    time_range = c(start_date, end_date)
+  variables <- c(
+    "eleysurf", "eleyunsat", "eleygw",
+    "elevprcp", "eleveta", "elevetp",
+    "rivystage", "rivqdown"
+  )
+  output <- setNames(
+    lapply(
+      variables,
+      read_output,
+      path = output_dir
+    ),
+    variables
   )
   
   # Calculate water balance
   cat("Calculating water balance...\n")
+  watershed_xl <- output[c(
+    "elevprcp", "eleveta", "elevetp", "rivqdown",
+    "eleysurf", "eleyunsat", "eleygw", "rivystage"
+  )]
   wb <- wb.all(
-    surf = output$surf,
-    unsat = output$unsat,
-    gw = output$gw,
-    river = output$river,
-    mesh = mesh
+    xl = watershed_xl,
+    ic = read_ic(shud.filein(inpath = input_dir)["md.ic"]),
+    fun = xts::apply.monthly,
+    plot = FALSE
   )
   
   # Plot water balance
-  plot(wb$total_storage, main = "Total Water Storage")
+  plot(wb[, "D_pqe"], main = "Water Balance Residual")
   
   # Analyze discharge
   cat("Analyzing discharge...\n")
-  outlet_id <- nrow(output$river)
-  discharge <- output$river[, outlet_id]
+  outlet_id <- ncol(output$rivqdown)
+  discharge <- output$rivqdown[, outlet_id]
   
   # Flow duration curve
   fdc_data <- fdc(discharge)
-  plot(fdc_data, main = "Flow Duration Curve", log = "y")
+  fdc_data +
+    ggplot2::labs(title = "Flow Duration Curve") +
+    ggplot2::scale_y_log10()
   
   # If observed data available, calculate GOF
   if (!is.null(obs_file)) {
     cat("Evaluating model performance...\n")
-    obs <- read_tsd(obs_file)
+    obs <- read_tsd(obs_file)[[1]]
     
     # Align time periods
     common_time <- zoo::index(obs)[zoo::index(obs) %in% zoo::index(discharge)]
@@ -694,12 +743,12 @@ analyze_shud_output <- function(
     print(gof_stats)
     
     # Plot comparison
-    hydrograph(obs = obs_aligned, sim = sim_aligned)
+    QvsO(sim = sim_aligned, obs = obs_aligned)
   }
   
   # Spatial analysis
   cat("Creating spatial maps...\n")
-  surf_mean <- apply(output$surf, 2, mean)
+  surf_mean <- apply(output$eleysurf, 2, mean)
   surf_raster <- mesh_to_raster(
     data = surf_mean,
     mesh = mesh,
@@ -720,6 +769,7 @@ analyze_shud_output <- function(
 results <- analyze_shud_output(
   output_dir = "model_output",
   mesh_file = "model/watershed.mesh",
+  input_dir = "model_input",
   obs_file = "data/observed_discharge.tsd",
   start_date = "2010-01-01",
   end_date = "2010-12-31"

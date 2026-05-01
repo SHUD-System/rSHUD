@@ -30,16 +30,19 @@ library(sf)
 xy = list(cbind(c(0, 2, 1), c(0, 0, 2)),  cbind(c(0, 2, 1), c(0, 0, 2)) + 2)
 
 # Legacy output (default): sp
+if (requireNamespace("sp", quietly = TRUE)) {
+library(sp)
 sp1 = xy2shp(xy = xy, shape = 'polygon')
-plot(sp1, axes = TRUE, col = 'gray')
+plot(sf::st_geometry(sf::st_as_sf(sp1)), axes = TRUE, col = 'gray')
 
 sp2 = xy2shp(xy = xy, shape = 'lines')
-plot(sp2, add = TRUE, lty = 2, lwd = 3, col = 'red')
+plot(sf::st_geometry(sf::st_as_sf(sp2)), add = TRUE, lty = 2, lwd = 3, col = 'red')
 sp3 = xy2shp(xy = xy, shape = 'POINTS')
-plot(sp3, add = TRUE, pch = 1, cex = 2)
+plot(sf::st_geometry(sf::st_as_sf(sp3)), add = TRUE, pch = 1, cex = 2)
+}
 
 # Modern output: sf
 sf1 = xy2shp(xy = xy[[1]], shape = 'polygon', output = 'sf')
-plot(sf::st_geometry(sf1), border = 'blue', add = TRUE)
+plot(sf::st_geometry(sf1), border = 'blue')
 
 }

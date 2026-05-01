@@ -6,6 +6,20 @@
 \usage{
 plot_tsd(x, ...)
 }
+\arguments{
+\item{x}{Time-series object to plot.}
+
+\item{...}{Additional arguments passed to the selected plotting function.
+For tabular inputs, named \code{time_col} or \code{value_col} arguments
+are passed to \code{\link{plot_timeseries}}.}
+}
+\value{
+A plot object from \code{\link{plot_timeseries}} for time-series
+inputs, otherwise \code{x} invisibly.
+}
 \description{
-Uses \code{plot_timeseries()} when available, otherwise falls back to base plotting.
+Legacy compatibility wrapper for \code{\link{plot_timeseries}}. Generic
+time-series inputs are forwarded to \code{\link{plot_timeseries}}; other
+base-plottable inputs use \code{\link[graphics]{plot}} to preserve legacy
+behavior.
 }

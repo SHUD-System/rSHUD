@@ -18,7 +18,9 @@ Convert SpatialLines or SpatialPolygons a Planar Straight Line Graph object
 \code{sp2PSLG}
 }
 \examples{
-library(rgeos)
-sl = readWKT("MULTIPOLYGON(((1 1,5 1,5 5,1 5,1 1),(2 2,2 3,3 3,3 2,2 2)))")
-x = sp2PSLG(sl)
+if (requireNamespace("sf", quietly = TRUE) && requireNamespace("sp", quietly = TRUE)) {
+  wkt <- "MULTIPOLYGON(((1 1,5 1,5 5,1 5,1 1),(2 2,2 3,3 3,3 2,2 2)))"
+  sl <- sf::st_sf(geometry = sf::st_as_sfc(wkt))
+  x <- sp2PSLG(sl)
+}
 }

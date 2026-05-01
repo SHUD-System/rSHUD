@@ -138,9 +138,11 @@ which_outliers <- function(x, na.rm = TRUE, probs=c(.5, .95),...) {
 #' @importFrom methods as is
 #' @export
 #' @examples
-#' library(rgeos)
-#' sl = readWKT("MULTIPOLYGON(((1 1,5 1,5 5,1 5,1 1),(2 2,2 3,3 3,3 2,2 2)))")
-#' x = sp2PSLG(sl)
+#' if (requireNamespace("sf", quietly = TRUE) && requireNamespace("sp", quietly = TRUE)) {
+#'   wkt <- "MULTIPOLYGON(((1 1,5 1,5 5,1 5,1 1),(2 2,2 3,3 3,3 2,2 2)))"
+#'   sl <- sf::st_sf(geometry = sf::st_as_sfc(wkt))
+#'   x <- sp2PSLG(sl)
+#' }
 sp2PSLG<-function(sp){
   msg = 'sp2PSLG:: '
   if(methods::is(sp, 'sf')){

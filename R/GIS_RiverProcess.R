@@ -117,14 +117,16 @@ sp.RiverPath <- function(sp,
 #' @return Stream Order of SpatialLines*
 #' @export
 #' @examples 
-#' library(sf)
-#' data(sac)
-#' riv=sac$riv
-#' ord = sp.RiverOrder(riv)
-#' print(ord)
-#' idx = sort(unique(ord))
-#' plot(riv, col=ord)
-#' legend('topleft', legend=idx, col=idx, lwd=1, lty=1)
+#' if (requireNamespace("sp", quietly = TRUE)) {
+#'   library(sp)
+#'   data(sac)
+#'   riv=sac$riv
+#'   ord = sp.RiverOrder(riv)
+#'   print(ord)
+#'   idx = sort(unique(ord))
+#'   plot(riv, col=ord)
+#'   legend('topleft', legend=idx, col=idx, lwd=1, lty=1)
+#' }
 sp.RiverOrder <- function(sp, coord = get_coords(sp)){
   msg='sp.RiverOrder::'
   nsp <- if (inherits(sp, "sf")) nrow(sp) else length(sp)

@@ -6,6 +6,12 @@
 \usage{
 FromToNode(...)
 }
+\arguments{
+\item{...}{Arguments passed to \code{\link{get_from_to_nodes}}.}
+}
+\value{
+The result from \code{\link{get_from_to_nodes}}.
+}
 \description{
 Legacy compatibility wrapper for \code{\link{get_from_to_nodes}}.
 }

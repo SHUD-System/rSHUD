@@ -1,5 +1,5 @@
 # Suppress R CMD check notes for ggplot2 NSE in plot functions
-utils::globalVariables(c("Time", "Value", "Period", "Precipitation", "value", "variable"))
+utils::globalVariables(c("Time", "Value", "Period", "Precipitation", "Series", "value", "variable"))
 
 #============ 
 #' Setup .shud environment.

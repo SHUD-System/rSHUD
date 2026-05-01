@@ -31,8 +31,11 @@ yy = seq(ext[3], ext[4], by = dy)
 sp1 = fishnet(xx = ext[1:2], yy = ext[3:4])
 sp2 = fishnet(xx = xx + .5 * dx, yy = yy + 0.5 * dy)
 sp3 = fishnet(xx = xx, yy = yy, type = 'point')
+if (requireNamespace("sp", quietly = TRUE)) {
+library(sp)
 plot(sp1, axes = TRUE, xlim = c(-1, 1) * dx + ext[1:2], ylim = c(-1, 1) * dy + ext[3:4])
 plot(sp2, axes = TRUE, add = TRUE, border = 2)
 plot(sp3, axes = TRUE, add = TRUE, col = 3, pch = 20)
 grid()
+}
 }

@@ -6,6 +6,20 @@
 \usage{
 write.df(x, file, append = FALSE, quiet = FALSE, header = NULL)
 }
+\arguments{
+\item{x}{Data frame or matrix to write.}
+
+\item{file}{Character. Output file path.}
+
+\item{append}{Logical. Whether to append to an existing file.}
+
+\item{quiet}{Logical. Whether to suppress messages.}
+
+\item{header}{Numeric vector. Custom header; defaults to row/column counts.}
+}
+\value{
+Invisibly returns the output file path.
+}
 \description{
 Legacy compatibility wrapper for \code{\link{write_df}}.
 }

@@ -6,6 +6,12 @@
 \usage{
 png.control(...)
 }
+\arguments{
+\item{...}{Arguments passed to \code{\link[grDevices]{png}}.}
+}
+\value{
+The result from \code{\link[grDevices]{png}}.
+}
 \description{
 Legacy compatibility wrapper for \code{grDevices::png()}.
 }

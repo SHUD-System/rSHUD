@@ -10,7 +10,7 @@ PET_PM(
   Temp,
   RH,
   RadNet,
-  Press,
+  Press = NULL,
   WindHeight = 10,
   Veg_height = 0.12,
   albedo = 0.23,
@@ -27,7 +27,8 @@ PET_PM(
 
 \item{RadNet}{Net solar radiation in W m^-2.}
 
-\item{Press}{Pressure in kPa.}
+\item{Press}{Pressure in kPa. If \code{NULL}, pressure is computed from
+\code{Elevation}.}
 
 \item{WindHeight}{Height that wind was measured in m.}
 
@@ -40,7 +41,7 @@ PET_PM(
 \item{Elevation}{Elevation in m.}
 }
 \value{
-Potential evapotranspiration in mm m^-2 s^-1 or kg m^-2 s^-1.
+Potential evapotranspiration in mm day^-1.
 }
 \description{
 Potential Evapotranspiration with Pennmann-Monteith equation.

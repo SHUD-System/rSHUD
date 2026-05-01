@@ -1,6 +1,9 @@
 #' Deprecated wrapper for `FromToNode()`
 #'
 #' Legacy compatibility wrapper for \code{\link{get_from_to_nodes}}.
+#'
+#' @param ... Arguments passed to \code{\link{get_from_to_nodes}}.
+#' @return The result from \code{\link{get_from_to_nodes}}.
 #' @export
 FromToNode <- function(...) {
   .Deprecated("get_from_to_nodes")
@@ -10,6 +13,9 @@ FromToNode <- function(...) {
 #' Deprecated wrapper for `extractCoords()`
 #'
 #' Legacy compatibility wrapper for \code{\link{get_coords}}.
+#'
+#' @param ... Arguments passed to \code{\link{get_coords}}.
+#' @return The result from \code{\link{get_coords}}.
 #' @export
 extractCoords <- function(...) {
   .Deprecated("get_coords")
@@ -19,6 +25,9 @@ extractCoords <- function(...) {
 #' Deprecated wrapper for `hydrograph()`
 #'
 #' Legacy compatibility wrapper for \code{\link{plot_hydrograph}}.
+#'
+#' @param ... Arguments passed to \code{\link{plot_hydrograph}}.
+#' @return A plot object from \code{\link{plot_hydrograph}}.
 #' @export
 hydrograph <- function(...) {
   .Deprecated("plot_hydrograph")
@@ -28,6 +37,10 @@ hydrograph <- function(...) {
 #' Deprecated wrapper for `write.riv()`
 #'
 #' Legacy compatibility wrapper for \code{\link{write_river}}.
+#'
+#' @param riv SHUD.RIVER object or compatible river data.
+#' @param file Character. Output .riv file path.
+#' @return Invisibly returns the output file path.
 #' @export
 write.riv <- function(riv, file) {
   .Deprecated("write_river")
@@ -37,6 +50,9 @@ write.riv <- function(riv, file) {
 #' Deprecated wrapper for `sp.RiverSeg()`
 #'
 #' Legacy compatibility wrapper for \code{\link{shud.rivseg}}.
+#'
+#' @param ... Arguments passed to \code{\link{shud.rivseg}}.
+#' @return The result from \code{\link{shud.rivseg}}.
 #' @export
 sp.RiverSeg <- function(...) {
   .Deprecated("shud.rivseg")
@@ -46,6 +62,9 @@ sp.RiverSeg <- function(...) {
 #' Deprecated stub for `compareMaps()`
 #'
 #' This legacy export is retained for transition compatibility only.
+#'
+#' @param ... Ignored legacy arguments.
+#' @return \code{NULL}.
 #' @export
 compareMaps <- function(...) {
   .Deprecated()
@@ -55,6 +74,9 @@ compareMaps <- function(...) {
 #' Deprecated stub for `map2d()`
 #'
 #' This legacy export is retained for transition compatibility only.
+#'
+#' @param ... Ignored legacy arguments.
+#' @return \code{NULL}.
 #' @export
 map2d <- function(...) {
   .Deprecated()
@@ -64,6 +86,14 @@ map2d <- function(...) {
 #' Deprecated wrapper for `plot_sp()`
 #'
 #' Uses modern plotting methods when possible.
+#'
+#' @param x Object to plot. Supported modern inputs include \code{sf},
+#'   \code{sfc}, and \code{terra::SpatVector}; other inputs are forwarded to
+#'   \code{\link[graphics]{plot}}.
+#' @param field Character. Attribute field to use for coloring.
+#' @param zcol Character. Legacy alias for \code{field}.
+#' @param ... Additional arguments passed to the selected plotting function.
+#' @return Invisibly returns \code{x}.
 #' @export
 plot_sp <- function(x, field = NULL, zcol = field, ...) {
   .Deprecated("plot_polygons")
@@ -98,12 +128,23 @@ plot_sp <- function(x, field = NULL, zcol = field, ...) {
 
 #' Deprecated wrapper for `plot_tsd()`
 #'
-#' Uses \code{plot_timeseries()} when available, otherwise falls back to base plotting.
+#' Legacy compatibility wrapper for \code{\link{plot_timeseries}}. Generic
+#' time-series inputs are forwarded to \code{\link{plot_timeseries}}; other
+#' base-plottable inputs use \code{\link[graphics]{plot}} to preserve legacy
+#' behavior.
+#'
+#' @param x Time-series object to plot.
+#' @param ... Additional arguments passed to the selected plotting function.
+#'   For tabular inputs, named \code{time_col} or \code{value_col} arguments
+#'   are passed to \code{\link{plot_timeseries}}.
+#' @return A plot object from \code{\link{plot_timeseries}} for time-series
+#'   inputs, otherwise \code{x} invisibly.
 #' @export
 plot_tsd <- function(x, ...) {
   .Deprecated("plot_timeseries")
-
-  if (exists("plot_timeseries", mode = "function", inherits = TRUE)) {
+  dots <- match.call(expand.dots = FALSE)$...
+  if (.is_generic_timeseries_input(x) ||
+      .has_explicit_timeseries_column_args(x, dots)) {
     return(plot_timeseries(x, ...))
   }
 
@@ -111,9 +152,25 @@ plot_tsd <- function(x, ...) {
   invisible(x)
 }
 
+.has_explicit_timeseries_column_args <- function(x, dots) {
+  if (!(is.data.frame(x) || is.matrix(x)) || NCOL(x) < 2L) {
+    return(FALSE)
+  }
+
+  dot_names <- names(dots)
+  if (is.null(dot_names)) {
+    return(FALSE)
+  }
+
+  any(c("time_col", "value_col") %in% dot_names)
+}
+
 #' Deprecated wrapper for `png.control()`
 #'
 #' Legacy compatibility wrapper for \code{grDevices::png()}.
+#'
+#' @param ... Arguments passed to \code{\link[grDevices]{png}}.
+#' @return The result from \code{\link[grDevices]{png}}.
 #' @export
 png.control <- function(...) {
   .Deprecated(msg = "png.control() is deprecated. Use grDevices::png() instead.")
@@ -123,6 +180,11 @@ png.control <- function(...) {
 #' Deprecated wrapper for `removeholes()`
 #'
 #' Uses modern terra/sf polygon handling to fill interior holes.
+#'
+#' @param sp Spatial, sf, or SpatVector polygon object.
+#' @param ... Additional arguments passed to \code{\link[terra]{fillHoles}}.
+#' @return Object of the same general spatial class as \code{sp}, or
+#'   \code{NULL} for unsupported inputs.
 #' @export
 removeholes <- function(sp, ...) {
   .Deprecated(msg = "removeholes() is deprecated. Use terra::fillHoles() or sf workflows instead.")
@@ -150,6 +212,10 @@ removeholes <- function(sp, ...) {
 #' Deprecated wrapper for `write.mesh()`
 #'
 #' Legacy compatibility wrapper for \code{\link{write_mesh}}.
+#'
+#' @param pm SHUD.MESH object containing mesh and point data.
+#' @param file Character. Output .mesh file path.
+#' @return Invisibly returns the output file path.
 #' @export
 write.mesh <- function(pm, file) {
   .Deprecated("write_mesh")
@@ -159,6 +225,10 @@ write.mesh <- function(pm, file) {
 #' Deprecated wrapper for `write.ic()`
 #'
 #' Legacy compatibility wrapper for \code{\link{write_ic}}.
+#'
+#' @param x List containing initial condition data.
+#' @param file Character. Output .ic file path.
+#' @return Invisibly returns the output file path.
 #' @export
 write.ic <- function(x, file) {
   .Deprecated("write_ic")
@@ -168,6 +238,13 @@ write.ic <- function(x, file) {
 #' Deprecated wrapper for `write.df()`
 #'
 #' Legacy compatibility wrapper for \code{\link{write_df}}.
+#'
+#' @param x Data frame or matrix to write.
+#' @param file Character. Output file path.
+#' @param append Logical. Whether to append to an existing file.
+#' @param quiet Logical. Whether to suppress messages.
+#' @param header Numeric vector. Custom header; defaults to row/column counts.
+#' @return Invisibly returns the output file path.
 #' @export
 write.df <- function(x, file, append = FALSE, quiet = FALSE, header = NULL) {
   .Deprecated("write_df")
@@ -177,6 +254,10 @@ write.df <- function(x, file, append = FALSE, quiet = FALSE, header = NULL) {
 #' Deprecated wrapper for `write.config()`
 #'
 #' Legacy compatibility wrapper for \code{\link{write_config}}.
+#'
+#' @param x SHUD model configuration parameters or calibration data.
+#' @param file Character. Output configuration file path.
+#' @return Invisibly returns the output file path.
 #' @export
 write.config <- function(x, file) {
   .Deprecated("write_config")
@@ -186,6 +267,12 @@ write.config <- function(x, file) {
 #' Deprecated wrapper for `write.forc()`
 #'
 #' Legacy compatibility wrapper for \code{\link{write_forc}}.
+#'
+#' @param x Data frame of forcing-site information.
+#' @param file Character. Output .forc file path.
+#' @param path Character. Common path of the forcing files.
+#' @param startdate Character. Start date in YYYYMMDD format.
+#' @return Invisibly returns the output file path.
 #' @export
 write.forc <- function(x, file, path = "", startdate = "20000101") {
   .Deprecated("write_forc")

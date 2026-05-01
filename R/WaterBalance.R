@@ -199,7 +199,6 @@ DeltaS<-function(x, x0=x[t1, ], t1=1, t2=nrow(x)){
 wb.DS<-function(xl=loaddata(varname = c(paste0('eley', c('surf', 'unsat', 'gw')),
                                          paste0('rivy', 'stage'))),
                 ic=readic() ){
-  ic=readic()
   g=readgeol()
   att=readatt()
   cfg.calib=readcalib()

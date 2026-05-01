@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Getting Started with rSHUD}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::rmarkdown_notangle}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -13,7 +13,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = FALSE
+  eval = FALSE,
+  purl = FALSE
 )
 ```
 
@@ -246,16 +247,25 @@ After running the SHUD model, read the output files:
 
 ```{r}
 # Read time series output
-surf_flow <- read_output(
-  path = "model_output",
-  variable = "surf",
-  time_range = c("2000-01-01", "2000-12-31")
+surf_depth <- read_output(
+  keyword = "eleysurf",
+  path = "model_output"
 )
 
-# Read all variables
-all_output <- read_output(
-  path = "model_output",
-  variables = c("surf", "unsat", "gw", "river")
+# Read outputs used by the water-balance helpers
+variables <- c(
+  "elevprcp", "elevetic", "elevettr", "elevetev",
+  "eleqsurf", "eleqsub",
+  "eleysurf", "eleyunsat", "eleygw",
+  "rivqdown", "rivqsurf", "rivqsub"
+)
+all_output <- setNames(
+  lapply(
+    variables,
+    read_output,
+    path = "model_output"
+  ),
+  variables
 )
 ```
 
@@ -264,39 +274,49 @@ all_output <- read_output(
 ```{r}
 # Plot the first output series
 plot(
-  zoo::as.zoo(surf_flow[, 1]),
-  main = "Surface Flow",
-  ylab = "Flow (m³/s)",
+  zoo::as.zoo(surf_depth[, 1]),
+  main = "Surface Water Depth",
+  ylab = "Depth (m)",
   xlab = "Time"
 )
 
 # Convert to raster for spatial visualization
 surf_raster <- mesh_to_raster(
-  data = surf_flow[1, ],  # First time step
+  data = surf_depth[1, ],  # First time step
   mesh = mesh,
   template = dem
 )
 
-plot(surf_raster, main = "Surface Flow at t=1")
+plot(surf_raster, main = "Surface Water Depth at t=1")
 ```
 
 ### Calculate Water Balance
 
 ```{r}
 # Calculate element water balance
+elem_xl <- all_output[c(
+  "elevprcp", "elevetic", "elevettr", "elevetev",
+  "eleqsurf", "eleqsub",
+  "eleysurf", "eleyunsat", "eleygw"
+)]
 wb_elem <- wb.ele(
-  surf = all_output$surf,
-  unsat = all_output$unsat,
-  gw = all_output$gw
+  xl = elem_xl,
+  fun = xts::apply.daily,
+  plot = FALSE
 )
 
 # Calculate river water balance
+river_xl <- all_output[c("rivqdown", "rivqsurf", "rivqsub")]
 wb_river <- wb.riv(
-  river = all_output$river
+  xl = river_xl,
+  fun = xts::apply.daily,
+  plot = FALSE
 )
 
-# Plot water balance
-plot(wb_elem$total, main = "Total Water Storage")
+# Plot element storage change components
+storage_change <- apply(wb_elem[, , c("dys", "dyu", "dyg")], 1, sum,
+                        na.rm = TRUE)
+plot(storage_change, type = "l", main = "Total Element Storage Change")
 ```
 
 ## Advanced Features
@@ -366,19 +386,20 @@ soil_raster <- vector_to_raster(
 
 ```{r}
 # Read time series data
-discharge <- read_tsd("forcing/discharge.tsd")
+discharge <- read_tsd("forcing/discharge.tsd")[[1]]
 
 # Convert to daily values
-discharge_daily <- ts_to_daily(discharge, fun = mean)
+discharge_daily <- ts_to_daily(discharge, FUN = mean)
 
 # Calculate flow duration curve
 fdc_data <- fdc(discharge)
-plot(fdc_data, main = "Flow Duration Curve")
+fdc_data +
+  ggplot2::labs(title = "Flow Duration Curve")
 
 # Plot hydrograph
-hydrograph(
-  obs = observed_flow,
+QvsO(
   sim = simulated_flow,
+  obs = observed_flow,
   main = "Observed vs Simulated"
 )
 ```
@@ -514,22 +535,31 @@ plot(st_geometry(mesh_sf), main = "Model Domain")
 # system("shud model_2010/watershed_2010")
 
 # Read and analyze results
-surf <- read_output("model_2010", variable = "surf")
+surf <- read_output(keyword = "eleysurf", path = "model_2010")
 plot(
   zoo::as.zoo(surf[, 1]),
-  main = "Surface Flow - Cell 1",
-  ylab = "Flow",
+  main = "Surface Water Depth - Cell 1",
+  ylab = "Depth (m)",
   xlab = "Time"
 )
 
 # Calculate water balance
-wb <- wb.ele(
-  surf = read_output("model_2010", variable = "surf"),
-  unsat = read_output("model_2010", variable = "unsat"),
-  gw = read_output("model_2010", variable = "gw")
+wb_xl <- list(
+  elevprcp = read_output(keyword = "elevprcp", path = "model_2010"),
+  elevetic = read_output(keyword = "elevetic", path = "model_2010"),
+  elevettr = read_output(keyword = "elevettr", path = "model_2010"),
+  elevetev = read_output(keyword = "elevetev", path = "model_2010"),
+  eleqsurf = read_output(keyword = "eleqsurf", path = "model_2010"),
+  eleqsub = read_output(keyword = "eleqsub", path = "model_2010"),
+  eleysurf = surf,
+  eleyunsat = read_output(keyword = "eleyunsat", path = "model_2010"),
+  eleygw = read_output(keyword = "eleygw", path = "model_2010")
 )
+wb <- wb.ele(xl = wb_xl, fun = xts::apply.daily, plot = FALSE)
 
-plot(wb$total, main = "Total Water Storage")
+storage_change <- apply(wb[, , c("dys", "dyu", "dyg")], 1, sum,
+                        na.rm = TRUE)
+plot(storage_change, type = "l", main = "Element Storage Change")
 ```
 
 ## Summary
