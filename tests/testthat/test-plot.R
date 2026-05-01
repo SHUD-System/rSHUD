@@ -375,6 +375,38 @@ test_that("plot_hydrograph works with custom units", {
   ))
 })
 
+test_that("plot_tsd preserves base plotting fallback for legacy inputs", {
+  plot_file <- tempfile(fileext = ".pdf")
+  grDevices::pdf(plot_file)
+  on.exit({
+    grDevices::dev.off()
+    unlink(plot_file)
+  })
+
+  x <- stats::ts(1:10)
+  result <- suppressWarnings(withVisible(plot_tsd(x)))
+
+  expect_false(result$visible)
+  expect_identical(result$value, x)
+})
+
+test_that("plot_tsd dispatches hydrograph inputs to plot_timeseries", {
+  skip_if_not_installed("xts")
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("gridExtra")
+  skip_if_not_installed("reshape2")
+
+  expect_r_subprocess_ok(paste(
+    'library(rSHUD)',
+    'library(xts)',
+    'dates <- as.POSIXct(as.Date("2000-01-01") + 1:10)',
+    'x <- xts::xts(cbind(precip = 1:10, discharge = 11:20), order.by = dates)',
+    'p <- suppressWarnings(plot_tsd(x))',
+    'stopifnot(inherits(p, "gtable"))',
+    sep = "; "
+  ))
+})
+
 # Test deprecated functions --------------------------------------------------
 
 test_that("plot_polygons replaces plot_sp functionality", {

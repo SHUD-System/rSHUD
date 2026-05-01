@@ -9,11 +9,14 @@ plot_tsd(x, ...)
 \arguments{
 \item{x}{Time-series object to plot.}
 
-\item{...}{Additional arguments passed to \code{\link{plot_timeseries}}.}
+\item{...}{Additional arguments passed to the selected plotting function.}
 }
 \value{
-A plot object from \code{\link{plot_timeseries}}.
+A plot object from \code{\link{plot_timeseries}} for hydrograph
+inputs, otherwise \code{x} invisibly.
 }
 \description{
-Legacy compatibility wrapper for \code{\link{plot_timeseries}}.
+Legacy compatibility wrapper for \code{\link{plot_timeseries}}. Hydrograph
+inputs are forwarded to \code{\link{plot_timeseries}}; other base-plottable
+inputs use \code{\link[graphics]{plot}} to preserve legacy behavior.
 }
