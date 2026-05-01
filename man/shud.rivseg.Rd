@@ -9,8 +9,7 @@ shud.rivseg(sf_mesh, sf_riv)
 \arguments{
 \item{sf_mesh}{Mesh polygons as \code{sf} (e.g. from \code{\link{mesh_to_sf}}).}
 
-\item{sf_riv}{River reaches as \code{sf} line geometries only; convert with
-\code{sf::st_as_sf()} if you still have \code{SpatialLines*}.}
+\item{sf_riv}{River reaches as \code{sf} line geometries.}
 }
 \value{
 \code{sf} line object with columns \code{Index}, original attributes,

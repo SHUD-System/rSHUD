@@ -2,19 +2,20 @@
 % Please edit documentation in R/GIS_SimplifybyLen.R
 \name{sp.simplifyLen}
 \alias{sp.simplifyLen}
-\title{Simplify Polylines by length
+\title{Deprecated: simplify legacy polylines by length
 \code{sp.simplifyLen}}
 \usage{
 sp.simplifyLen(sp, tol, threshold = tol/2)
 }
 \arguments{
-\item{sp}{a SpatialLines or SpatialPoygons object}
+\item{sp}{Legacy \code{SpatialLines} or \code{SpatialPolygons} object.}
 
 \item{tol}{Tolerance}
 
 \item{threshold}{Minimum length for a segment}
 }
 \description{
-Simplify Polylines by length
+Deprecated: simplify legacy polylines by length
 \code{sp.simplifyLen}
 }
+\keyword{deprecated}

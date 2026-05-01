@@ -2,7 +2,7 @@
 % Please edit documentation in R/GIS_RiverProcess.R
 \name{sp.RiverPath}
 \alias{sp.RiverPath}
-\title{determine River path, disolve the river network based on downstream-relationship.
+\title{Deprecated: determine river path from downstream relationships
 \code{sp.RiverPath}}
 \usage{
 sp.RiverPath(
@@ -13,7 +13,7 @@ sp.RiverPath(
 )
 }
 \arguments{
-\item{sp}{SpatialLines*}
+\item{sp}{Legacy \code{SpatialLines*} or \code{sf} LINESTRING object.}
 
 \item{coord}{coordinates of \code{sp}.}
 
@@ -25,13 +25,17 @@ sp.RiverPath(
 List of River Path(SegIDs, PointIDs, sp)
 }
 \description{
-determine River path, disolve the river network based on downstream-relationship.
+Deprecated: determine river path from downstream relationships
 \code{sp.RiverPath}
 }
 \examples{
+\dontrun{
+# Deprecated compatibility example. Prefer calc_river_path() with sf input.
 data(sh)
 riv = sh$riv
 x = sp.CutSptialLines(riv, tol = 200)
 xx = sp.RiverPath(x)
 names(xx)
 }
+}
+\keyword{deprecated}

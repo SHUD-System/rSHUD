@@ -2,24 +2,25 @@
 % Please edit documentation in R/GIS_RiverProcess.R
 \name{sp.RiverOrder}
 \alias{sp.RiverOrder}
-\title{calculate river order
+\title{Deprecated: calculate river order for legacy river lines
 \code{sp.RiverOrder}}
 \usage{
 sp.RiverOrder(sp, coord = get_coords(sp))
 }
 \arguments{
-\item{sp}{SpatialLines*}
+\item{sp}{Legacy \code{SpatialLines*} or \code{sf} LINESTRING object.}
 
 \item{coord}{coordinates of \code{sp}.}
 }
 \value{
-Stream Order of SpatialLines*
+Stream order vector.
 }
 \description{
-calculate river order
+Deprecated: calculate river order for legacy river lines
 \code{sp.RiverOrder}
 }
 \examples{
+\dontrun{
 if (requireNamespace("sp", quietly = TRUE)) {
   library(sp)
   data(sac)
@@ -31,3 +32,5 @@ if (requireNamespace("sp", quietly = TRUE)) {
   legend('topleft', legend=idx, col=idx, lwd=1, lty=1)
 }
 }
+}
+\keyword{deprecated}

@@ -95,7 +95,10 @@ This function replaces \code{autoBuildModel()} with modern spatial libraries.
 Key differences:
 \itemize{
 \item Only accepts terra::SpatRaster and sf objects
-\item Rejects legacy raster/sp objects with clear error messages
+\item Rejects legacy spatial objects with clear error messages
+\item Legacy inputs belong in deprecated wrapper workflows such as
+\code{\link{autoBuildModel}}, which may perform limited conversion before
+forwarding to this modern API
 \item Uses snake_case parameter names (e.g., project_name vs prjname)
 \item Returns structured list instead of just mesh object
 \item Provides verbose progress reporting
@@ -103,13 +106,12 @@ Key differences:
 
 To migrate from legacy code:
 \preformatted{
-# Old code (raster/sp):
-# wbd <- readOGR("boundary.shp")
-# dem <- raster("dem.tif")
-
-# New code (sf/terra):
+# Modern code (sf/terra):
 wbd <- sf::st_read("boundary.shp")
 dem <- terra::rast("dem.tif")
+
+# Deprecated autoBuildModel() remains the migration compatibility entry point
+# for limited legacy conversion/forwarding.
 }
 }
 

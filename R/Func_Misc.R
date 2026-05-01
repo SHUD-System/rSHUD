@@ -131,11 +131,13 @@ which_outliers <- function(x, na.rm = TRUE, probs=c(.5, .95),...) {
   id
 }
 
-#' Convert SpatialLines or SpatialPolygons a Planar Straight Line Graph object
+#' Deprecated: convert spatial lines or polygons to a PSLG object
 #' \code{sp2PSLG}
-#' @param sp SpatialLines or SpatialPolygons
+#' @param sp \code{sf} line/polygon object; legacy \code{SpatialLines} or
+#'   \code{SpatialPolygons} objects are accepted for compatibility.
 #' @return pslg class
 #' @importFrom methods as is
+#' @keywords deprecated
 #' @export
 #' @examples
 #' if (requireNamespace("sf", quietly = TRUE) && requireNamespace("sp", quietly = TRUE)) {

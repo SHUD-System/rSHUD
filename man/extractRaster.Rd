@@ -2,13 +2,13 @@
 % Please edit documentation in R/Func_GIS.R
 \name{extractRaster}
 \alias{extractRaster}
-\title{Extract values on Raster map along a normalized line from 0 to 1.
+\title{Extract values on a terra raster along a normalized line from 0 to 1.
 \code{extractRaster}}
 \usage{
 extractRaster(r, xy = NULL, ext = NULL, plot = TRUE)
 }
 \arguments{
-\item{r}{Raster}
+\item{r}{\code{terra::SpatRaster}}
 
 \item{xy}{Coordinates of the line, dim = (Npoints, 2); x and y must be in
 the range 0 to 1.}
@@ -18,7 +18,7 @@ the range 0 to 1.}
 \item{plot}{Whether plot result.}
 }
 \description{
-Extract values on Raster map along a normalized line from 0 to 1.
+Extract values on a terra raster along a normalized line from 0 to 1.
 \code{extractRaster}
 }
 \examples{

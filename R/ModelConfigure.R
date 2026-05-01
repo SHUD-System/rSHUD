@@ -1,4 +1,4 @@
-#' extract Coordinates of SpatialLines or  SpatialPolygons
+#' Generate SHUD initial condition tables
 #' \code{shud.ic} 
 #' @param ncell Number of triangles in SHUD.MESH domain
 #' @param nriv Number of river lines

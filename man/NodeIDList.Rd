@@ -2,20 +2,21 @@
 % Please edit documentation in R/GIS_RiverProcess.R
 \name{NodeIDList}
 \alias{NodeIDList}
-\title{return the Index of nodes in SpatialData
+\title{Return node indices for line geometry
 \code{NodeIDList}}
 \usage{
 NodeIDList(sp, coord = get_coords(sp))
 }
 \arguments{
-\item{sp}{SpatialLines*}
+\item{sp}{\code{sf} LINESTRING object; legacy \code{SpatialLines*} is accepted
+for compatibility.}
 
 \item{coord}{Coordinate of vertex in \code{sp}}
 }
 \value{
-list of Index of each SpatialData, line or polygon
+list of node indices for each line feature.
 }
 \description{
-return the Index of nodes in SpatialData
+Return node indices for line geometry
 \code{NodeIDList}
 }

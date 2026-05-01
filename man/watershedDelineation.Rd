@@ -16,7 +16,7 @@ watershedDelineation(
 )
 }
 \arguments{
-\item{fn.wbd}{file of watershed SpatialPolygons}
+\item{fn.wbd}{File of watershed boundary polygons.}
 
 \item{fnr.dem}{file of DEM in raster}
 

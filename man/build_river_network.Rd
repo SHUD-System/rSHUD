@@ -49,7 +49,8 @@ The output is ready for use in SHUD model input files.
 }
 \section{Migration Note}{
 
-This function replaces \code{shud.river()} and uses sf/terra instead of sp/raster.
+This function replaces \code{shud.river()} and uses sf/terra instead of
+legacy spatial packages.
 The output structure is similar but uses modern spatial formats.
 }
 

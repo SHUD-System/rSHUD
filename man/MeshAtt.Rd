@@ -6,17 +6,17 @@
 \code{MeshAtt}}
 \usage{
 MeshAtt(
-  pm = readmesh(),
-  att = readatt(),
-  soil = readsoil(),
-  geol = readgeol(),
-  lc = readlc()
+  pm = read_mesh(),
+  att = read_att(),
+  soil = read_soil(),
+  geol = read_geol(),
+  lc = read_lc()
 )
 }
 \arguments{
-\item{pm}{SHUD.MESH, .sp.mesh}
+\item{pm}{SHUD.MESH object}
 
-\item{att}{.sp.att of input}
+\item{att}{SHUD attribute table}
 
 \item{soil}{.para.soil of input}
 

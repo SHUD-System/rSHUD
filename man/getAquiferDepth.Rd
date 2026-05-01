@@ -5,7 +5,7 @@
 \title{Calculate the AquiferDepth of mesh cells
 \code{getAquiferDepth}}
 \usage{
-getAquiferDepth(pm = readmesh())
+getAquiferDepth(pm = read_mesh())
 }
 \arguments{
 \item{pm}{\code{shud.mesh}}

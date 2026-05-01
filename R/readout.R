@@ -202,8 +202,7 @@ BasicPlot <- function(
         fn= paste0('Map.', prjname,'_', vn, '.png')
         y = colMeans(x)
         png(file.path(path, fn), width=11, height=9, res=100, units = 'in')
-        # Legacy map helper was removed; keep direct raster plotting here.
-        r = MeshData2Raster(y, stack=FALSE)
+        r = mesh_to_raster(data = y, stack=FALSE)
         if(!is.null(w.focal)){
           r = terra::focal(r, w=w.focal)
         }

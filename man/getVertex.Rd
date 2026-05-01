@@ -5,7 +5,7 @@
 \title{Calculate the Vertex of the cells
 \code{getVertex}}
 \usage{
-getVertex(pm = readmesh())
+getVertex(pm = read_mesh())
 }
 \arguments{
 \item{pm}{\code{shud.mesh}}

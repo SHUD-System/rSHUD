@@ -12,7 +12,7 @@ ts2map(x, fun = mean, raster = TRUE, ...)
 
 \item{fun}{Functions to summarize the TS data.}
 
-\item{raster}{Whether to make output as Raster}
+\item{raster}{Whether to make output as \code{terra::SpatRaster}}
 
 \item{...}{More options in fun}
 }

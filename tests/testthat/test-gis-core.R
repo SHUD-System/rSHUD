@@ -1,5 +1,36 @@
 # Tests for Core GIS Functions
 
+small_test_mesh <- function() {
+  SHUD.MESH(
+    mesh = data.frame(
+      ID = 1:2,
+      Node1 = c(1, 2),
+      Node2 = c(2, 3),
+      Node3 = c(3, 4),
+      Nabr1 = c(0, 0),
+      Nabr2 = c(0, 0),
+      Nabr3 = c(0, 0)
+    ),
+    point = data.frame(
+      ID = 1:4,
+      X = c(0, 1, 0, 1),
+      Y = c(0, 0, 1, 1),
+      AqD = c(10, 20, 30, 40),
+      Z = c(100, 110, 120, 130)
+    )
+  )
+}
+
+small_test_template <- function() {
+  r <- terra::rast(
+    xmin = -0.5, xmax = 1.5,
+    ymin = -0.5, ymax = 1.5,
+    resolution = 0.5
+  )
+  terra::crs(r) <- "EPSG:4326"
+  r
+}
+
 # Test mesh_to_raster function ------------------------------------------------
 
 test_that("mesh_to_raster requires data parameter", {
@@ -170,22 +201,302 @@ test_that("MeshData2Raster shows deprecation warning", {
   )
 })
 
-test_that("MeshData2Raster maps old parameters to new ones", {
+test_that("MeshData2Raster forwards modern arguments without legacy defaults", {
   skip_if_not_installed("terra")
-  
-  # Test parameter mapping
-  # x -> data
-  # rmask -> template
-  # pm -> mesh
-  # proj -> crs
-  
+
+  template <- small_test_template()
+  mesh <- small_test_mesh()
+  returned <- template
+  terra::values(returned) <- seq_len(terra::ncell(returned))
+  captured <- NULL
+
+  testthat::local_mocked_bindings(
+    mesh_to_raster = function(data,
+                              mesh = NULL,
+                              template = NULL,
+                              method = c("idw", "linear", "nearest"),
+                              resolution = NULL,
+                              crs = NULL,
+                              stack = FALSE) {
+      captured <<- list(
+        data = data,
+        mesh = mesh,
+        template = template,
+        method_missing = missing(method),
+        method = method,
+        resolution = resolution,
+        crs = crs,
+        stack = stack
+      )
+      returned
+    },
+    .package = "rSHUD"
+  )
+
   expect_warning(
-    tryCatch(
-      MeshData2Raster(x = 1:10, rmask = NULL, pm = NULL, proj = NULL),
-      error = function(e) NULL
+    out <- MeshData2Raster(
+      data = 1,
+      mesh = mesh,
+      template = template,
+      resolution = 0.25,
+      crs = "EPSG:4326",
+      stack = TRUE,
+      plot = FALSE
     ),
     "deprecated|不再有用"
   )
+
+  expect_s4_class(out, "SpatRaster")
+  expect_identical(captured$data, 1)
+  expect_identical(captured$mesh, mesh)
+  expect_identical(captured$template, template)
+  expect_true(captured$method_missing)
+  expect_identical(captured$resolution, 0.25)
+  expect_identical(captured$crs, "EPSG:4326")
+  expect_true(captured$stack)
+})
+
+test_that("MeshData2Raster maps old parameters to new ones", {
+  skip_if_not_installed("terra")
+
+  template <- small_test_template()
+  mesh <- small_test_mesh()
+  returned <- template
+  terra::values(returned) <- seq_len(terra::ncell(returned))
+  captured <- NULL
+
+  testthat::local_mocked_bindings(
+    mesh_to_raster = function(data,
+                              mesh = NULL,
+                              template = NULL,
+                              method = c("idw", "linear", "nearest"),
+                              resolution = NULL,
+                              crs = NULL,
+                              stack = FALSE) {
+      captured <<- list(
+        data = data,
+        mesh = mesh,
+        template = template,
+        method = method,
+        resolution = resolution,
+        crs = crs,
+        stack = stack
+      )
+      returned
+    },
+    .package = "rSHUD"
+  )
+
+  expect_warning(
+    out <- MeshData2Raster(
+      x = 1,
+      rmask = template,
+      pm = mesh,
+      proj = "EPSG:3857",
+      method = "nearest",
+      plot = FALSE
+    ),
+    "deprecated|不再有用"
+  )
+
+  expect_s4_class(out, "SpatRaster")
+  expect_identical(captured$data, 1)
+  expect_identical(captured$mesh, mesh)
+  expect_identical(captured$template, template)
+  expect_identical(captured$method, "nearest")
+  expect_identical(captured$crs, "EPSG:3857")
+})
+
+test_that("MeshData2Raster resolves legacy defaults before forwarding", {
+  skip_if_not_installed("terra")
+
+  data <- c(11, 12)
+  mesh <- small_test_mesh()
+  template <- small_test_template()
+  returned <- template
+  terra::values(returned) <- seq_len(terra::ncell(returned))
+  captured <- NULL
+  calls <- list(getElevation = 0, read_mesh = 0, shud.mask = 0)
+
+  testthat::local_mocked_bindings(
+    getElevation = function(...) {
+      calls$getElevation <<- calls$getElevation + 1
+      data
+    },
+    read_mesh = function(...) {
+      calls$read_mesh <<- calls$read_mesh + 1
+      mesh
+    },
+    shud.mask = function(pm = NULL, proj = NULL, ...) {
+      calls$shud.mask <<- calls$shud.mask + 1
+      expect_identical(pm, mesh)
+      expect_null(proj)
+      template
+    },
+    mesh_to_raster = function(data,
+                              mesh = NULL,
+                              template = NULL,
+                              method = c("idw", "linear", "nearest"),
+                              resolution = NULL,
+                              crs = NULL,
+                              stack = FALSE) {
+      captured <<- list(
+        data = data,
+        mesh = mesh,
+        template = template,
+        method_missing = missing(method),
+        method = method,
+        resolution = resolution,
+        crs = crs,
+        stack = stack
+      )
+      returned
+    },
+    .package = "rSHUD"
+  )
+
+  expect_warning(
+    out <- MeshData2Raster(),
+    "deprecated|不再有用"
+  )
+
+  expect_s4_class(out, "SpatRaster")
+  expect_equal(calls, list(getElevation = 1, read_mesh = 1, shud.mask = 1))
+  expect_identical(captured$data, data)
+  expect_identical(captured$mesh, mesh)
+  expect_identical(captured$template, template)
+  expect_true(captured$method_missing)
+})
+
+test_that("MeshData2Raster builds missing template from resolved mesh and CRS", {
+  skip_if_not_installed("terra")
+
+  legacy_mesh <- small_test_mesh()
+  modern_mesh <- small_test_mesh()
+  template <- small_test_template()
+  returned <- template
+  terra::values(returned) <- seq_len(terra::ncell(returned))
+  captured <- NULL
+
+  testthat::local_mocked_bindings(
+    read_mesh = function(...) stop("read_mesh() should not be called"),
+    shud.mask = function(pm = NULL, proj = NULL, ...) {
+      expect_identical(pm, modern_mesh)
+      expect_identical(proj, "EPSG:3857")
+      template
+    },
+    mesh_to_raster = function(data,
+                              mesh = NULL,
+                              template = NULL,
+                              method = c("idw", "linear", "nearest"),
+                              resolution = NULL,
+                              crs = NULL,
+                              stack = FALSE) {
+      captured <<- list(
+        data = data,
+        mesh = mesh,
+        template = template,
+        method_missing = missing(method),
+        method = method,
+        crs = crs
+      )
+      returned
+    },
+    .package = "rSHUD"
+  )
+
+  expect_warning(
+    MeshData2Raster(
+      x = c(1, 2),
+      pm = legacy_mesh,
+      mesh = modern_mesh,
+      proj = "EPSG:3857"
+    ),
+    "deprecated|不再有用"
+  )
+
+  expect_identical(captured$data, c(1, 2))
+  expect_identical(captured$mesh, modern_mesh)
+  expect_identical(captured$template, template)
+  expect_identical(captured$crs, "EPSG:3857")
+  expect_true(captured$method_missing)
+})
+
+test_that("MeshData2Raster accepts nearest interpolation through mesh_to_raster", {
+  skip_if_not_installed("terra")
+
+  expect_warning(
+    r <- MeshData2Raster(
+      data = c(7, 8),
+      mesh = small_test_mesh(),
+      template = small_test_template(),
+      method = "nearest"
+    ),
+    "deprecated|不再有用"
+  )
+
+  expect_s4_class(r, "SpatRaster")
+})
+
+test_that("modern reader defaults avoid deprecated self-calls in GIS helpers", {
+  skip_if_not_installed("sf")
+
+  mesh <- small_test_mesh()
+
+  testthat::local_mocked_bindings(
+    read_mesh = function(...) mesh,
+    readmesh = function(...) stop("deprecated readmesh() called"),
+    read_att = function(...) data.frame(LAKE = c(0, 2)),
+    readatt = function(...) stop("deprecated readatt() called"),
+    mesh_to_sf = function(pm) {
+      expect_identical(pm, mesh)
+      sf::st_sf(
+        id = 1,
+        geometry = sf::st_sfc(
+          sf::st_polygon(list(matrix(c(0, 0, 1, 0, 1, 1, 0, 0),
+                                      ncol = 2, byrow = TRUE)))
+        )
+      )
+    },
+    .package = "rSHUD"
+  )
+
+  expect_equal(getElevation(), c(110, 120))
+  expect_equal(getAquiferDepth(), c(20, 30))
+  expect_equal(getLakeEleID(), 2)
+  expect_length(getArea(), 1)
+  expect_equal(getCentroid()[1, "ZMAX"], 110)
+})
+
+test_that("getRiverNodes default uses read_river_sp compatibility reader", {
+  skip_if_not_installed("sf")
+
+  river_line <- sf::st_sf(
+    id = 1,
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 1), ncol = 2, byrow = TRUE)),
+      crs = 4326
+    )
+  )
+
+  testthat::local_mocked_bindings(
+    read_river_sp = function(...) river_line,
+    readriv.sp = function(...) stop("deprecated readriv.sp() called"),
+    get_coords = function(...) matrix(c(0, 0, 1, 1), ncol = 2, byrow = TRUE),
+    get_from_to_nodes = function(spr, coords) {
+      matrix(c(1, 2), ncol = 2)
+    },
+    ProjectCoordinate = function(x, proj4string, P2G = TRUE) {
+      matrix(c(10, 20, 11, 21), ncol = 2, byrow = TRUE,
+             dimnames = list(NULL, c("Lon", "Lat")))
+    },
+    .package = "rSHUD"
+  )
+
+  nodes <- getRiverNodes()
+
+  expect_equal(nrow(nodes$points), 2)
+  expect_equal(as.integer(nodes$FT_ID[1, 2:3]), c(1L, 2L))
 })
 
 # Integration tests with real data --------------------------------------------
@@ -616,4 +927,3 @@ test_that("sp2raster maps old parameters to new ones", {
 
   expect_s4_class(r, "SpatRaster")
 })
-

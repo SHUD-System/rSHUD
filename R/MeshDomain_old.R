@@ -1,9 +1,17 @@
-#' Generate the mesh data from the triangulation
-#' \code{shud.mesh}
+# Legacy/internal compatibility file.
+#
+# These helpers are kept out of the public API and only forward older internal
+# names to the modern implementations in R/MeshDomain.R. They remain in the
+# package build so archived scripts that source these symbols internally can be
+# migrated without changing runtime behavior.
+
+#' Legacy internal wrapper for SHUD mesh generation
+#' \code{shud.mesh_legacy}
 #' @param tri Triangles defination
-#' @param dem Elevation. Projection of the DEM raster must be same as watershed boundary.
+#' @param dem Elevation as a \code{terra::SpatRaster}; CRS must match the
+#'   watershed boundary.
 #' @param AqDepth Aquifer depth, numeric.
-#' @param r.aq  Aquifer Thickness. Raster object
+#' @param r.aq Aquifer thickness as a \code{terra::SpatRaster}
 #' @return Triangle mesh of model domain.
 #' @noRd
 #' @examples
@@ -35,8 +43,8 @@ shud.mesh_legacy <- function(tri, dem, AqDepth = 10, r.aq = dem * 0 + AqDepth){
   shud.mesh(tri = tri, dem = dem, AqDepth = AqDepth, r.aq = r.aq)
 }
 
-#' Centroids of the triangulation
-#' \code{Tri2Centroid}
+#' Legacy internal wrapper for triangulation centroids
+#' \code{Tri2Centroid_legacy}
 #' @param tri Triangles defination
 #' @return Centroids of the triangles, m x 2;
 #' @noRd
@@ -44,17 +52,19 @@ Tri2Centroid_legacy <- function(tri){
   Tri2Centroid(tri)
 }
 
-#' extract Coordinates of SpatialLines or  SpatialPolygons
-#' \code{shud.att}
+#' Legacy internal wrapper for mesh attribute extraction
+#' \code{shud.att_legacy}
 #' @param tri Triangles defination
-#' @param r.soil raster of soil classification
-#' @param r.geol raster of geology layer
-#' @param r.lc raster of land cover, LAI and Roughness Length
-#' @param r.forc raster of forcing data
-#' @param r.mf raster of melt factor
-#' @param r.BC raster of boundary condition
-#' @param r.SS raster of Source/Sink
-#' @param sp.lake SpatialPolygon of lake layers.
+#' @param r.soil Soil classification as a \code{terra::SpatRaster}
+#' @param r.geol Geology layer as a \code{terra::SpatRaster}
+#' @param r.lc Land cover, LAI, and roughness length as a
+#'   \code{terra::SpatRaster}
+#' @param r.forc Forcing data zones as a \code{terra::SpatRaster} or
+#'   \code{sf} object
+#' @param r.mf Melt factor as a \code{terra::SpatRaster}
+#' @param r.BC Boundary condition as a \code{terra::SpatRaster} or numeric
+#' @param r.SS Source/sink as a \code{terra::SpatRaster} or numeric
+#' @param sp.lake Lake layers as an \code{sf} object.
 #' @return data.frame of SHUD .att
 #' @noRd
 shud.att_legacy <- function(tri, r.soil = NULL, r.geol = NULL, r.lc = NULL, r.forc = NULL,

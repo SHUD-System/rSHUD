@@ -1,23 +1,24 @@
 
-#' Simplify Polylines by length
+#' Deprecated: split legacy polylines by length
 #' \code{SimplifybyLen} 
-#' @param sp a SpatialLines or SpatialPoygons object
-#' @param split_length the length of the segments to split the lines into, in units of the SpatialLine object
+#' @param sp \code{sf} line object; legacy \code{SpatialLines} input is accepted
+#'   for compatibility.
+#' @param split_length the length of the segments to split the lines into, in
+#'   map units.
 #' @param plot.results TRUE/FALSE 
 #' @importFrom grDevices dev.off graphics.off png rgb topo.colors 
 #' @importFrom graphics grid hist lines par plot points 
 #' @importFrom methods as 
 #' @importFrom stats dist rnorm time 
 #' @importFrom utils read.table 
-#' @return simplified SpatialLines
+#' @return Legacy \code{SpatialLinesDataFrame} for compatibility.
 #' @source  https://stackoverflow.com/questions/38700246/how-do-i-split-divide-polyline-shapefiles-into-equally-length-smaller-segments
 #' @export
 SimplifybyLen <- function(sp, split_length = 20, plot.results = FALSE) {
   sp_sf = if (inherits(sp, "sf")) sp else sf::st_as_sf(sp)
   sp_legacy = methods::as(sp_sf, 'SpatialLines')
   #### Define support functions ####
-  # SpatialLines2df extracts start and end point coordinates of each segment of a SpatialLine object
-  # sp: an object class SpatialLinesDataFrame of the package sp
+  # Compatibility helper for the legacy SpatialLines representation used below.
   SpatialLines2df = function(sp) {
     df = data.frame(
       id = character(),
@@ -54,7 +55,7 @@ SimplifybyLen <- function(sp, split_length = 20, plot.results = FALSE) {
     return(df)
   }
   
-  # linedf2SpatialLines converts a dataframe of IDs and coordinates into a spatial line
+  # Convert a data frame of IDs and coordinates into sf line features.
   # linedf: a data.frame with columns as:
   #         id = generic ids of the lines,
   #         fx = coordinates x of the first point of the line
@@ -78,7 +79,7 @@ SimplifybyLen <- function(sp, split_length = 20, plot.results = FALSE) {
   
   
   #### Split the lines ####
-  # Convert the input SpatialLine object into a dataframe and create an empty output dataframe
+  # Convert the compatibility line object into a data frame.
   linedf = SpatialLines2df(sp_legacy)
   df = data.frame(
     id = character(),
@@ -157,5 +158,5 @@ SimplifybyLen <- function(sp, split_length = 20, plot.results = FALSE) {
   att=data.frame('Index'=1:nrow(df), df[,-1], 'Length' = as.numeric(sf::st_length(sl)))
   rownames(att) = df[,1]
   sld=sf::st_sf(att, geometry = sf::st_geometry(sl))
-  return(methods::as(sld, "Spatial")) # Return a SpatialLine object
+  return(methods::as(sld, "Spatial"))
 }

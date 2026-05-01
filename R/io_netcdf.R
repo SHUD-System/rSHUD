@@ -1,8 +1,8 @@
 #' NetCDF I/O Functions
 #' 
-#' This module provides functions for reading NetCDF files with support for
-#' both legacy raster and modern terra formats. Functions maintain ncdf4
-#' interface compatibility while adding terra integration.
+#' This module provides functions for reading NetCDF files and converting arrays
+#' to modern \code{terra::SpatRaster} output. The optional
+#' \code{format = "legacy"} branch is retained only for migration compatibility.
 #' 
 #' @name netcdf-io
 NULL
@@ -90,12 +90,14 @@ read_nc_time <- function(ncid) {
 #' Read NetCDF data with spatial subsetting
 #' 
 #' Reads NetCDF data with optional spatial and variable subsetting.
-#' Supports both legacy raster and modern terra output formats.
+#' Supports modern terra output by default, with an optional legacy-compatible
+#' format for migration.
 #' 
 #' @param ncid NetCDF connection object from ncdf4::nc_open()
 #' @param variables Character vector of variable names to read (NULL = all)
 #' @param extent Numeric vector c(xmin, xmax, ymin, ymax) for spatial subset
-#' @param format Character. Output format ("modern" uses terra, "legacy" uses raster)
+#' @param format Character. Output format. \code{"modern"} uses terra;
+#'   \code{"legacy"} is retained only for migration compatibility.
 #' @return List containing coordinates, data array, and time information
 #' @family netcdf-io
 #' @export
@@ -251,9 +253,10 @@ read_nc_data <- function(ncid,
   return(result)
 }
 
-#' Convert NetCDF data to raster/terra format
+#' Convert NetCDF data to terra raster format
 #' 
-#' Converts NetCDF data arrays to raster (legacy) or terra (modern) format.
+#' Converts NetCDF data arrays to \code{terra::SpatRaster} by default. A
+#' legacy-compatible return can be requested only for migration workflows.
 #' Handles both single layers and multi-layer datasets.
 #' 
 #' @param nc_data List returned from read_nc_data()
@@ -262,8 +265,9 @@ read_nc_data <- function(ncid,
 #' @param data_array Array of data values (alternative input)
 #' @param resolution Numeric vector c(dx, dy) for grid resolution
 #' @param flip Logical. Whether to flip the array vertically
-#' @param format Character. Output format ("modern" or "legacy")
-#' @return SpatRaster (modern) or RasterStack/RasterLayer (legacy)
+#' @param format Character. Output format ("modern" or "legacy").
+#' @return \code{terra::SpatRaster} by default, or a legacy raster object when
+#'   \code{format = "legacy"} and the raster package is available.
 #' @family netcdf-io
 #' @export
 #' @examples
@@ -272,10 +276,10 @@ read_nc_data <- function(ncid,
 #' nc <- nc_open("climate_data.nc")
 #' nc_data <- read_nc_data(nc)
 #' 
-#' # Convert to terra format (modern)
+#' # Convert to terra format (modern default)
 #' raster_data <- nc_to_raster(nc_data, format = "modern")
 #' 
-#' # Convert to raster format (legacy)
+#' # Legacy migration compatibility only
 #' raster_data <- nc_to_raster(nc_data, format = "legacy")
 #' 
 #' nc_close(nc)

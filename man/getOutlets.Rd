@@ -5,7 +5,7 @@
 \title{Get outlet ID(s)
 \code{getOutlets}}
 \usage{
-getOutlets(pr = readriv())
+getOutlets(pr = read_river())
 }
 \arguments{
 \item{pr}{SHUD.RIVER class}

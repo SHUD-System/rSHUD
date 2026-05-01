@@ -7,7 +7,7 @@
 \usage{
 ModelInfo(
   path = shud.filein()["outpath"],
-  spr = readriv.sp(),
+  spr = sf::st_read(file.path(shud.filein()["inpath"], "gis", "river.shp"), quiet = TRUE),
   crs.pcs = sf::st_crs(sf::st_as_sf(spr))
 )
 }

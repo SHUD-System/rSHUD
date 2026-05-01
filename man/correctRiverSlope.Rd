@@ -15,7 +15,7 @@ correctRiverSlope(pr, minSlope = 1e-05, maxrun = 500)
 \item{maxrun}{Maximum number to run the loops}
 }
 \value{
-SpatialLinesDataFrame
+Corrected \code{SHUD.RIVER} object
 }
 \description{
 Convert the bed slope of river, to avoid negative/zero slope

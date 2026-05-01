@@ -1,7 +1,8 @@
-#' calculate river order, downstream, slope and length
+#' Calculate river order, downstream, slope, and length
 #' \code{shud.river}
-#' @param sl SpatialLines*
-#' @param dem Raster of elevation
+#' @param sl \code{sf} LINESTRING object; legacy \code{SpatialLines*} is
+#'   accepted for compatibility.
+#' @param dem Elevation as a \code{terra::SpatRaster}
 #' @param rivord Order of each river reach
 #' @param rivdown Downstream Index of each river reach.
 #' @param AREA Area of the watershed, for estimating the width/depth of river.
@@ -79,7 +80,7 @@ RiverSlope <- function(pr){
 #' @param pr SHUD.RIVER class
 #' @param minSlope Minimum slope
 #' @param maxrun Maximum number to run the loops
-#' @return SpatialLinesDataFrame
+#' @return Corrected \code{SHUD.RIVER} object
 #' @export
 correctRiverSlope <- function(pr, minSlope = 1e-5, maxrun = 500){
     msg = 'correctRiverSlope::'
@@ -159,13 +160,15 @@ correctRiverSlope <- function(pr, minSlope = 1e-5, maxrun = 500){
   pr
 }
 
-#' Convert the SHUD.RIVER class to SpatialLines
+#' Deprecated: read the SHUD.RIVER shapefile as legacy SpatialLines
 #' \code{sp.riv2shp}
 #' @param pr SHUD.RIVER class
-#' @param dbf Attribute data for exported SpatialLines
-#' @return SpatialLinesDataFrame
+#' @param dbf Attribute data for exported line features; retained for
+#'   compatibility.
+#' @return Legacy \code{SpatialLinesDataFrame}
+#' @keywords deprecated
 #' @export
-sp.riv2shp <- function(pr = readriv(), dbf = NULL){
+sp.riv2shp <- function(pr = read_river(), dbf = NULL){
   # pt = pr@point[,2:3]
   # rt = pr@rivertype
   # riv = pr@river
@@ -200,7 +203,7 @@ sp.riv2shp <- function(pr = readriv(), dbf = NULL){
 #' @param pr SHUD.RIVER class
 #' @return Index of outlets, numeric
 #' @export
-getOutlets <- function(pr = readriv()){
+getOutlets <- function(pr = read_river()){
   idown = pr@river[,'Down']
   ids = which(idown < 0)
   ids

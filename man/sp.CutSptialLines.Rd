@@ -2,42 +2,29 @@
 % Please edit documentation in R/Func_GIS.R
 \name{sp.CutSptialLines}
 \alias{sp.CutSptialLines}
-\title{Cut sptialLines with threshold.
+\title{Deprecated: cut line geometries with a length threshold
 \code{sp.CutSptialLines}}
 \usage{
 sp.CutSptialLines(sl, tol)
 }
 \arguments{
-\item{sl}{SpatialLines or SpatialLineDataFrame}
+\item{sl}{\code{sf} LINESTRING object; legacy \code{SpatialLines*} is
+accepted for compatibility.}
 
 \item{tol}{Tolerence. If the length of segment is larger than tolerance, cut the segment until the maximum segment is shorter than tolerance.}
 }
 \description{
-Cut sptialLines with threshold.
+Deprecated: cut line geometries with a length threshold
 \code{sp.CutSptialLines}
 }
 \examples{
-library(rSHUD)
-if (requireNamespace("sp", quietly = TRUE)) {
-library(sp)
-x = 1:1000 / 100
-l1 = Lines(Line(cbind(x, sin(x)) ), ID = 'a' )
-sl = SpatialLines( list(l1) )
-tol1 = 5;
-tol2 = 2
-sl1 = sp.CutSptialLines(sl, tol1)
-sl2 = sp.CutSptialLines(sl, tol2)
-par(mfrow = c(1, 2))
-plot(sf::st_geometry(sf::st_as_sf(sl1)), col = 1:length(sl1)); title(paste0('Tol=', tol1))
-plot(sf::st_geometry(sf::st_as_sf(sl2)), col = 1:length(sl2)); title(paste0('Tol=', tol2))
-
-data(sh)
-riv = sh$riv
-x = sp.CutSptialLines(riv, tol = 5)
-par(mfrow = c(2, 1))
-plot(sf::st_geometry(sf::st_as_sf(riv)), col = 1:length(riv), lwd = 3);
-
-plot(sf::st_geometry(sf::st_as_sf(riv)), col = 'gray', lwd = 3);
-plot(sf::st_geometry(sf::st_as_sf(x)), add = TRUE, col = 1:length(x))
+\dontrun{
+# Deprecated compatibility wrapper. Prefer sf-native preprocessing such as
+# sf::st_segmentize() in new workflows.
+line <- sf::st_sf(
+  geometry = sf::st_sfc(sf::st_linestring(cbind(1:10, sin(1:10))))
+)
+cut_line <- sp.CutSptialLines(line, tol = 2)
 }
 }
+\keyword{deprecated}

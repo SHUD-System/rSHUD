@@ -1,22 +1,25 @@
-#' Generate SHUD mesh domain from triangulation
+#' Low-level compatibility SHUD mesh domain builder
 #'
 #' Creates a SHUD.MESH S4 object from a triangulation, extracting elevation
-#' and aquifer depth from raster data. Modernized implementation using terra
-#' for raster operations, with automatic raster to terra conversion.
+#' and aquifer depth from \code{terra::SpatRaster} data. This is a low-level
+#' compatibility/advanced API used by the automated model builder; most users
+#' should call \code{\link{auto_build_model}}.
 #'
 #' @param tri Triangulation object from RTriangle or shud.triangle()
-#' @param dem Elevation data - terra SpatRaster or legacy raster object
-#'   (auto-converted to SpatRaster)
+#' @param dem Elevation data as a \code{terra::SpatRaster}
 #' @param AqDepth Numeric value for uniform aquifer depth (default: 10)
-#' @param r.aq Aquifer thickness raster - terra SpatRaster or legacy raster
-#'   (optional, overrides AqDepth if provided)
+#' @param r.aq Aquifer thickness as a \code{terra::SpatRaster} (optional,
+#'   overrides AqDepth if provided)
 #'
 #' @return SHUD.MESH S4 object with mesh and point data
 #'
 #' @details
 #' This function has been modernized to use terra for raster operations,
-#' providing better performance. Legacy raster objects are automatically
-#' converted to terra SpatRaster format.
+#' providing better performance. It is retained for advanced manual workflows
+#' and compatibility with older scripts. Deprecated low-level callers may still
+#' pass legacy objects, which are converted for compatibility; new code should
+#' pass \code{terra::SpatRaster} directly or use
+#' \code{\link{auto_build_model}} for the full workflow.
 #'
 #' @export
 #' @examples
@@ -42,7 +45,7 @@ shud.mesh <- function(tri, dem, AqDepth = 10, r.aq = dem * 0 + AqDepth) {
   
   triangulation <- tri
   
-  # Auto-convert raster to terra
+  # Compatibility conversion for older low-level callers.
   if (inherits(dem, "Raster")) {
     dem <- terra::rast(dem)
   }
@@ -120,7 +123,7 @@ shud.mesh <- function(tri, dem, AqDepth = 10, r.aq = dem * 0 + AqDepth) {
     aq <- .extract_spatraster_values(aquifer_depth, pt, method = "bilinear")
   } else {
     stop(
-      "Parameter 'aquifer_depth' must be either a single numeric value or ",
+      "Parameter 'r.aq' must be either a single numeric value or ",
       "a terra SpatRaster object",
       call. = FALSE
     )
@@ -142,34 +145,34 @@ shud.mesh <- function(tri, dem, AqDepth = 10, r.aq = dem * 0 + AqDepth) {
 }
 
 
-#' Calculate mesh attributes from raster data
+#' Low-level compatibility mesh attribute builder
 #'
-#' Extracts attribute values from raster layers to mesh triangle centroids.
-#' Modernized implementation using terra for raster operations with improved
-#' performance, with automatic raster to terra conversion.
+#' Extracts attribute values from \code{terra::SpatRaster} layers and
+#' \code{sf} polygons to mesh triangle centroids. This is a low-level
+#' compatibility/advanced API used by the automated model builder; most users
+#' should call \code{\link{auto_build_model}}.
 #'
 #' @param tri Triangulation object from RTriangle or shud.triangle()
-#' @param r.soil Soil classification raster - terra SpatRaster or legacy raster
-#'   (auto-converted) (optional)
-#' @param r.geol Geology classification raster - terra SpatRaster or legacy raster
-#'   (auto-converted) (optional)
-#' @param r.lc Land cover classification raster - terra SpatRaster or legacy raster
-#'   (auto-converted) (optional)
-#' @param r.forc Forcing data zones raster - terra SpatRaster or legacy raster
-#'   (auto-converted) (optional)
-#' @param r.mf Melt factor raster - terra SpatRaster or legacy raster
-#'   (auto-converted) (optional)
+#' @param r.soil Soil classification as a \code{terra::SpatRaster} (optional)
+#' @param r.geol Geology classification as a \code{terra::SpatRaster} (optional)
+#' @param r.lc Land cover classification as a \code{terra::SpatRaster}
+#'   (optional)
+#' @param r.forc Forcing zones as a \code{terra::SpatRaster} or \code{sf}
+#'   polygon/point object (optional)
+#' @param r.mf Melt factor as a \code{terra::SpatRaster} (optional)
 #' @param r.BC Boundary condition raster or numeric (optional)
 #' @param r.SS Source/sink raster or numeric (optional)
-#' @param sp.lake Lake polygons - sf object or legacy sp object (auto-converted)
-#'   (optional)
+#' @param sp.lake Lake polygons as an \code{sf} object (optional)
 #'
 #' @return data.frame with attribute indices for each mesh triangle
 #'
 #' @details
 #' This function has been modernized to use terra for raster operations,
-#' providing 2-5x better performance. Legacy raster and sp objects are
-#' automatically converted to terra/sf formats.
+#' providing 2-5x better performance. It is retained for advanced manual
+#' workflows and compatibility with older scripts. Deprecated low-level callers
+#' may still pass legacy objects, which are converted for compatibility; new
+#' code should pass \code{terra::SpatRaster} and \code{sf} objects directly or
+#' use \code{\link{auto_build_model}} for the full workflow.
 #'
 #' @export
 #' @examples
@@ -197,7 +200,7 @@ shud.att <- function(tri, r.soil = NULL, r.geol = NULL, r.lc = NULL,
   
   triangulation <- tri
   
-  # Auto-convert raster to terra
+  # Compatibility conversion for older low-level callers.
   convert_to_terra <- function(r) {
     if (is.null(r)) return(NULL)
     if (inherits(r, "Raster")) return(terra::rast(r))
@@ -212,7 +215,7 @@ shud.att <- function(tri, r.soil = NULL, r.geol = NULL, r.lc = NULL,
   boundary_condition <- convert_to_terra(r.BC)
   source_sink <- convert_to_terra(r.SS)
   
-  # Auto-convert sp to sf
+  # Compatibility conversion for older low-level callers.
   if (!is.null(sp.lake) && inherits(sp.lake, "Spatial")) {
     sp.lake <- sf::st_as_sf(sp.lake)
   }

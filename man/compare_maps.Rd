@@ -56,11 +56,11 @@ spatial data.
 \section{Migration Note}{
 
 This function replaces \code{compareMaps()} and uses terra/sf instead of
-raster/sp. Key differences:
+legacy spatial packages. Key differences:
 \itemize{
 \item Parameter 'r' renamed to 'maps' for clarity
 \item Parameter 'mfrow' split into 'nrow' and 'ncol' for flexibility
-\item Accepts SpatRaster, sf, or SpatVector instead of Raster* or Spatial*
+\item Accepts SpatRaster, sf, or SpatVector objects
 \item Uses terra::plot() instead of legacy raster plotting
 \item Automatically calculates layout if not specified
 \item Better handling of mixed raster/vector inputs

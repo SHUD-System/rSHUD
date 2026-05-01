@@ -2,20 +2,21 @@
 % Please edit documentation in R/GIS_RiverProcess.R
 \name{SharedPoints}
 \alias{SharedPoints}
-\title{Find Shared points in SpatialLine*
+\title{Find shared points in line geometries
 \code{SharedPoints}}
 \usage{
 SharedPoints(sp, plot = FALSE)
 }
 \arguments{
-\item{sp}{SpatialLines}
+\item{sp}{\code{sf} LINESTRING object; legacy \code{SpatialLines} is accepted
+for compatibility.}
 
 \item{plot}{Whether to plot the results for debugging}
 }
 \value{
-Topologic relationship between components of SpatialLines.
+Topologic relationship between line components.
 }
 \description{
-Find Shared points in SpatialLine*
+Find shared points in line geometries
 \code{SharedPoints}
 }

@@ -2,13 +2,13 @@
 % Please edit documentation in R/GIS_RiverProcess.R
 \name{sp.RiverDown}
 \alias{sp.RiverDown}
-\title{determine index of downstream
-\code{sp.RiverOrder}}
+\title{Deprecated: determine downstream index for legacy river lines
+\code{sp.RiverDown}}
 \usage{
 sp.RiverDown(sp, coord = get_coords(sp))
 }
 \arguments{
-\item{sp}{SpatialLines*}
+\item{sp}{Legacy \code{SpatialLines*} or \code{sf} LINESTRING object.}
 
 \item{coord}{coordinates of \code{sp}.}
 }
@@ -16,6 +16,7 @@ sp.RiverDown(sp, coord = get_coords(sp))
 Index of downstream for each segements
 }
 \description{
-determine index of downstream
-\code{sp.RiverOrder}
+Deprecated: determine downstream index for legacy river lines
+\code{sp.RiverDown}
 }
+\keyword{deprecated}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/MeshDomain.R
 \name{shud.att}
 \alias{shud.att}
-\title{Calculate mesh attributes from raster data}
+\title{Low-level compatibility mesh attribute builder}
 \usage{
 shud.att(
   tri,
@@ -19,40 +19,40 @@ shud.att(
 \arguments{
 \item{tri}{Triangulation object from RTriangle or shud.triangle()}
 
-\item{r.soil}{Soil classification raster - terra SpatRaster or legacy raster
-(auto-converted) (optional)}
+\item{r.soil}{Soil classification as a \code{terra::SpatRaster} (optional)}
 
-\item{r.geol}{Geology classification raster - terra SpatRaster or legacy raster
-(auto-converted) (optional)}
+\item{r.geol}{Geology classification as a \code{terra::SpatRaster} (optional)}
 
-\item{r.lc}{Land cover classification raster - terra SpatRaster or legacy raster
-(auto-converted) (optional)}
+\item{r.lc}{Land cover classification as a \code{terra::SpatRaster}
+(optional)}
 
-\item{r.forc}{Forcing data zones raster - terra SpatRaster or legacy raster
-(auto-converted) (optional)}
+\item{r.forc}{Forcing zones as a \code{terra::SpatRaster} or \code{sf}
+polygon/point object (optional)}
 
-\item{r.mf}{Melt factor raster - terra SpatRaster or legacy raster
-(auto-converted) (optional)}
+\item{r.mf}{Melt factor as a \code{terra::SpatRaster} (optional)}
 
 \item{r.BC}{Boundary condition raster or numeric (optional)}
 
 \item{r.SS}{Source/sink raster or numeric (optional)}
 
-\item{sp.lake}{Lake polygons - sf object or legacy sp object (auto-converted)
-(optional)}
+\item{sp.lake}{Lake polygons as an \code{sf} object (optional)}
 }
 \value{
 data.frame with attribute indices for each mesh triangle
 }
 \description{
-Extracts attribute values from raster layers to mesh triangle centroids.
-Modernized implementation using terra for raster operations with improved
-performance, with automatic raster to terra conversion.
+Extracts attribute values from \code{terra::SpatRaster} layers and
+\code{sf} polygons to mesh triangle centroids. This is a low-level
+compatibility/advanced API used by the automated model builder; most users
+should call \code{\link{auto_build_model}}.
 }
 \details{
 This function has been modernized to use terra for raster operations,
-providing 2-5x better performance. Legacy raster and sp objects are
-automatically converted to terra/sf formats.
+providing 2-5x better performance. It is retained for advanced manual
+workflows and compatibility with older scripts. Deprecated low-level callers
+may still pass legacy objects, which are converted for compatibility; new
+code should pass \code{terra::SpatRaster} and \code{sf} objects directly or
+use \code{\link{auto_build_model}} for the full workflow.
 }
 \examples{
 \dontrun{

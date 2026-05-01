@@ -5,10 +5,12 @@
 \title{Get the From/To nodes of the river.
 \code{getRiverNodes}}
 \usage{
-getRiverNodes(spr = readriv.sp())
+getRiverNodes(spr = read_river_sp())
 }
 \arguments{
-\item{spr}{SpatialLine* of river streams.}
+\item{spr}{River line geometry. Defaults to the compatibility
+\code{\link{read_river_sp}()} reader; \code{sf} LINESTRING input is also
+accepted.}
 }
 \value{
 a list, c(points, FT_ID)

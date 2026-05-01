@@ -1,13 +1,14 @@
 #' Convert spatial object to PSLG (Planar Straight Line Graph)
 #'
-#' Internal helper function to convert sf or sp objects to PSLG format
-#' for RTriangle triangulation. Automatically handles sp to sf conversion.
+#' Internal helper function to convert sf objects to PSLG format for
+#' RTriangle triangulation. Deprecated callers may still supply legacy
+#' \code{sp} objects, which are converted before processing.
 #'
-#' @param sp_obj sf or sp object (POLYGON or LINESTRING)
+#' @param sp_obj sf object with POLYGON or LINESTRING geometry.
 #' @return list with P (points matrix) and S (segments matrix)
 #' @keywords internal
 sf_to_pslg <- function(sp_obj) {
-  # Auto-convert sp to sf if needed
+  # Compatibility conversion for deprecated callers.
   if (inherits(sp_obj, "Spatial")) {
     sp_obj <- sf::st_as_sf(sp_obj)
   }
@@ -129,20 +130,21 @@ sf_to_pslg <- function(sp_obj) {
 }
 
 
-#' Generate triangular mesh domain
+#' Low-level compatibility triangular mesh builder
 #'
 #' Creates an unstructured triangular mesh using constrained Delaunay
-#' triangulation. Modernized implementation using sf and terra internally,
-#' but maintains backward compatibility with sp/raster objects.
+#' triangulation. This is a low-level compatibility/advanced API used by the
+#' automated model builder; most users should call
+#' \code{\link{auto_build_model}} and pass \code{sf} vector objects and
+#' \code{terra::SpatRaster} rasters there.
 #'
-#' @param wb Watershed boundary - sf object with POLYGON geometry, or legacy
-#'   sp object (SpatialPolygons, auto-converted to sf)
-#' @param riv River network - sf object with LINESTRING geometry, or legacy
-#'   sp object (SpatialLines, auto-converted to sf) (optional)
-#' @param dem Elevation data - terra SpatRaster or legacy raster object
-#'   (auto-converted to SpatRaster) (optional, for future use)
-#' @param hole Holes/lakes - sf object with POLYGON geometry, or legacy
-#'   sp object (auto-converted to sf) (optional)
+#' @param wb Watershed boundary as an \code{sf} object with POLYGON geometry.
+#' @param riv River network as an \code{sf} object with LINESTRING geometry
+#'   (optional).
+#' @param dem Elevation data as a \code{terra::SpatRaster} (optional, reserved
+#'   for workflows that need elevation context during mesh generation).
+#' @param hole Holes/lakes as an \code{sf} object with POLYGON geometry
+#'   (optional).
 #' @param pts Additional constraint points - matrix (n x 2) (optional)
 #' @param q Minimum angle constraint for triangles (degrees, default 30)
 #' @param ... Additional arguments passed to RTriangle::triangulate()
@@ -155,9 +157,12 @@ sf_to_pslg <- function(sp_obj) {
 #'   \item{NB}{Matrix of neighbor triangle indices}
 #'
 #' @details
-#' This function has been modernized to use sf and terra internally for
-#' better performance and maintainability. However, it automatically converts
-#' legacy sp and raster objects, so existing code will continue to work.
+#' This low-level mesh builder uses \code{sf} and \code{terra} internally for
+#' better performance and maintainability. It is retained for advanced manual
+#' workflows and compatibility with older scripts. Legacy \code{sp}/
+#' \code{raster} inputs are accepted only for compatibility; new workflows
+#' should call \code{\link{auto_build_model}} or pass \code{sf}/\code{terra}
+#' objects directly.
 #'
 #' The function uses RTriangle for constrained Delaunay triangulation with
 #' quality constraints. The minimum angle parameter (q) controls triangle
@@ -193,7 +198,7 @@ shud.triangle <- function(wb, dem = NULL, riv = NULL, hole = NULL,
     stop("Parameter 'wb' (watershed boundary) is required", call. = FALSE)
   }
   
-  # Auto-convert sp to sf
+  # Compatibility conversion for older low-level callers.
   if (inherits(wb, "Spatial")) {
     wb <- sf::st_as_sf(wb)
   }
@@ -204,7 +209,7 @@ shud.triangle <- function(wb, dem = NULL, riv = NULL, hole = NULL,
     hole <- sf::st_as_sf(hole)
   }
   
-  # Auto-convert raster to terra
+  # Compatibility conversion for older low-level callers.
   if (!is.null(dem) && inherits(dem, "Raster")) {
     dem <- terra::rast(dem)
   }
@@ -212,7 +217,7 @@ shud.triangle <- function(wb, dem = NULL, riv = NULL, hole = NULL,
   # Validate wb is now sf
   if (!inherits(wb, "sf")) {
     stop(
-      "Parameter 'wb' must be an sf or sp object, but received ",
+      "Parameter 'wb' must be an sf object, but received ",
       class(wb)[1],
       call. = FALSE
     )
@@ -314,9 +319,9 @@ shud.triangle <- function(wb, dem = NULL, riv = NULL, hole = NULL,
 #' @return An \code{sf} object with POLYGON geometry.
 #'
 #' @details
-#' This function has been modernized to return sf objects instead of sp
-#' SpatialPolygonsDataFrame. The sf format is more efficient and integrates
-#' better with modern R spatial packages.
+#' This function returns \code{sf} polygon objects for use with the modern
+#' rSHUD spatial workflow. Deprecated \code{sp.mesh2Shape()} and
+#' \code{sp.Tri2Shape()} wrappers forward here.
 #'
 #' Area is automatically calculated using sf::st_area() and added to the
 #' attributes table.
@@ -439,7 +444,7 @@ mesh_to_sf <- function(pm = read_mesh(), dbf = NULL, crs = NULL) {
 #' @return An \code{sf} object with POLYGON geometry.
 #' @keywords deprecated
 #' @export
-sp.mesh2Shape <- function(pm = readmesh(), dbf = NULL, crs = NULL) {
+sp.mesh2Shape <- function(pm = read_mesh(), dbf = NULL, crs = NULL) {
   .Deprecated("mesh_to_sf", msg = "sp.mesh2Shape is deprecated. Please use mesh_to_sf instead.")
   mesh_to_sf(pm, dbf, crs)
 }

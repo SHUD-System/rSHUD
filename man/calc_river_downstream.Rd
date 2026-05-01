@@ -27,7 +27,7 @@ and a message is displayed.
 }
 \section{Migration Note}{
 
-This function replaces \code{sp.RiverDown()} and uses sf instead of sp.
+This function replaces deprecated \code{sp.RiverDown()} and uses sf.
 }
 
 \examples{

@@ -1,16 +1,16 @@
 #' Write ESRI shapefile out
 #' \code{writeshape}
-#' @param shp \code{sf} object, or legacy \code{sp} \code{Spatial*} object (converted
-#'   with \code{sf::st_as_sf()} before writing).
+#' @param shp \code{sf} object. Legacy \code{sp} \code{Spatial*} objects are
+#'   accepted only for deprecated compatibility and are converted with
+#'   \code{sf::st_as_sf()} before writing.
 #' @param crs CRS to assign before write (default: CRS taken from \code{shp} via
-#'   \code{sf::st_crs()} or \code{sf::st_crs(sf::st_as_sf(shp))} for legacy
-#'   vector objects). Use
+#'   \code{sf::st_crs()}). Use
 #'   \code{NA} to skip \code{st_set_crs} (not recommended for new data).
 #' @param file file path, with or without \code{.shp} extension.
 #' @details
-#' All outputs are written with \code{sf::st_write()}. \code{SpatialPolygons},
-#' \code{SpatialLines}, and \code{SpatialPoints} without a data slot are given
-#' a synthetic \code{ID} column so conversion to \code{sf} is well-defined.
+#' All outputs are written with \code{sf::st_write()}. Deprecated
+#' compatibility inputs without a data slot are given a synthetic \code{ID}
+#' column so conversion to \code{sf} is well-defined.
 #' @export
 #' @examples
 #' \dontrun{
@@ -113,16 +113,16 @@ ProjectCoordinate <- function(x, proj4string, P2G = TRUE){
 
 # sp2raster moved to R/gis_core.R as deprecated wrapper for vector_to_raster()
 
-#' Generate the raster mask of Mesh domain
+#' Generate the terra raster mask of a mesh domain
 #' \code{shud.mask}
 #' @param pm \code{shud.mesh}
 #' @param n Number of grid
 #' @param rr Default mask in .shud environment
 #' @param cellsize Resolution, defaul = NULL, resolution = extent / ngrids
 #' @param proj Projection parameter
-#' @return Raster map
+#' @return \code{terra::SpatRaster} mask
 #' @export
-shud.mask  <- function (pm = readmesh(), proj = NULL,
+shud.mask  <- function (pm = read_mesh(), proj = NULL,
                         rr = NULL,
                         n = 10000, cellsize = NULL){
   if (is.null(rr)) {
@@ -160,29 +160,18 @@ shud.mask  <- function (pm = readmesh(), proj = NULL,
   rr
 }
 
-#' SpatialData to Raster
-#' \code{MeshData2Raster}
-#' @param x vector or matrix, length/nrow is number of cells.
-#' @param rmask mask of the mesh file
-#' @param stack Whether export the stack, only when the x is a matrix, i.e. (Ntime x Ncell).
-#' @param proj Projejction parameter
-#' @param pm shud mesh
-#' @param method method for interpolation, default = 'idw'
-#' @param plot Whether plot the result.
-#' @return Raster map
-#' @export
-MeshData2Raster <- function(x = getElevation(),
-                            rmask = shud.mask(proj = proj), 
-                            pm = readmesh(), proj = NULL,
-                            stack = FALSE, method = 'ide',
-                            plot = FALSE){
+.mesh_data_to_raster_legacy <- function(x = getElevation(),
+                                        rmask = shud.mask(proj = proj),
+                                        pm = read_mesh(), proj = NULL,
+                                        stack = FALSE, method = 'ide',
+                                        plot = FALSE){
   if (!inherits(rmask, "SpatRaster")) {
     rmask <- terra::rast(rmask)
   }
 
   if(stack){
     ret <- terra::rast(lapply(seq_len(nrow(x)), function(i) {
-      MeshData2Raster(
+      .mesh_data_to_raster_legacy(
         x = as.numeric(x[i, ]),
         rmask = rmask,
         pm = pm,
@@ -240,6 +229,80 @@ MeshData2Raster <- function(x = getElevation(),
   return(ret)
 }
 
+#' Deprecated: convert mesh data to raster
+#' \code{MeshData2Raster}
+#' @param ... Arguments passed to \code{\link{mesh_to_raster}}. Deprecated
+#'   legacy names are mapped before forwarding: \code{x} to \code{data},
+#'   \code{rmask} to \code{template}, \code{pm} to \code{mesh}, and
+#'   \code{proj} to \code{crs}. The legacy \code{plot} argument is handled by
+#'   plotting the returned \code{terra::SpatRaster}; it is not forwarded.
+#' @return \code{terra::SpatRaster}
+#' @keywords deprecated
+#' @export
+MeshData2Raster <- function(...){
+  .Deprecated("mesh_to_raster",
+              msg = "MeshData2Raster() is deprecated. Use mesh_to_raster() for modern terra workflows.")
+  args <- list(...)
+  has_named_arg <- function(x, name) {
+    arg_names <- names(x)
+    !is.null(arg_names) && name %in% arg_names
+  }
+  arg_value <- function(x, name) {
+    x[[name, exact = TRUE]]
+  }
+  has_first_unnamed_arg <- function(x) {
+    arg_names <- names(x)
+    length(x) > 0 && (is.null(arg_names) || !nzchar(arg_names[[1]]))
+  }
+
+  if (has_named_arg(args, "x")) {
+    if (!has_named_arg(args, "data") && !has_first_unnamed_arg(args)) {
+      args$data <- args$x
+    }
+    args$x <- NULL
+  }
+  if (has_named_arg(args, "rmask")) {
+    if (!has_named_arg(args, "template")) {
+      args$template <- args$rmask
+    }
+    args$rmask <- NULL
+  }
+  if (has_named_arg(args, "pm")) {
+    if (!has_named_arg(args, "mesh")) {
+      args$mesh <- args$pm
+    }
+    args$pm <- NULL
+  }
+  if (has_named_arg(args, "proj")) {
+    if (!has_named_arg(args, "crs")) {
+      args$crs <- args$proj
+    }
+    args$proj <- NULL
+  }
+
+  plot_result <- isTRUE(args$plot)
+  args$plot <- NULL
+
+  if (!has_named_arg(args, "data") && !has_first_unnamed_arg(args)) {
+    args$data <- getElevation()
+  }
+  if (!has_named_arg(args, "mesh") || is.null(arg_value(args, "mesh"))) {
+    args$mesh <- read_mesh()
+  }
+  if (!has_named_arg(args, "template")) {
+    args$template <- shud.mask(
+      pm = arg_value(args, "mesh"),
+      proj = arg_value(args, "crs")
+    )
+  }
+
+  ret <- do.call(mesh_to_raster, args)
+  if (plot_result) {
+    terra::plot(ret)
+  }
+  ret
+}
+
 
 #' Generatue fishnet
 #' \code{fishnet} Generate fishnet by the coordinates
@@ -247,7 +310,9 @@ MeshData2Raster <- function(x = getElevation(),
 #' @param yy  y coordinates
 #' @param crs projections parameters, defaul = epsg:4326
 #' @param type option = 'polygon', 'points', 'line'
-#' @return spatildata (.shp)
+#' @return Legacy \code{Spatial*} object for compatibility. Prefer
+#'   \code{xy2shp(..., output = "sf")} or direct \code{sf} constructors for new
+#'   code.
 #' @export
 #' @examples
 #' ext = c(0, 8, 2, 10)
@@ -257,13 +322,12 @@ MeshData2Raster <- function(x = getElevation(),
 #' sp1 = fishnet(xx = ext[1:2], yy = ext[3:4])
 #' sp2 = fishnet(xx = xx + .5 * dx, yy = yy + 0.5 * dy)
 #' sp3 = fishnet(xx = xx, yy = yy, type = 'point')
-#' if (requireNamespace("sp", quietly = TRUE)) {
-#' library(sp)
-#' plot(sp1, axes = TRUE, xlim = c(-1, 1) * dx + ext[1:2], ylim = c(-1, 1) * dy + ext[3:4])
-#' plot(sp2, axes = TRUE, add = TRUE, border = 2)
-#' plot(sp3, axes = TRUE, add = TRUE, col = 3, pch = 20)
+#' plot(sf::st_geometry(sf::st_as_sf(sp1)), axes = TRUE,
+#'      xlim = c(-1, 1) * dx + ext[1:2],
+#'      ylim = c(-1, 1) * dy + ext[3:4])
+#' plot(sf::st_geometry(sf::st_as_sf(sp2)), axes = TRUE, add = TRUE, border = 2)
+#' plot(sf::st_geometry(sf::st_as_sf(sp3)), axes = TRUE, add = TRUE, col = 3, pch = 20)
 #' grid()
-#' }
 fishnet <- function(xx, yy,
                     crs = sf::st_crs(4326),
                     type = 'polygon'){
@@ -324,10 +388,12 @@ fishnet <- function(xx, yy,
   return(methods::as(ret, "Spatial"))
 }
 
-#' Add holes into Polygons
+#' Add holes into polygons
 #' \code{AddHoleToPolygon}
-#' @param poly SpatialPolygons
-#' @param hole Hole Polygon
+#' @param poly \code{sf} polygon object; legacy \code{SpatialPolygons} is
+#'   accepted for compatibility.
+#' @param hole Hole polygon as \code{sf}; legacy spatial input is accepted for
+#'   compatibility.
 #' @export
 AddHoleToPolygon <- function(poly, hole){
   input_is_sf <- inherits(poly, "sf")
@@ -339,34 +405,21 @@ AddHoleToPolygon <- function(poly, hole){
   }
   methods::as(new, "Spatial")
 }
-#' Cut sptialLines with threshold.
+#' Deprecated: cut line geometries with a length threshold
 #' \code{sp.CutSptialLines}
-#' @param sl SpatialLines or SpatialLineDataFrame
+#' @param sl \code{sf} LINESTRING object; legacy \code{SpatialLines*} is
+#'   accepted for compatibility.
 #' @param tol Tolerence. If the length of segment is larger than tolerance, cut the segment until the maximum segment is shorter than tolerance.
+#' @keywords deprecated
 #' @export
 #' @examples
-#' library(rSHUD)
-#' if (requireNamespace("sp", quietly = TRUE)) {
-#' library(sp)
-#' x = 1:1000 / 100
-#' l1 = Lines(Line(cbind(x, sin(x)) ), ID = 'a' )
-#' sl = SpatialLines( list(l1) )
-#' tol1 = 5;
-#' tol2 = 2
-#' sl1 = sp.CutSptialLines(sl, tol1)
-#' sl2 = sp.CutSptialLines(sl, tol2)
-#' par(mfrow = c(1, 2))
-#' plot(sf::st_geometry(sf::st_as_sf(sl1)), col = 1:length(sl1)); title(paste0('Tol=', tol1))
-#' plot(sf::st_geometry(sf::st_as_sf(sl2)), col = 1:length(sl2)); title(paste0('Tol=', tol2))
-#'
-#' data(sh)
-#' riv = sh$riv
-#' x = sp.CutSptialLines(riv, tol = 5)
-#' par(mfrow = c(2, 1))
-#' plot(sf::st_geometry(sf::st_as_sf(riv)), col = 1:length(riv), lwd = 3);
-#'
-#' plot(sf::st_geometry(sf::st_as_sf(riv)), col = 'gray', lwd = 3);
-#' plot(sf::st_geometry(sf::st_as_sf(x)), add = TRUE, col = 1:length(x))
+#' \dontrun{
+#' # Deprecated compatibility wrapper. Prefer sf-native preprocessing such as
+#' # sf::st_segmentize() in new workflows.
+#' line <- sf::st_sf(
+#'   geometry = sf::st_sfc(sf::st_linestring(cbind(1:10, sin(1:10))))
+#' )
+#' cut_line <- sp.CutSptialLines(line, tol = 2)
 #' }
 sp.CutSptialLines <- function(sl, tol){
   msg = 'sp.CutSptialLines::'
@@ -428,9 +481,9 @@ sp.CutSptialLines <- function(sl, tol){
   return(ret)
 }
 
-#' Extract values on Raster map along a normalized line from 0 to 1.
+#' Extract values on a terra raster along a normalized line from 0 to 1.
 #' \code{extractRaster}
-#' @param r Raster
+#' @param r \code{terra::SpatRaster}
 #' @param xy Coordinates of the line, dim = (Npoints, 2); x and y must be in
 #'   the range 0 to 1.
 #' @param ext extension of value xy.
@@ -475,9 +528,10 @@ extractRaster <- function(r, xy = NULL, ext = NULL, plot = TRUE){
   return(ret)
 }
 
-#' Simplify SpatialData.
-#' @param x SpatialData
-#' @return Simplified SpatialData
+#' Simplify polygon geometry.
+#' @param x \code{sf} polygon object; legacy spatial input is accepted for
+#'   compatibility.
+#' @return Simplified \code{sf} geometry collection
 #' @export
 SimpleSpatial <- function(x){
   msg = 'SimpleSpatial'
@@ -518,8 +572,9 @@ PointInDistance <- function(pt, tol){
   cbind('P1' = id[id1], P2 = id2)
 }
 
-#' Conver the MULTIPOLYGONS to SINGLEPOLYGONS.
-#' @param x the spatialpolygon*
+#' Convert MULTIPOLYGON geometry to single POLYGON features.
+#' @param x \code{sf} polygon object; legacy spatial input is accepted for
+#'   compatibility.
 #' @param id Index of the sorted (decreasing) polygons to return. default = 0;
 #' @export
 SinglePolygon <- function(x, id = 0){
@@ -543,9 +598,11 @@ SinglePolygon <- function(x, id = 0){
 
 #' Remove the duplicated lines, which means the FROM and TO points are identical.
 #' \code{rmDuplicatedLines}
-#' @param x \code{sf} data or \code{sp} ShapeLine*
+#' @param x \code{sf} line object; legacy spatial input is accepted for
+#'   compatibility.
 #' @param ... More options in duplicated()
-#' @return ShapeLine* without duplicated lines.
+#' @return Line object without duplicated from/to nodes, preserving the input
+#'   class where possible.
 #' @export
 rmDuplicatedLines <- function(x, ...){
   # x = spi.riv
@@ -561,13 +618,13 @@ rmDuplicatedLines <- function(x, ...){
   return(r)
 }
 
-#' Generate Thiesson Polygons from a point data
+#' Generate Thiessen polygons from point data
 #' \code{voronoipolygons}
-#' @param x ShapePoints* in PCS
+#' @param x \code{sf} point object in projected coordinates
 #' @param pts Coordinates (x,y) of the points
 #' @param rw The coordinates of the corners of the rectangular window enclosing the triangulation, in the order (xmin, xmax, ymin, ymax).  (default = NULL)
 #' @param crs projection parameters (default = NULL)
-#' @return ShapePolygon*
+#' @return Legacy \code{SpatialPolygons*} object for compatibility.
 #' @export
 #' @examples 
 #' library(rSHUD)
@@ -636,20 +693,22 @@ voronoipolygons = function(x = NULL, pts = NULL, rw = NULL, crs = NULL) {
 
 #' Generate the coverage map for forcing sites.
 #' \code{ForcingCoverage}
-#' @param sp.meteoSite sf POINT object or SpatialPoints*
+#' @param sp.meteoSite \code{sf} POINT object; legacy \code{SpatialPoints*}
+#'   input is accepted for compatibility.
 #' @param pcs Projected Coordinate System (crs object)
 #' @param gcs Geographic Coordinate System (crs object)
-#' @param dem DEM raster (SpatRaster or RasterLayer)
-#' @param wbd watershed boundary (sf or SpatialPolygons*)
+#' @param dem DEM as a \code{terra::SpatRaster}
+#' @param wbd watershed boundary as \code{sf}; legacy \code{SpatialPolygons*}
+#'   input is accepted for compatibility.
 #' @param enlarge enlarge factor for the boundary.
 #' @param filenames Output filenames associated with the forcing sites.
-#' @return sf object
+#' @return Legacy \code{SpatialPolygonsDataFrame} forcing coverage object.
 #' @export
 ForcingCoverage <- function(sp.meteoSite = NULL, filenames = paste0(sp.meteoSite$ID, '.csv'),
                             pcs, gcs = sf::st_crs(4326), 
                             dem, wbd, enlarge = 10000
                             ){
-  # Convert inputs to modern sf/terra formats if needed
+  # Compatibility conversion for older forcing-site workflows.
   if (!inherits(dem, "SpatRaster")) {
     dem <- terra::rast(dem)
   }
@@ -692,7 +751,7 @@ ForcingCoverage <- function(sp.meteoSite = NULL, filenames = paste0(sp.meteoSite
   rw <- rw + c(-1, 1, -1, 1) * enlarge
   
   if(nrow(x.pcs) < 2){
-    # Legacy fallback: if fishnet is needed
+    # Single-site fallback still uses the compatibility fishnet helper.
     sp.forc <- fishnet(xx = rw[1:2], yy = rw[3:4], crs = pcs)
     sp.forc <- sf::st_as_sf(sp.forc)
   } else {
@@ -714,7 +773,7 @@ ForcingCoverage <- function(sp.meteoSite = NULL, filenames = paste0(sp.meteoSite
   
   att[is.na(att)] <- -9999
   
-  # For backward compatibility with scripts expecting sp
+  # Return legacy sp object for callers that still read @data from forcing zones.
   sp.forc_sp <- sf::as_Spatial(sp.forc)
   sp.forc_sp@data <- att
   return(sp.forc_sp)
@@ -800,24 +859,13 @@ grid.subset <- function(ext, res,
 #' @param df attribute table
 #' @param crs projection parameters
 #' @param shape Shape of the result in points, lines or polygons
-#' @param output Output class: \code{"sp"} (legacy) or \code{"sf"} (modern)
-#' @return Spatial*DataFrame objects when \code{output = "sp"}, or an \code{sf} object when \code{output = "sf"}
+#' @param output Output class: \code{"sf"} (modern) or \code{"sp"} (legacy).
+#' @return \code{sf} object when \code{output = "sf"}, or legacy
+#'   \code{Spatial*DataFrame} when \code{output = "sp"}.
 #' @export
 #' @examples 
 #' library(sf)
 #' xy = list(cbind(c(0, 2, 1), c(0, 0, 2)),  cbind(c(0, 2, 1), c(0, 0, 2)) + 2)
-#' 
-#' # Legacy output (default): sp
-#' if (requireNamespace("sp", quietly = TRUE)) {
-#' library(sp)
-#' sp1 = xy2shp(xy = xy, shape = 'polygon')
-#' plot(sf::st_geometry(sf::st_as_sf(sp1)), axes = TRUE, col = 'gray')
-#' 
-#' sp2 = xy2shp(xy = xy, shape = 'lines')
-#' plot(sf::st_geometry(sf::st_as_sf(sp2)), add = TRUE, lty = 2, lwd = 3, col = 'red')
-#' sp3 = xy2shp(xy = xy, shape = 'POINTS')
-#' plot(sf::st_geometry(sf::st_as_sf(sp3)), add = TRUE, pch = 1, cex = 2)
-#' }
 #' 
 #' # Modern output: sf
 #' sf1 = xy2shp(xy = xy[[1]], shape = 'polygon', output = 'sf')

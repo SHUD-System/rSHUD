@@ -70,7 +70,7 @@ Automatically run SHUDgis based on the input data and parameters.
 \examples{
 data(sac)
 indata = sac
-sp.forc = indata[['forc']]
-forc.fns = paste0(sp.forc@data[, 'NLDAS_ID'], '.csv')
+forc = sf::st_as_sf(indata[['forc']])
+forc.fns = paste0(forc$NLDAS_ID, '.csv')
 forc.fns
 }

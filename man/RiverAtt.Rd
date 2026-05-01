@@ -5,7 +5,7 @@
 \title{Summary of the attributions on Rivers
 \code{RiverAtt}}
 \usage{
-RiverAtt(riv = readriv())
+RiverAtt(riv = read_river())
 }
 \arguments{
 \item{riv}{SHUD.RIVER}

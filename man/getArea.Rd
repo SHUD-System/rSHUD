@@ -5,7 +5,7 @@
 \title{Calculate the area of the cells
 \code{getArea}}
 \usage{
-getArea(pm = readmesh())
+getArea(pm = read_mesh())
 }
 \arguments{
 \item{pm}{\code{shud.mesh}}

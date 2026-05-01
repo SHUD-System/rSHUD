@@ -1,9 +1,10 @@
 
-#' Simplify Polylines by length
+#' Deprecated: simplify legacy polylines by length
 #' \code{sp.simplifyLen} 
-#' @param sp a SpatialLines or SpatialPoygons object
+#' @param sp Legacy \code{SpatialLines} or \code{SpatialPolygons} object.
 #' @param tol Tolerance
 #' @param threshold Minimum length for a segment
+#' @keywords deprecated
 #' @export
 sp.simplifyLen <- function(sp, tol, threshold = tol / 2){
   getdiag <- function(x, pos){

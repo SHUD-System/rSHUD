@@ -14,5 +14,5 @@ Logical, TRUE if modern format
 }
 \description{
 Determines if a SHUD.RIVER object uses the modern sf-based format
-or the legacy data.frame-only format.
+or tabular fields only.
 }

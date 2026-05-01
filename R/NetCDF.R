@@ -125,7 +125,7 @@ readnc<-function(ncid, varid=NULL,  ext = NULL){
 #' @param Dxy Resolution
 #' @param flip Whether flip the matrix.
 #' @param plot Whether plot the raster.
-#' @return a Raster/RasterStack
+#' @return \code{terra::SpatRaster}
 #' @export
 xyz2Raster <- function(x, y=NULL, arr=NULL,Dxy=NULL,
                        flip=TRUE, plot=TRUE){

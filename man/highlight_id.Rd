@@ -15,8 +15,8 @@ highlight_id(EleID = NULL, RivID = NULL)
 NULL (plots to current device)
 }
 \description{
-\strong{This function is deprecated and incomplete.} It uses legacy spatial
-libraries (raster/sp) and has incomplete implementation. This function will
+\strong{This function is deprecated and incomplete.} It comes from the
+legacy plotting API and has incomplete implementation. This function will
 be removed in a future version.
 
 Users should create custom highlighting plots using modern spatial packages:
@@ -27,8 +27,8 @@ Users should create custom highlighting plots using modern spatial packages:
 }
 \section{Deprecated}{
 
-This function is deprecated due to incomplete implementation and use of
-legacy spatial libraries. It will be removed in version 2.4.0.
+This function is deprecated due to incomplete implementation. It will be
+removed in version 2.4.0.
 }
 
 \examples{

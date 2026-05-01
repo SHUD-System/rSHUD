@@ -5,7 +5,7 @@
 \title{Calculate the elevation of mesh cells
 \code{getElevation}}
 \usage{
-getElevation(pm = readmesh())
+getElevation(pm = read_mesh())
 }
 \arguments{
 \item{pm}{\code{shud.mesh}}

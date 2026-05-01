@@ -429,16 +429,18 @@ read_df <- function(file, text = readLines(file), sep = '\t') {
 
 #' Read river shapefile
 #' 
-#' Reads a river shapefile and returns a SpatialLines object.
-#' Note: This function uses legacy spatial libraries and will be updated
-#' in future versions to use sf.
+#' Deprecated compatibility reader for older scripts that expect a legacy
+#' \code{SpatialLines} return value. New code should use \code{sf::st_read()}
+#' to read river shapefiles as \code{sf}.
 #' 
 #' @param file Character. Full path to river shapefile
-#' @return SpatialLines object
+#' @return Legacy \code{SpatialLines} object
 #' @family shud-io
+#' @keywords deprecated
 #' @export
 #' @examples
 #' \dontrun{
+#' # Deprecated compatibility path; prefer sf::st_read("rivers.shp").
 #' river_sp <- read_river_sp("rivers.shp")
 #' }
 read_river_sp <- function(file = file.path(shud.filein()['inpath'], 'gis', 'river.shp')) {

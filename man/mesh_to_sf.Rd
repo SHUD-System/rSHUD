@@ -25,9 +25,9 @@ Converts a SHUD mesh structure (from \code{\link{read_mesh}} or
 geometry.
 }
 \details{
-This function has been modernized to return sf objects instead of sp
-SpatialPolygonsDataFrame. The sf format is more efficient and integrates
-better with modern R spatial packages.
+This function returns \code{sf} polygon objects for use with the modern
+rSHUD spatial workflow. Deprecated \code{sp.mesh2Shape()} and
+\code{sp.Tri2Shape()} wrappers forward here.
 
 Area is automatically calculated using sf::st_area() and added to the
 attributes table.

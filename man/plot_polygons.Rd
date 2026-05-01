@@ -30,10 +30,10 @@ This function uses terra or sf for spatial operations.
 \section{Migration Note}{
 
 This function replaces \code{plot_sp()} and uses terra/sf instead of
-raster/sp. Key differences:
+legacy spatial packages. Key differences:
 \itemize{
 \item Parameter 'zcol' renamed to 'field' for consistency
-\item Accepts sf or SpatVector instead of Spatial* objects
+\item Accepts sf or SpatVector objects
 \item Uses terra::plot() or sf::plot() instead of legacy raster plotting
 }
 }

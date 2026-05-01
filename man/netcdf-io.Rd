@@ -4,7 +4,7 @@
 \alias{netcdf-io}
 \title{NetCDF I/O Functions}
 \description{
-This module provides functions for reading NetCDF files with support for
-both legacy raster and modern terra formats. Functions maintain ncdf4
-interface compatibility while adding terra integration.
+This module provides functions for reading NetCDF files and converting arrays
+to modern \code{terra::SpatRaster} output. The optional
+\code{format = "legacy"} branch is retained only for migration compatibility.
 }

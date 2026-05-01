@@ -2,22 +2,21 @@
 % Please edit documentation in R/mesh_generation.R
 \name{shud.triangle}
 \alias{shud.triangle}
-\title{Generate triangular mesh domain}
+\title{Low-level compatibility triangular mesh builder}
 \usage{
 shud.triangle(wb, dem = NULL, riv = NULL, hole = NULL, pts = NULL, q = 30, ...)
 }
 \arguments{
-\item{wb}{Watershed boundary - sf object with POLYGON geometry, or legacy
-sp object (SpatialPolygons, auto-converted to sf)}
+\item{wb}{Watershed boundary as an \code{sf} object with POLYGON geometry.}
 
-\item{dem}{Elevation data - terra SpatRaster or legacy raster object
-(auto-converted to SpatRaster) (optional, for future use)}
+\item{dem}{Elevation data as a \code{terra::SpatRaster} (optional, reserved
+for workflows that need elevation context during mesh generation).}
 
-\item{riv}{River network - sf object with LINESTRING geometry, or legacy
-sp object (SpatialLines, auto-converted to sf) (optional)}
+\item{riv}{River network as an \code{sf} object with LINESTRING geometry
+(optional).}
 
-\item{hole}{Holes/lakes - sf object with POLYGON geometry, or legacy
-sp object (auto-converted to sf) (optional)}
+\item{hole}{Holes/lakes as an \code{sf} object with POLYGON geometry
+(optional).}
 
 \item{pts}{Additional constraint points - matrix (n x 2) (optional)}
 
@@ -35,13 +34,18 @@ A triangulation object from RTriangle with components:
 }
 \description{
 Creates an unstructured triangular mesh using constrained Delaunay
-triangulation. Modernized implementation using sf and terra internally,
-but maintains backward compatibility with sp/raster objects.
+triangulation. This is a low-level compatibility/advanced API used by the
+automated model builder; most users should call
+\code{\link{auto_build_model}} and pass \code{sf} vector objects and
+\code{terra::SpatRaster} rasters there.
 }
 \details{
-This function has been modernized to use sf and terra internally for
-better performance and maintainability. However, it automatically converts
-legacy sp and raster objects, so existing code will continue to work.
+This low-level mesh builder uses \code{sf} and \code{terra} internally for
+better performance and maintainability. It is retained for advanced manual
+workflows and compatibility with older scripts. Legacy \code{sp}/
+\code{raster} inputs are accepted only for compatibility; new workflows
+should call \code{\link{auto_build_model}} or pass \code{sf}/\code{terra}
+objects directly.
 
 The function uses RTriangle for constrained Delaunay triangulation with
 quality constraints. The minimum angle parameter (q) controls triangle
