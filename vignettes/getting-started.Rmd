@@ -252,18 +252,20 @@ surf_depth <- read_output(
   path = "model_output"
 )
 
-# Read all variables
+# Read outputs used by the water-balance helpers
 variables <- c(
-  surf = "eleysurf",
-  unsat = "eleyunsat",
-  gw = "eleygw",
-  river = "rivystage",
-  discharge = "rivqdown"
+  "elevprcp", "elevetic", "elevettr", "elevetev",
+  "eleqsurf", "eleqsub",
+  "eleysurf", "eleyunsat", "eleygw",
+  "rivqdown", "rivqsurf", "rivqsub"
 )
-all_output <- lapply(
-  variables,
-  read_output,
-  path = "model_output"
+all_output <- setNames(
+  lapply(
+    variables,
+    read_output,
+    path = "model_output"
+  ),
+  variables
 )
 ```
 
@@ -292,19 +294,29 @@ plot(surf_raster, main = "Surface Water Depth at t=1")
 
 ```{r}
 # Calculate element water balance
+elem_xl <- all_output[c(
+  "elevprcp", "elevetic", "elevettr", "elevetev",
+  "eleqsurf", "eleqsub",
+  "eleysurf", "eleyunsat", "eleygw"
+)]
 wb_elem <- wb.ele(
-  surf = all_output$surf,
-  unsat = all_output$unsat,
-  gw = all_output$gw
+  xl = elem_xl,
+  fun = xts::apply.daily,
+  plot = FALSE
 )
 
 # Calculate river water balance
+river_xl <- all_output[c("rivqdown", "rivqsurf", "rivqsub")]
 wb_river <- wb.riv(
-  river = all_output$river
+  xl = river_xl,
+  fun = xts::apply.daily,
+  plot = FALSE
 )
 
-# Plot water balance
-plot(wb_elem$total, main = "Total Water Storage")
+# Plot element storage change components
+storage_change <- apply(wb_elem[, , c("dys", "dyu", "dyg")], 1, sum,
+                        na.rm = TRUE)
+plot(storage_change, type = "l", main = "Total Element Storage Change")
 ```
 
 ## Advanced Features
@@ -531,13 +543,22 @@ plot(
 )
 
 # Calculate water balance
-wb <- wb.ele(
-  surf = read_output(keyword = "eleysurf", path = "model_2010"),
-  unsat = read_output(keyword = "eleyunsat", path = "model_2010"),
-  gw = read_output(keyword = "eleygw", path = "model_2010")
+wb_xl <- list(
+  elevprcp = read_output(keyword = "elevprcp", path = "model_2010"),
+  elevetic = read_output(keyword = "elevetic", path = "model_2010"),
+  elevettr = read_output(keyword = "elevettr", path = "model_2010"),
+  elevetev = read_output(keyword = "elevetev", path = "model_2010"),
+  eleqsurf = read_output(keyword = "eleqsurf", path = "model_2010"),
+  eleqsub = read_output(keyword = "eleqsub", path = "model_2010"),
+  eleysurf = surf,
+  eleyunsat = read_output(keyword = "eleyunsat", path = "model_2010"),
+  eleygw = read_output(keyword = "eleygw", path = "model_2010")
 )
+wb <- wb.ele(xl = wb_xl, fun = xts::apply.daily, plot = FALSE)
 
-plot(wb$total, main = "Total Water Storage")
+storage_change <- apply(wb[, , c("dys", "dyu", "dyg")], 1, sum,
+                        na.rm = TRUE)
+plot(storage_change, type = "l", main = "Element Storage Change")
 ```
 
 ## Summary
