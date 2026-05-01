@@ -100,8 +100,8 @@ sp.forc = indata[['forc']]
 forc.fns = paste0(sp.forc@data[, 'NLDAS_ID'], '.csv')
 pm = autoBuildModel(sac, forcfiles = forc.fns, outdir='./output')
 
-# 转换为Shapefile
-spm = sp.mesh2Shape(pm)
+# 转换为sf对象
+spm = mesh_to_sf(pm)
 ```
 
 ### 查看可用示例
