@@ -1,4 +1,6 @@
-# rSHUD (Development Version)
+# rSHUD 2.3.0
+
+**Release Date**: 2026-05-01
 
 ## Removed Functions
 
