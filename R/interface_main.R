@@ -48,7 +48,8 @@ NULL
 #' generation must have a defined projected CRS in metres/meters. Longitude/
 #' latitude CRS inputs and projected CRSs in non-metre units are rejected;
 #' transform inputs to an appropriate metre-based projected CRS before calling
-#' this workflow.
+#' this workflow. All supplied spatial inputs must use the same CRS as
+#' \code{domain}; this workflow does not auto-reproject.
 #'
 #' @return List with components:
 #'   \item{mesh}{SHUD.MESH object}
@@ -245,6 +246,24 @@ auto_build_model <- function(
   }
   if (!is.null(landcover)) {
     check_raster_projected_crs(landcover, "landcover")
+  }
+
+  check_model_builder_crs_match(dem, domain, "dem", "domain")
+  if (!is.null(rivers)) {
+    check_model_builder_crs_match(rivers, domain, "rivers", "domain")
+  }
+  if (!is.null(forcing_sites)) {
+    check_model_builder_crs_match(forcing_sites, domain,
+                                  "forcing_sites", "domain")
+  }
+  if (!is.null(soil)) {
+    check_model_builder_crs_match(soil, domain, "soil", "domain")
+  }
+  if (!is.null(geology)) {
+    check_model_builder_crs_match(geology, domain, "geology", "domain")
+  }
+  if (!is.null(landcover)) {
+    check_model_builder_crs_match(landcover, domain, "landcover", "domain")
   }
 
   # Validate numeric parameters

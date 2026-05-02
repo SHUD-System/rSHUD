@@ -176,6 +176,26 @@ test_that("projected CRS unit check rejects unknown units", {
                "dem.*CRS units.*could not be determined")
 })
 
+test_that("model builder CRS compatibility normalizes sf and terra CRS", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  coords <- matrix(c(0, 0, 10, 0, 10, 10, 0, 10, 0, 0),
+                   ncol = 2, byrow = TRUE)
+  domain <- sf::st_sf(
+    geometry = sf::st_sfc(sf::st_polygon(list(coords)), crs = 3857)
+  )
+  dem_matching <- terra::rast(ncol = 10, nrow = 10,
+                              xmin = 0, xmax = 10, ymin = 0, ymax = 10,
+                              crs = "EPSG:3857")
+  dem_mismatched <- terra::rast(ncol = 10, nrow = 10,
+                                xmin = 0, xmax = 10, ymin = 0, ymax = 10,
+                                crs = "EPSG:32618")
+
+  expect_true(model_builder_crs_compatible(domain, dem_matching))
+  expect_false(model_builder_crs_compatible(domain, dem_mismatched))
+})
+
 test_that("compatible_crs detects matching CRS", {
   expect_true(compatible_crs("EPSG:4326", "EPSG:4326"))
   expect_true(compatible_crs("+proj=longlat", "+proj=longlat"))

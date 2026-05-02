@@ -247,6 +247,47 @@ check_raster_projected_crs <- function(x, name = "x") {
   invisible(TRUE)
 }
 
+model_builder_crs_compatible <- function(x, y) {
+  crs_x <- model_builder_st_crs(x)
+  crs_y <- model_builder_st_crs(y)
+
+  if (is.na(crs_x) || is.na(crs_y)) {
+    return(FALSE)
+  }
+
+  isTRUE(tryCatch(crs_x == crs_y, error = function(e) FALSE))
+}
+
+check_model_builder_crs_match <- function(x, y, name_x = "x", name_y = "y") {
+  if (!model_builder_crs_compatible(x, y)) {
+    stop(
+      "Parameter '", name_x, "' CRS must match '", name_y, "' CRS",
+      call. = FALSE
+    )
+  }
+
+  invisible(TRUE)
+}
+
+model_builder_st_crs <- function(x) {
+  crs <- tryCatch(
+    {
+      if (inherits(x, c("SpatRaster", "SpatVector"))) {
+        sf::st_crs(terra::crs(x))
+      } else {
+        sf::st_crs(x)
+      }
+    },
+    error = function(e) sf::NA_crs_
+  )
+
+  if (is.na(crs)) {
+    return(sf::NA_crs_)
+  }
+
+  crs
+}
+
 check_projected_crs_type <- function(crs, name) {
   wkt <- tryCatch(
     normalize_crs_wkt(crs$wkt),

@@ -23,6 +23,9 @@ create_integration_dem <- function(crs = paste0("EPSG:", test_projected_crs)) {
 
 create_integration_rivers <- function(crs = test_projected_crs) {
   line <- sf::st_linestring(matrix(c(10, 10, 90, 90), ncol = 2, byrow = TRUE))
+  if (is.na(crs)) {
+    return(sf::st_sf(id = 1, geometry = sf::st_sfc(line)))
+  }
   sf::st_sf(id = 1, geometry = sf::st_sfc(line, crs = crs))
 }
 
@@ -255,6 +258,64 @@ test_that("auto_build_model rejects longlat rivers with projected domain and DEM
       verbose = FALSE
     ),
     "rivers.*longitude/latitude CRS.*Transform 'rivers'"
+  )
+})
+
+test_that("auto_build_model rejects missing CRS on rivers", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  domain <- create_integration_domain()
+  rivers <- create_integration_rivers(crs = NA)
+  dem <- create_integration_dem()
+
+  expect_error(
+    auto_build_model(
+      project_name = "test",
+      domain = domain,
+      rivers = rivers,
+      dem = dem,
+      verbose = FALSE
+    ),
+    "rivers.*projected CRS in metres/meters"
+  )
+})
+
+test_that("auto_build_model rejects DEM CRS mismatch before spatial operations", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  domain <- create_integration_domain()
+  dem <- create_integration_dem(crs = "EPSG:32618")
+
+  expect_error(
+    auto_build_model(
+      project_name = "test",
+      domain = domain,
+      dem = dem,
+      verbose = FALSE
+    ),
+    "Parameter 'dem' CRS must match 'domain' CRS"
+  )
+})
+
+test_that("auto_build_model rejects river CRS mismatch before spatial operations", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  domain <- create_integration_domain()
+  rivers <- create_integration_rivers(crs = 32618)
+  dem <- create_integration_dem()
+
+  expect_error(
+    auto_build_model(
+      project_name = "test",
+      domain = domain,
+      rivers = rivers,
+      dem = dem,
+      verbose = FALSE
+    ),
+    "Parameter 'rivers' CRS must match 'domain' CRS"
   )
 })
 

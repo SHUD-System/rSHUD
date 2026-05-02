@@ -94,7 +94,8 @@ Inputs used for meter-based buffering, simplification, cropping, and mesh
 generation must have a defined projected CRS in metres/meters. Longitude/
 latitude CRS inputs and projected CRSs in non-metre units are rejected;
 transform inputs to an appropriate metre-based projected CRS before calling
-this workflow.
+this workflow. All supplied spatial inputs must use the same CRS as
+\code{domain}; this workflow does not auto-reproject.
 }
 \section{Migration Note}{
 
