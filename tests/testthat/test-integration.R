@@ -1,6 +1,58 @@
 # Integration Tests for Main Interface Functions
 # Tests for auto_build_model() and quick_model()
 
+test_projected_crs <- 3857
+
+create_integration_domain <- function(crs = test_projected_crs) {
+  coords <- matrix(c(0, 0, 100, 0, 100, 100, 0, 100, 0, 0),
+                   ncol = 2, byrow = TRUE)
+  poly <- sf::st_polygon(list(coords))
+  if (is.na(crs)) {
+    return(sf::st_sf(id = 1, geometry = sf::st_sfc(poly)))
+  }
+  sf::st_sf(id = 1, geometry = sf::st_sfc(poly, crs = crs))
+}
+
+create_integration_dem <- function(crs = paste0("EPSG:", test_projected_crs)) {
+  dem <- terra::rast(ncol = 10, nrow = 10,
+                     xmin = 0, xmax = 100, ymin = 0, ymax = 100,
+                     crs = crs)
+  terra::values(dem) <- seq(100, 200, length.out = 100)
+  dem
+}
+
+create_integration_rivers <- function(crs = test_projected_crs) {
+  line <- sf::st_linestring(matrix(c(10, 10, 90, 90), ncol = 2, byrow = TRUE))
+  sf::st_sf(id = 1, geometry = sf::st_sfc(line, crs = crs))
+}
+
+expect_no_longlat_warning <- function(expr) {
+  warnings <- character()
+  value <- NULL
+  tryCatch(
+    value <- withCallingHandlers(
+      force(expr),
+      warning = function(w) {
+        warnings <<- c(warnings, conditionMessage(w))
+        invokeRestart("muffleWarning")
+      }
+    ),
+    error = function(e) {
+      # Some integration runs may still fail later because optional model inputs
+      # are intentionally incomplete. Those errors are not part of this check.
+      expect_false(grepl("legacy|Spatial|RasterLayer", e$message))
+    }
+  )
+
+  longlat_warnings <- grep(
+    "longitude/latitude|although coordinates are longitude/latitude|st_buffer|st_simplify",
+    warnings,
+    value = TRUE
+  )
+  expect_length(longlat_warnings, 0)
+  invisible(value)
+}
+
 test_that("auto_build_model rejects legacy raster objects", {
   skip_if_not_installed("raster")
   skip_if_not_installed("terra")
@@ -74,21 +126,9 @@ test_that("auto_build_model accepts terra/sf objects", {
   skip_if_not_installed("terra")
   skip_if_not_installed("sf")
   skip_if_not_installed("RTriangle")
-  skip_if_s2_unavailable()
-  old_s2 <- sf::sf_use_s2()
-  on.exit(sf::sf_use_s2(old_s2))
-  sf::sf_use_s2(FALSE)
-  
-  # Create small test data
-  coords <- matrix(c(0, 0, 100, 0, 100, 100, 0, 100, 0, 0), ncol = 2, byrow = TRUE)
-  poly <- sf::st_polygon(list(coords))
-  domain <- sf::st_sf(id = 1, geometry = sf::st_sfc(poly, crs = 4326))
-  
-  # Create DEM
-  dem <- terra::rast(ncol = 10, nrow = 10, 
-                     xmin = 0, xmax = 100, ymin = 0, ymax = 100,
-                     crs = "EPSG:4326")
-  terra::values(dem) <- seq(100, 200, length.out = 100)
+
+  domain <- create_integration_domain()
+  dem <- create_integration_dem()
   
   # Create temporary output directory
   temp_dir <- tempfile()
@@ -98,7 +138,7 @@ test_that("auto_build_model accepts terra/sf objects", {
   # here we verify it at least accepts sf/terra inputs without
   # type-checking errors (the internal build may fail without
   # complete input data).
-  tryCatch(
+  expect_no_longlat_warning(
     auto_build_model(
       project_name = "test_model",
       domain = domain,
@@ -106,15 +146,145 @@ test_that("auto_build_model accepts terra/sf objects", {
       output_dir = temp_dir,
       years = 2000:2001,
       verbose = FALSE
-    ),
-    error = function(e) {
-      # Accept errors from incomplete inputs, but not from type validation
-      expect_false(grepl("legacy|Spatial|RasterLayer", e$message))
-    }
+    )
   )
   
   # Clean up
   unlink(temp_dir, recursive = TRUE)
+})
+
+test_that("auto_build_model rejects missing CRS on domain", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  domain <- create_integration_domain(crs = NA)
+  dem <- create_integration_dem()
+
+  expect_error(
+    auto_build_model(
+      project_name = "test",
+      domain = domain,
+      dem = dem,
+      verbose = FALSE
+    ),
+    "domain.*projected CRS in metres/meters"
+  )
+})
+
+test_that("auto_build_model rejects longlat CRS on domain", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  domain <- create_integration_domain(crs = 4326)
+  dem <- create_integration_dem()
+
+  expect_error(
+    auto_build_model(
+      project_name = "test",
+      domain = domain,
+      dem = dem,
+      verbose = FALSE
+    ),
+    "domain.*longitude/latitude CRS.*Transform 'domain'"
+  )
+})
+
+test_that("auto_build_model rejects projected feet-unit CRS before spatial operations", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  domain_feet <- create_integration_domain(crs = 2272)
+  dem <- create_integration_dem()
+  expect_error(
+    auto_build_model(
+      project_name = "test",
+      domain = domain_feet,
+      dem = dem,
+      verbose = FALSE
+    ),
+    "domain.*metres/meters.*US survey foot"
+  )
+
+  domain <- create_integration_domain()
+  dem_feet <- create_integration_dem(crs = "EPSG:2272")
+  expect_error(
+    auto_build_model(
+      project_name = "test",
+      domain = domain,
+      dem = dem_feet,
+      verbose = FALSE
+    ),
+    "dem.*metres/meters.*US survey foot"
+  )
+})
+
+test_that("auto_build_model rejects projected feet-unit rivers", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  domain <- create_integration_domain()
+  rivers_feet <- create_integration_rivers(crs = 2272)
+  dem <- create_integration_dem()
+
+  expect_error(
+    auto_build_model(
+      project_name = "test",
+      domain = domain,
+      rivers = rivers_feet,
+      dem = dem,
+      verbose = FALSE
+    ),
+    "rivers.*metres/meters.*US survey foot"
+  )
+})
+
+test_that("auto_build_model rejects longlat rivers with projected domain and DEM", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  domain <- create_integration_domain()
+  rivers <- create_integration_rivers(crs = 4326)
+  dem <- create_integration_dem()
+
+  expect_error(
+    auto_build_model(
+      project_name = "test",
+      domain = domain,
+      rivers = rivers,
+      dem = dem,
+      verbose = FALSE
+    ),
+    "rivers.*longitude/latitude CRS.*Transform 'rivers'"
+  )
+})
+
+test_that("auto_build_model rejects missing or longlat CRS on DEM", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  domain <- create_integration_domain()
+
+  dem_missing_crs <- create_integration_dem(crs = "")
+  expect_error(
+    auto_build_model(
+      project_name = "test",
+      domain = domain,
+      dem = dem_missing_crs,
+      verbose = FALSE
+    ),
+    "dem.*projected CRS in metres/meters"
+  )
+
+  dem_longlat <- create_integration_dem(crs = "EPSG:4326")
+  expect_error(
+    auto_build_model(
+      project_name = "test",
+      domain = domain,
+      dem = dem_longlat,
+      verbose = FALSE
+    ),
+    "dem.*longitude/latitude CRS.*Transform 'dem'"
+  )
 })
 
 test_that("auto_build_model validates required parameters", {
@@ -152,21 +322,9 @@ test_that("quick_model works with minimal inputs", {
   skip_if_not_installed("terra")
   skip_if_not_installed("sf")
   skip_if_not_installed("RTriangle")
-  skip_if_s2_unavailable()
-  old_s2 <- sf::sf_use_s2()
-  on.exit(sf::sf_use_s2(old_s2))
-  sf::sf_use_s2(FALSE)
-  
-  # Create small test data
-  coords <- matrix(c(0, 0, 100, 0, 100, 100, 0, 100, 0, 0), ncol = 2, byrow = TRUE)
-  poly <- sf::st_polygon(list(coords))
-  domain <- sf::st_sf(id = 1, geometry = sf::st_sfc(poly, crs = 4326))
-  
-  # Create DEM
-  dem <- terra::rast(ncol = 10, nrow = 10,
-                     xmin = 0, xmax = 100, ymin = 0, ymax = 100,
-                     crs = "EPSG:4326")
-  terra::values(dem) <- seq(100, 200, length.out = 100)
+
+  domain <- create_integration_domain()
+  dem <- create_integration_dem()
   
   # Create temporary output directory
   temp_dir <- tempfile()
@@ -175,20 +333,15 @@ test_that("quick_model works with minimal inputs", {
   
   # quick_model may fail internally without complete soil/landcover
   # data; verify it at least accepts sf/terra types.
-  tryCatch(
-    {
-      result <- quick_model(
-        project_name = "quick_test",
-        domain = domain,
-        dem = dem,
-        output_dir = temp_dir,
-        years = 2000:2001,
-        verbose = FALSE
-      )
-    },
-    error = function(e) {
-      expect_false(grepl("legacy|Spatial|RasterLayer", e$message))
-    }
+  result <- expect_no_longlat_warning(
+    quick_model(
+      project_name = "quick_test",
+      domain = domain,
+      dem = dem,
+      output_dir = temp_dir,
+      years = 2000:2001,
+      verbose = FALSE
+    )
   )
   if (is.null(result)) {
     return(invisible())
@@ -201,6 +354,24 @@ test_that("quick_model works with minimal inputs", {
   
   # Clean up
   unlink(temp_dir, recursive = TRUE)
+})
+
+test_that("quick_model inherits auto_build_model longlat rejection", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  domain <- create_integration_domain(crs = 4326)
+  dem <- create_integration_dem()
+
+  expect_error(
+    quick_model(
+      project_name = "quick_test",
+      domain = domain,
+      dem = dem,
+      verbose = FALSE
+    ),
+    "domain.*longitude/latitude CRS.*Transform 'domain'"
+  )
 })
 
 test_that("quick_model validates spatial object types", {

@@ -177,6 +177,152 @@ check_spatial_compatible <- function(x, y, check_crs = TRUE,
   invisible(TRUE)
 }
 
+#' Require projected CRS in metre units for model-building workflows
+#'
+#' @param x sf object to validate
+#' @param name Character string, parameter name for error messages
+#' @return Invisible TRUE if valid, otherwise stops with error
+#' @keywords internal
+#' @noRd
+check_sf_projected_crs <- function(x, name = "x") {
+  crs <- sf::st_crs(x)
+
+  if (is.na(crs)) {
+    stop(
+      "Parameter '", name, "' must have a defined projected CRS in metres/meters ",
+      "for meter-based buffer/simplify/mesh generation.",
+      call. = FALSE
+    )
+  }
+
+  if (isTRUE(sf::st_is_longlat(x))) {
+    stop(
+      "Parameter '", name, "' uses a longitude/latitude CRS, which is not ",
+      "supported for meter-based buffer/simplify/mesh generation. ",
+      "Transform '", name, "' to a projected CRS in metres/meters first.",
+      call. = FALSE
+    )
+  }
+
+  check_projected_crs_type(crs, name)
+  check_crs_units_metres(crs$units_gdal, name)
+
+  invisible(TRUE)
+}
+
+#' Require projected CRS in metre units for terra rasters
+#'
+#' @param x terra SpatRaster to validate
+#' @param name Character string, parameter name for error messages
+#' @return Invisible TRUE if valid, otherwise stops with error
+#' @keywords internal
+#' @noRd
+check_raster_projected_crs <- function(x, name = "x") {
+  crs <- terra::crs(x)
+
+  if (is.null(crs) || is.na(crs) || identical(trimws(crs), "")) {
+    stop(
+      "Parameter '", name, "' must have a defined projected CRS in metres/meters ",
+      "for meter-based buffer/simplify/mesh generation.",
+      call. = FALSE
+    )
+  }
+
+  if (isTRUE(suppressWarnings(terra::is.lonlat(x)))) {
+    stop(
+      "Parameter '", name, "' uses a longitude/latitude CRS, which is not ",
+      "supported for meter-based buffer/simplify/mesh generation. ",
+      "Transform '", name, "' to a projected CRS in metres/meters first.",
+      call. = FALSE
+    )
+  }
+
+  sf_crs <- tryCatch(
+    sf::st_crs(crs),
+    error = function(e) sf::NA_crs_
+  )
+  check_projected_crs_type(sf_crs, name)
+  check_crs_units_metres(sf_crs$units_gdal, name)
+
+  invisible(TRUE)
+}
+
+check_projected_crs_type <- function(crs, name) {
+  wkt <- tryCatch(
+    normalize_crs_wkt(crs$wkt),
+    error = function(e) NA_character_
+  )
+
+  if (is.na(wkt)) {
+    stop(
+      "Parameter '", name, "' has a CRS that could not be parsed. ",
+      "A projected CRS in metres/meters is required for meter-based ",
+      "buffer/simplify/mesh generation.",
+      call. = FALSE
+    )
+  }
+
+  if (!grepl("^[[:space:]]*(PROJCRS|PROJCS)[[:space:]]*\\[", wkt)) {
+    stop(
+      "Parameter '", name, "' must have a projected CRS in metres/meters ",
+      "for meter-based buffer/simplify/mesh generation.",
+      call. = FALSE
+    )
+  }
+
+  invisible(TRUE)
+}
+
+check_crs_units_metres <- function(units, name) {
+  units <- normalize_crs_units(units)
+
+  if (is.na(units)) {
+    stop(
+      "Parameter '", name, "' has CRS units that could not be determined. ",
+      "A projected CRS in metres/meters is required for meter-based ",
+      "buffer/simplify/mesh generation.",
+      call. = FALSE
+    )
+  }
+
+  if (!tolower(units) %in% c("metre", "meter")) {
+    stop(
+      "Parameter '", name, "' must use a projected CRS in metres/meters ",
+      "for meter-based buffer/simplify/mesh generation; found CRS units '",
+      units, "'.",
+      call. = FALSE
+    )
+  }
+
+  invisible(TRUE)
+}
+
+normalize_crs_wkt <- function(wkt) {
+  if (is.null(wkt) || length(wkt) == 0 || all(is.na(wkt))) {
+    return(NA_character_)
+  }
+
+  wkt <- trimws(as.character(wkt[which(!is.na(wkt))[1]]))
+  if (!nzchar(wkt)) {
+    return(NA_character_)
+  }
+
+  wkt
+}
+
+normalize_crs_units <- function(units) {
+  if (is.null(units) || length(units) == 0 || all(is.na(units))) {
+    return(NA_character_)
+  }
+
+  units <- trimws(as.character(units[which(!is.na(units))[1]]))
+  if (!nzchar(units)) {
+    return(NA_character_)
+  }
+
+  units
+}
+
 #' Check if two CRS are compatible
 #'
 #' Determines if two coordinate reference systems are compatible.

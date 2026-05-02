@@ -95,6 +95,87 @@ test_that("check_spatial_compatible detects non-overlapping extents", {
                "do not overlap")
 })
 
+test_that("projected CRS validators accept projected sf and raster inputs", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  coords <- matrix(c(0, 0, 10, 0, 10, 10, 0, 10, 0, 0),
+                   ncol = 2, byrow = TRUE)
+  domain <- sf::st_sf(
+    geometry = sf::st_sfc(sf::st_polygon(list(coords)), crs = 3857)
+  )
+  dem <- terra::rast(ncol = 10, nrow = 10,
+                     xmin = 0, xmax = 10, ymin = 0, ymax = 10,
+                     crs = "EPSG:3857")
+
+  expect_true(check_sf_projected_crs(domain, "domain"))
+  expect_true(check_raster_projected_crs(dem, "dem"))
+})
+
+test_that("projected CRS validators reject missing CRS", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  coords <- matrix(c(0, 0, 10, 0, 10, 10, 0, 10, 0, 0),
+                   ncol = 2, byrow = TRUE)
+  domain <- sf::st_sf(
+    geometry = sf::st_sfc(sf::st_polygon(list(coords)))
+  )
+  dem <- terra::rast(ncol = 10, nrow = 10,
+                     xmin = 0, xmax = 10, ymin = 0, ymax = 10)
+  terra::crs(dem) <- ""
+
+  expect_error(check_sf_projected_crs(domain, "domain"),
+               "domain.*projected CRS in metres/meters")
+  expect_error(check_raster_projected_crs(dem, "dem"),
+               "dem.*projected CRS in metres/meters")
+})
+
+test_that("projected CRS validators reject longitude latitude CRS", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  coords <- matrix(c(0, 0, 1, 0, 1, 1, 0, 1, 0, 0),
+                   ncol = 2, byrow = TRUE)
+  domain <- sf::st_sf(
+    geometry = sf::st_sfc(sf::st_polygon(list(coords)), crs = 4326)
+  )
+  dem <- terra::rast(ncol = 10, nrow = 10,
+                     xmin = 0, xmax = 1, ymin = 0, ymax = 1,
+                     crs = "EPSG:4326")
+
+  expect_error(check_sf_projected_crs(domain, "domain"),
+               "domain.*longitude/latitude CRS.*Transform 'domain'")
+  expect_error(check_raster_projected_crs(dem, "dem"),
+               "dem.*longitude/latitude CRS.*Transform 'dem'")
+})
+
+test_that("projected CRS validators reject projected feet units", {
+  skip_if_not_installed("terra")
+  skip_if_not_installed("sf")
+
+  coords <- matrix(c(0, 0, 10, 0, 10, 10, 0, 10, 0, 0),
+                   ncol = 2, byrow = TRUE)
+  domain <- sf::st_sf(
+    geometry = sf::st_sfc(sf::st_polygon(list(coords)), crs = 2272)
+  )
+  dem <- terra::rast(ncol = 10, nrow = 10,
+                     xmin = 0, xmax = 10, ymin = 0, ymax = 10,
+                     crs = "EPSG:2272")
+
+  expect_error(check_sf_projected_crs(domain, "domain"),
+               "domain.*metres/meters.*US survey foot")
+  expect_error(check_raster_projected_crs(dem, "dem"),
+               "dem.*metres/meters.*US survey foot")
+})
+
+test_that("projected CRS unit check rejects unknown units", {
+  expect_error(check_crs_units_metres(NA_character_, "domain"),
+               "domain.*CRS units.*could not be determined")
+  expect_error(check_crs_units_metres("", "dem"),
+               "dem.*CRS units.*could not be determined")
+})
+
 test_that("compatible_crs detects matching CRS", {
   expect_true(compatible_crs("EPSG:4326", "EPSG:4326"))
   expect_true(compatible_crs("+proj=longlat", "+proj=longlat"))

@@ -89,6 +89,13 @@ Automated workflow to build a complete SHUD hydrological model from
 geospatial data. This modernized function uses terra and sf exclusively
 for all spatial operations.
 }
+\details{
+Inputs used for meter-based buffering, simplification, cropping, and mesh
+generation must have a defined projected CRS in metres/meters. Longitude/
+latitude CRS inputs and projected CRSs in non-metre units are rejected;
+transform inputs to an appropriate metre-based projected CRS before calling
+this workflow.
+}
 \section{Migration Note}{
 
 This function replaces \code{autoBuildModel()} with modern spatial libraries.
