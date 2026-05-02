@@ -43,6 +43,14 @@ NULL
 #' @param remove_outliers Logical, remove outliers in soil/geology data
 #' @param verbose Logical, display progress messages (default: TRUE)
 #'
+#' @details
+#' Inputs used for meter-based buffering, simplification, cropping, and mesh
+#' generation must have a defined projected CRS in metres/meters. Longitude/
+#' latitude CRS inputs and projected CRSs in non-metre units are rejected;
+#' transform inputs to an appropriate metre-based projected CRS before calling
+#' this workflow. All supplied spatial inputs must use the same CRS as
+#' \code{domain}; this workflow does not auto-reproject.
+#'
 #' @return List with components:
 #'   \item{mesh}{SHUD.MESH object}
 #'   \item{river}{SHUD.RIVER object}
@@ -219,6 +227,43 @@ auto_build_model <- function(
   }
   if (!is.null(forcing_sites) && !inherits(forcing_sites, "sf")) {
     stop("Parameter 'forcing_sites' must be an sf object", call. = FALSE)
+  }
+
+  # Meter-based distances in this workflow are unsafe in missing or geographic CRS.
+  check_sf_projected_crs(domain, "domain")
+  check_raster_projected_crs(dem, "dem")
+  if (!is.null(rivers)) {
+    check_sf_projected_crs(rivers, "rivers")
+  }
+  if (!is.null(forcing_sites)) {
+    check_sf_projected_crs(forcing_sites, "forcing_sites")
+  }
+  if (!is.null(soil)) {
+    check_raster_projected_crs(soil, "soil")
+  }
+  if (!is.null(geology)) {
+    check_raster_projected_crs(geology, "geology")
+  }
+  if (!is.null(landcover)) {
+    check_raster_projected_crs(landcover, "landcover")
+  }
+
+  check_model_builder_crs_match(dem, domain, "dem", "domain")
+  if (!is.null(rivers)) {
+    check_model_builder_crs_match(rivers, domain, "rivers", "domain")
+  }
+  if (!is.null(forcing_sites)) {
+    check_model_builder_crs_match(forcing_sites, domain,
+                                  "forcing_sites", "domain")
+  }
+  if (!is.null(soil)) {
+    check_model_builder_crs_match(soil, domain, "soil", "domain")
+  }
+  if (!is.null(geology)) {
+    check_model_builder_crs_match(geology, domain, "geology", "domain")
+  }
+  if (!is.null(landcover)) {
+    check_model_builder_crs_match(landcover, domain, "landcover", "domain")
   }
 
   # Validate numeric parameters
@@ -632,6 +677,10 @@ autoBuildModel <- function(indata, forcfiles = NULL, prjname = NULL, ...) {
 #'   \item Boundary simplification: 200 m
 #'   \item Aquifer depth: 10 m
 #' }
+#'
+#' Input CRS requirements are inherited from \code{\link{auto_build_model}}:
+#' spatial inputs must have a defined projected CRS in metres/meters because
+#' the workflow uses meter-based distances.
 #'
 #' For more control over parameters, use \code{\link{auto_build_model}}.
 #'

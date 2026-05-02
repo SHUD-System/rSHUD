@@ -51,6 +51,10 @@ This function uses default parameters optimized for typical watersheds:
 \item Aquifer depth: 10 m
 }
 
+Input CRS requirements are inherited from \code{\link{auto_build_model}}:
+spatial inputs must have a defined projected CRS in metres/meters because
+the workflow uses meter-based distances.
+
 For more control over parameters, use \code{\link{auto_build_model}}.
 }
 \section{Migration Note}{
