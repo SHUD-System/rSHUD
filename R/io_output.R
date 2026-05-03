@@ -284,21 +284,44 @@ get_default_variables <- function() {
   )
 }
 
+.get_shud_env_value <- function(name, valid = function(x) TRUE) {
+  envs <- list()
+  ns <- tryCatch(asNamespace("rSHUD"), error = function(e) NULL)
+  if (!is.null(ns) && exists(".shud", envir = ns, inherits = FALSE)) {
+    ns_shud <- get(".shud", envir = ns, inherits = FALSE)
+    if (is.environment(ns_shud)) {
+      envs[[length(envs) + 1L]] <- ns_shud
+    }
+  }
+  if (exists(".shud", envir = .GlobalEnv, inherits = FALSE)) {
+    global_shud <- get(".shud", envir = .GlobalEnv, inherits = FALSE)
+    if (is.environment(global_shud) &&
+        !any(vapply(envs, function(x) identical(x, global_shud), logical(1)))) {
+      envs[[length(envs) + 1L]] <- global_shud
+    }
+  }
+
+  for (env in envs) {
+    if (exists(name, envir = env, inherits = FALSE)) {
+      value <- get(name, envir = env, inherits = FALSE)
+      if (isTRUE(valid(value))) {
+        return(value)
+      }
+    }
+  }
+  NULL
+}
+
 #' Get output path from environment
 #' 
 #' @return Character string with output path
 #' @keywords internal
 get_output_path <- function() {
-  if (exists(".shud", envir = .GlobalEnv)) {
-    tryCatch({
-      p = get("outpath", envir = .shud)
-      if(is.character(p)) as.character(p) else getwd()
-    }, error = function(e) {
-      getwd()  # fallback to current directory
-    })
-  } else {
-    getwd()
-  }
+  p <- .get_shud_env_value(
+    "outpath",
+    function(x) is.character(x) && length(x) > 0 && !is.na(x[[1]])
+  )
+  if (is.null(p)) getwd() else as.character(p[[1]])
 }
 
 #' Get model version from environment
@@ -306,16 +329,11 @@ get_output_path <- function() {
 #' @return Numeric model version
 #' @keywords internal
 get_model_version <- function() {
-  if (exists(".shud", envir = .GlobalEnv)) {
-    tryCatch({
-      v = get("version", envir = .shud)
-      if(is.numeric(v)) as.numeric(v) else 2.0
-    }, error = function(e) {
-      2.0  # default to modern version
-    })
-  } else {
-    2.0
-  }
+  v <- .get_shud_env_value(
+    "version",
+    function(x) is.numeric(x) && length(x) > 0 && !is.na(x[[1]])
+  )
+  if (is.null(v)) 2.0 else as.numeric(v[[1]])
 }
 
 #' Get project name from environment
@@ -323,14 +341,9 @@ get_model_version <- function() {
 #' @return Character string with project name
 #' @keywords internal
 get_project_name <- function() {
-  if (exists(".shud", envir = .GlobalEnv)) {
-    tryCatch({
-      p = get("PRJNAME", envir = .shud)
-      if(is.character(p)) as.character(p) else "model"
-    }, error = function(e) {
-      "model"  # default project name
-    })
-  } else {
-    "model"
-  }
+  p <- .get_shud_env_value(
+    "PRJNAME",
+    function(x) is.character(x) && length(x) > 0 && !is.na(x[[1]])
+  )
+  if (is.null(p)) "model" else as.character(p[[1]])
 }

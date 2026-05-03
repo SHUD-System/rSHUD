@@ -5,19 +5,23 @@
 \alias{readlai}
 \title{Read LAI time series file}
 \usage{
-read_lai(file = shud.filein()["ts.lai"])
+read_lai(file = shud.filein()["md.lai"])
 
-readlai(file = shud.filein()["ts.lai"])
+readlai(file = shud.filein()["md.lai"])
 }
 \arguments{
 \item{file}{Character. Full path to LAI time series file}
 }
 \value{
-List of time series data with LAI and RL (Roughness Length) components
+List of time-series data. One-block files are named \code{LAI}; two-block
+files are named \code{LAI} and \code{RL} (Roughness Length). Additional blocks, if
+present, are named \code{Block3}, \code{Block4}, etc.
 }
 \description{
-Reads a LAI (Leaf Area Index) time series file (.ts.lai) and returns
-properly named time series components.
+Reads a LAI (Leaf Area Index) time series file (.tsd.lai or legacy
+.ts.lai) and returns properly named time-series components. Real SHUD input
+files may contain only one block; those files are returned as \code{LAI}. Two-block
+compatibility files are returned as \code{LAI} and \code{RL}.
 }
 \section{Deprecated}{
 
@@ -28,7 +32,7 @@ properly named time series components.
 \dontrun{
 lai_data <- read_lai("model.ts.lai")
 plot(lai_data$LAI)
-plot(lai_data$RL)
+if ("RL" \%in\% names(lai_data)) plot(lai_data$RL)
 }
 }
 \seealso{

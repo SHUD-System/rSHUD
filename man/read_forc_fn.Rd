@@ -13,10 +13,15 @@ readforc.fn(file = shud.filein()["md.forc"])
 \item{file}{Character. Full path to the .forc file}
 }
 \value{
-List containing start time and forcing sites data frame
+List containing start time and forcing sites data frame. The filename
+column in \code{Sites} contains normalized absolute paths.
 }
 \description{
-Reads a SHUD forcing file (.forc) and returns forcing site information.
+Reads a SHUD forcing file (.forc) and returns forcing site information. The
+returned \code{Sites} data frame normalizes forcing filenames to absolute paths.
+Relative forcing directories are resolved against the \code{.tsd.forc} file
+location first, with parent-directory and working-directory fallback for
+compatibility with legacy model-root-relative inputs.
 }
 \section{Deprecated}{
 

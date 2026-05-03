@@ -160,7 +160,11 @@ get_coords <- function(x) {
   if (inherits(x, "sf") || inherits(x, "sfc")) {
     # Extract all coordinates
     coords_list <- lapply(sf::st_geometry(x), function(line) {
-      sf::st_coordinates(line)[, 1:2, drop = FALSE]
+      coords <- sf::st_coordinates(line)
+      if (nrow(coords) == 0) {
+        return(matrix(numeric(0), ncol = 2))
+      }
+      coords[, 1:2, drop = FALSE]
     })
     
     # Combine and get unique
@@ -168,7 +172,11 @@ get_coords <- function(x) {
   } else {
     x_sf <- sf::st_as_sf(x)
     coords_list <- lapply(sf::st_geometry(x_sf), function(line) {
-      sf::st_coordinates(line)[, 1:2, drop = FALSE]
+      coords <- sf::st_coordinates(line)
+      if (nrow(coords) == 0) {
+        return(matrix(numeric(0), ncol = 2))
+      }
+      coords[, 1:2, drop = FALSE]
     })
     all_coords <- do.call(rbind, coords_list)
   }
@@ -201,22 +209,40 @@ get_coords <- function(x) {
 #' }
 get_from_to_nodes <- function(sf_line, coords = get_coords(sf_line)) {
   if (inherits(sf_line, "sf") || inherits(sf_line, "sfc")) {
-    nsp <- nrow(sf_line)
+    nsp <- length(sf::st_geometry(sf_line))
     # Get all coordinates matrices
     coords_list <- lapply(sf::st_geometry(sf_line), function(line) {
-      sf::st_coordinates(line)[, 1:2, drop = FALSE]
+      coords <- sf::st_coordinates(line)
+      if (nrow(coords) == 0) {
+        return(matrix(numeric(0), ncol = 2))
+      }
+      coords[, 1:2, drop = FALSE]
     })
   } else {
     sf_line <- sf::st_as_sf(sf_line)
     nsp <- nrow(sf_line)
     coords_list <- lapply(sf::st_geometry(sf_line), function(line) {
-      sf::st_coordinates(line)[, 1:2, drop = FALSE]
+      coords <- sf::st_coordinates(line)
+      if (nrow(coords) == 0) {
+        return(matrix(numeric(0), ncol = 2))
+      }
+      coords[, 1:2, drop = FALSE]
     })
   }
   
   # Get first and last points of each line segment
-  fr_pts <- do.call(rbind, lapply(coords_list, function(x) x[1, , drop = FALSE]))
-  to_pts <- do.call(rbind, lapply(coords_list, function(x) x[nrow(x), , drop = FALSE]))
+  fr_pts <- do.call(rbind, lapply(coords_list, function(x) {
+    if (nrow(x) == 0) {
+      return(matrix(c(NA_real_, NA_real_), nrow = 1))
+    }
+    x[1, , drop = FALSE]
+  }))
+  to_pts <- do.call(rbind, lapply(coords_list, function(x) {
+    if (nrow(x) == 0) {
+      return(matrix(c(NA_real_, NA_real_), nrow = 1))
+    }
+    x[nrow(x), , drop = FALSE]
+  }))
   
   # Use string hashing for fast exact matching
   fr_str <- paste(fr_pts[, 1], fr_pts[, 2])

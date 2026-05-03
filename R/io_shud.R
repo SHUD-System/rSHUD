@@ -11,6 +11,13 @@ NULL
 # Modern SHUD File Reading Functions (snake_case naming)
 # =============================================================================
 
+.resolve_default_file <- function(expr) {
+  tryCatch(
+    force(expr),
+    error = function(e) NULL
+  )
+}
+
 #' Read SHUD mesh file
 #' 
 #' Reads a SHUD mesh file (.mesh) and returns a SHUD.MESH object.
@@ -24,7 +31,10 @@ NULL
 #' mesh <- read_mesh("model.mesh")
 #' }
 read_mesh <- function(file = shud.filein()['md.mesh']) {
-  if (missing(file) || is.null(file) || is.na(file) || file == "") {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()['md.mesh'])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -51,7 +61,10 @@ read_mesh <- function(file = shud.filein()['md.mesh']) {
 #' river <- read_river("model.riv")
 #' }
 read_river <- function(file = shud.filein()['md.riv']) {
-  if (missing(file) || is.null(file) || is.na(file) || file == "") {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()['md.riv'])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -79,7 +92,10 @@ read_river <- function(file = shud.filein()['md.riv']) {
 #' att <- read_att("model.att")
 #' }
 read_att <- function(file = shud.filein()['md.att']) {
-  if (missing(file) || is.null(file) || is.na(file) || file == "") {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()['md.att'])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -105,7 +121,10 @@ read_att <- function(file = shud.filein()['md.att']) {
 #' rivseg <- read_rivseg("model.rivseg")
 #' }
 read_rivseg <- function(file = shud.filein()['md.rivseg']) {
-  if (missing(file) || is.null(file) || is.na(file)) {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()['md.rivseg'])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -131,7 +150,10 @@ read_rivseg <- function(file = shud.filein()['md.rivseg']) {
 #' para <- read_para("model.para")
 #' }
 read_para <- function(file = shud.filein()['md.para']) {
-  if (missing(file) || is.null(file) || is.na(file)) {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()['md.para'])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -151,7 +173,10 @@ read_para <- function(file = shud.filein()['md.para']) {
 #' calib <- read_calib("model.calib")
 #' }
 read_calib <- function(file = shud.filein()['md.calib']) {
-  if (missing(file) || is.null(file) || is.na(file)) {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()['md.calib'])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -172,7 +197,10 @@ read_calib <- function(file = shud.filein()['md.calib']) {
 #' config <- read_config("model.para")
 #' }
 read_config <- function(file = shud.filein()['md.para']) {
-  if (missing(file) || is.null(file) || is.na(file)) {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()['md.para'])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -202,7 +230,10 @@ read_config <- function(file = shud.filein()['md.para']) {
 #' ic <- read_ic("model.ic")
 #' }
 read_ic <- function(file = shud.filein()['md.ic']) {
-  if (missing(file) || is.null(file) || is.na(file)) {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()['md.ic'])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -229,7 +260,10 @@ read_ic <- function(file = shud.filein()['md.ic']) {
 #' soil <- read_soil("model.soil")
 #' }
 read_soil <- function(file = shud.filein()['md.soil']) {
-  if (missing(file) || is.null(file) || is.na(file)) {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()['md.soil'])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -255,7 +289,10 @@ read_soil <- function(file = shud.filein()['md.soil']) {
 #' geol <- read_geol("model.geol")
 #' }
 read_geol <- function(file = shud.filein()['md.geol']) {
-  if (missing(file) || is.null(file) || is.na(file)) {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()['md.geol'])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -281,7 +318,10 @@ read_geol <- function(file = shud.filein()['md.geol']) {
 #' lc <- read_lc("model.lc")
 #' }
 read_lc <- function(file = shud.filein()['md.lc']) {
-  if (missing(file) || is.null(file) || is.na(file)) {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()['md.lc'])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -296,10 +336,15 @@ read_lc <- function(file = shud.filein()['md.lc']) {
 
 #' Read SHUD forcing file list
 #' 
-#' Reads a SHUD forcing file (.forc) and returns forcing site information.
+#' Reads a SHUD forcing file (.forc) and returns forcing site information. The
+#' returned `Sites` data frame normalizes forcing filenames to absolute paths.
+#' Relative forcing directories are resolved against the `.tsd.forc` file
+#' location first, with parent-directory and working-directory fallback for
+#' compatibility with legacy model-root-relative inputs.
 #' 
 #' @param file Character. Full path to the .forc file
-#' @return List containing start time and forcing sites data frame
+#' @return List containing start time and forcing sites data frame. The filename
+#'   column in `Sites` contains normalized absolute paths.
 #' @family shud-io
 #' @export
 #' @examples
@@ -307,7 +352,10 @@ read_lc <- function(file = shud.filein()['md.lc']) {
 #' forc <- read_forc_fn("model.forc")
 #' }
 read_forc_fn <- function(file = shud.filein()['md.forc']) {
-  if (missing(file) || is.null(file) || is.na(file)) {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()['md.forc'])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -317,10 +365,74 @@ read_forc_fn <- function(file = shud.filein()['md.forc']) {
   
   txt <- readLines(file)
   hd <- read.table(text = txt[1])
-  path <- txt[2]
+  path <- trimws(txt[2])
   df <- read.table(text = txt[-1 * 1:2], header = TRUE)
   nc <- ncol(df)
-  df[, nc] <- file.path(path, df[, nc])
+
+  is_absolute_path <- function(x) {
+    grepl("^([A-Za-z]:)?[/\\\\]", x) || startsWith(x, "~")
+  }
+  normalize_abs <- function(x) {
+    x <- path.expand(x)
+    if (!is_absolute_path(x)) {
+      x <- file.path(getwd(), x)
+    }
+    normalizePath(x, winslash = "/", mustWork = FALSE)
+  }
+  parent_dirs <- function(x) {
+    dirs <- normalizePath(x, winslash = "/", mustWork = FALSE)
+    repeat {
+      parent <- dirname(dirs[length(dirs)])
+      if (identical(parent, dirs[length(dirs)])) {
+        break
+      }
+      dirs <- c(dirs, parent)
+    }
+    dirs
+  }
+  forcing_files <- function(base_dir, filenames) {
+    vapply(filenames, function(filename) {
+      filename <- trimws(as.character(filename))
+      if (is_absolute_path(filename)) {
+        normalize_abs(filename)
+      } else {
+        normalize_abs(file.path(base_dir, filename))
+      }
+    }, character(1), USE.NAMES = FALSE)
+  }
+
+  filenames <- df[[nc]]
+  if (is_absolute_path(path)) {
+    df[, nc] <- forcing_files(path, filenames)
+  } else {
+    file_dir <- dirname(normalizePath(file, winslash = "/", mustWork = TRUE))
+    logical_file_dir <- dirname(normalize_abs(file))
+    candidate_bases <- unique(c(
+      file_dir,
+      parent_dirs(file_dir),
+      logical_file_dir,
+      parent_dirs(logical_file_dir),
+      getwd()
+    ))
+    candidate_dirs <- normalizePath(
+      file.path(candidate_bases, path),
+      winslash = "/",
+      mustWork = FALSE
+    )
+    candidate_dirs <- unique(candidate_dirs)
+    candidate_files <- lapply(candidate_dirs, forcing_files, filenames = filenames)
+    existing_counts <- vapply(candidate_files, function(x) sum(file.exists(x)), integer(1))
+    complete_candidates <- which(existing_counts == length(filenames))
+    if (length(complete_candidates) > 0) {
+      selected <- complete_candidates[[1]]
+    } else if (any(existing_counts > 0)) {
+      selected <- which.max(existing_counts)
+    } else {
+      selected <- 1L
+    }
+    df[, nc] <- candidate_files[[selected]]
+  }
+
   ret <- list('StartTime' = as.character(hd[2]),
               Sites = df)
   return(ret)
@@ -340,7 +452,10 @@ read_forc_fn <- function(file = shud.filein()['md.forc']) {
 #' forc_data <- read_forc_csv("model.forc", id = 1:3)
 #' }
 read_forc_csv <- function(file = shud.filein()['md.forc'], id = NULL) {
-  if (missing(file) || is.null(file) || is.na(file)) {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()['md.forc'])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -444,7 +559,10 @@ read_df <- function(file, text = readLines(file), sep = '\t') {
 #' river_sp <- read_river_sp("rivers.shp")
 #' }
 read_river_sp <- function(file = file.path(shud.filein()['inpath'], 'gis', 'river.shp')) {
-  if (missing(file) || is.null(file) || is.na(file)) {
+  if (missing(file)) {
+    file <- .resolve_default_file(file.path(shud.filein()['inpath'], 'gis', 'river.shp'))
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
@@ -704,7 +822,7 @@ write_df <- function(x, file, append = FALSE, quiet = FALSE, header = NULL) {
 readmesh <- function(file = shud.filein()["md.mesh"]) {
   .Deprecated("read_mesh", package = "rSHUD",
               msg = "readmesh() is deprecated. Use read_mesh() instead.")
-  read_mesh(file)
+  if (missing(file)) read_mesh() else read_mesh(file)
 }
 
 #' @rdname read_river
@@ -714,7 +832,7 @@ readmesh <- function(file = shud.filein()["md.mesh"]) {
 readriv <- function(file = shud.filein()["md.riv"]) {
   .Deprecated("read_river", package = "rSHUD",
               msg = "readriv() is deprecated. Use read_river() instead.")
-  read_river(file)
+  if (missing(file)) read_river() else read_river(file)
 }
 
 #' @rdname read_att
@@ -724,7 +842,7 @@ readriv <- function(file = shud.filein()["md.riv"]) {
 readatt <- function(file = shud.filein()["md.att"]) {
   .Deprecated("read_att", package = "rSHUD",
               msg = "readatt() is deprecated. Use read_att() instead.")
-  read_att(file)
+  if (missing(file)) read_att() else read_att(file)
 }
 
 #' @rdname read_rivseg
@@ -734,7 +852,7 @@ readatt <- function(file = shud.filein()["md.att"]) {
 readrivseg <- function(file = shud.filein()["md.rivseg"]) {
   .Deprecated("read_rivseg", package = "rSHUD",
               msg = "readrivseg() is deprecated. Use read_rivseg() instead.")
-  read_rivseg(file)
+  if (missing(file)) read_rivseg() else read_rivseg(file)
 }
 
 #' @rdname read_para
@@ -744,7 +862,7 @@ readrivseg <- function(file = shud.filein()["md.rivseg"]) {
 readpara <- function(file = shud.filein()["md.para"]) {
   .Deprecated("read_para", package = "rSHUD",
               msg = "readpara() is deprecated. Use read_para() instead.")
-  read_para(file)
+  if (missing(file)) read_para() else read_para(file)
 }
 
 #' @rdname read_calib
@@ -754,7 +872,7 @@ readpara <- function(file = shud.filein()["md.para"]) {
 readcalib <- function(file = shud.filein()["md.calib"]) {
   .Deprecated("read_calib", package = "rSHUD",
               msg = "readcalib() is deprecated. Use read_calib() instead.")
-  read_calib(file)
+  if (missing(file)) read_calib() else read_calib(file)
 }
 
 #' @rdname read_config
@@ -764,7 +882,7 @@ readcalib <- function(file = shud.filein()["md.calib"]) {
 readconfig <- function(file = shud.filein()["md.para"]) {
   .Deprecated("read_config", package = "rSHUD",
               msg = "readconfig() is deprecated. Use read_config() instead.")
-  read_config(file)
+  if (missing(file)) read_config() else read_config(file)
 }
 
 #' @rdname read_ic
@@ -774,7 +892,7 @@ readconfig <- function(file = shud.filein()["md.para"]) {
 readic <- function(file = shud.filein()["md.ic"]) {
   .Deprecated("read_ic", package = "rSHUD",
               msg = "readic() is deprecated. Use read_ic() instead.")
-  read_ic(file)
+  if (missing(file)) read_ic() else read_ic(file)
 }
 
 #' @rdname read_soil
@@ -784,7 +902,7 @@ readic <- function(file = shud.filein()["md.ic"]) {
 readsoil <- function(file = shud.filein()["md.soil"]) {
   .Deprecated("read_soil", package = "rSHUD",
               msg = "readsoil() is deprecated. Use read_soil() instead.")
-  read_soil(file)
+  if (missing(file)) read_soil() else read_soil(file)
 }
 
 #' @rdname read_geol
@@ -794,7 +912,7 @@ readsoil <- function(file = shud.filein()["md.soil"]) {
 readgeol <- function(file = shud.filein()["md.geol"]) {
   .Deprecated("read_geol", package = "rSHUD",
               msg = "readgeol() is deprecated. Use read_geol() instead.")
-  read_geol(file)
+  if (missing(file)) read_geol() else read_geol(file)
 }
 
 #' @rdname read_lc
@@ -804,7 +922,7 @@ readgeol <- function(file = shud.filein()["md.geol"]) {
 readlc <- function(file = shud.filein()["md.lc"]) {
   .Deprecated("read_lc", package = "rSHUD",
               msg = "readlc() is deprecated. Use read_lc() instead.")
-  read_lc(file)
+  if (missing(file)) read_lc() else read_lc(file)
 }
 
 #' @rdname read_forc_fn
@@ -814,7 +932,7 @@ readlc <- function(file = shud.filein()["md.lc"]) {
 readforc.fn <- function(file = shud.filein()["md.forc"]) {
   .Deprecated("read_forc_fn", package = "rSHUD",
               msg = "readforc.fn() is deprecated. Use read_forc_fn() instead.")
-  read_forc_fn(file)
+  if (missing(file)) read_forc_fn() else read_forc_fn(file)
 }
 
 #' @rdname read_forc_csv
@@ -824,7 +942,7 @@ readforc.fn <- function(file = shud.filein()["md.forc"]) {
 readforc.csv <- function(file = shud.filein()["md.forc"], id = NULL) {
   .Deprecated("read_forc_csv", package = "rSHUD",
               msg = "readforc.csv() is deprecated. Use read_forc_csv() instead.")
-  read_forc_csv(file, id)
+  if (missing(file)) read_forc_csv(id = id) else read_forc_csv(file, id)
 }
 
 #' @rdname read_df
@@ -844,5 +962,5 @@ read.df <- function(file, text = readLines(file), sep = "\t") {
 readriv.sp <- function(file = file.path(shud.filein()["inpath"], "gis", "river.shp")) {
   .Deprecated("read_river_sp", package = "rSHUD",
               msg = "readriv.sp() is deprecated. Use read_river_sp() instead.")
-  read_river_sp(file)
+  if (missing(file)) read_river_sp() else read_river_sp(file)
 }
