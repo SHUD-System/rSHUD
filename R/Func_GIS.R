@@ -603,8 +603,8 @@ SinglePolygon <- function(x, id = 0){
 #' @param ... More options in duplicated()
 #' @return Line object without duplicated from/to nodes, preserving the input
 #'   class where possible. Lines whose FROM/TO nodes cannot be determined, such
-#'   as empty or incomplete LINESTRING geometries, are removed before duplicate
-#'   FROM/TO pairs are filtered.
+#'   as empty, one-coordinate, non-finite, or same-start/end LINESTRING
+#'   geometries, are removed before duplicate FROM/TO pairs are filtered.
 #' @export
 rmDuplicatedLines <- function(x, ...){
   # x = spi.riv

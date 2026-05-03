@@ -193,7 +193,9 @@ get_coords <- function(x) {
 #'   wrappers may pass legacy line objects, which are converted internally for
 #'   compatibility.
 #' @param coords Matrix of unique coordinates (default: get_coords(sf_line))
-#' @return Matrix with columns: ID, FrNode, ToNode
+#' @return Matrix with columns: ID, FrNode, ToNode. Invalid line geometries
+#'   with fewer than two coordinates, non-finite coordinates, or identical start
+#'   and end coordinates return `NA` for `FrNode` and `ToNode`.
 #' @export
 #' @examples
 #' \dontrun{
@@ -229,16 +231,23 @@ get_from_to_nodes <- function(sf_line, coords = get_coords(sf_line)) {
       coords[, 1:2, drop = FALSE]
     })
   }
+
+  invalid_line <- vapply(coords_list, function(x) {
+    nrow(x) < 2 || any(!is.finite(x)) ||
+      identical(unname(x[1, ]), unname(x[nrow(x), ]))
+  }, logical(1), USE.NAMES = FALSE)
   
   # Get first and last points of each line segment
   fr_pts <- do.call(rbind, lapply(coords_list, function(x) {
-    if (nrow(x) == 0) {
+    if (nrow(x) < 2 || any(!is.finite(x)) ||
+        identical(unname(x[1, ]), unname(x[nrow(x), ]))) {
       return(matrix(c(NA_real_, NA_real_), nrow = 1))
     }
     x[1, , drop = FALSE]
   }))
   to_pts <- do.call(rbind, lapply(coords_list, function(x) {
-    if (nrow(x) == 0) {
+    if (nrow(x) < 2 || any(!is.finite(x)) ||
+        identical(unname(x[1, ]), unname(x[nrow(x), ]))) {
       return(matrix(c(NA_real_, NA_real_), nrow = 1))
     }
     x[nrow(x), , drop = FALSE]
@@ -252,6 +261,9 @@ get_from_to_nodes <- function(sf_line, coords = get_coords(sf_line)) {
   # Vectorized match
   fr_idx <- match(fr_str, coord_str)
   to_idx <- match(to_str, coord_str)
+  invalid_line <- invalid_line | (!is.na(fr_idx) & !is.na(to_idx) & fr_idx == to_idx)
+  fr_idx[invalid_line] <- NA_integer_
+  to_idx[invalid_line] <- NA_integer_
   
   # Build return matrix
   result <- cbind(seq_len(nsp), fr_idx, to_idx)

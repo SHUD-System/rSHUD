@@ -875,6 +875,54 @@ test_that("sp.RiverOrder from/to points keep exact upstream-downstream match", {
   expect_identical(unname(to_xy[1, ]), unname(from_xy[2, ]))
 })
 
+test_that("get_from_to_nodes returns NA nodes for invalid line geometries", {
+  skip_if_not_installed("sf")
+
+  rivers <- sf::st_sf(
+    id = 1:5,
+    geometry = sf::st_sfc(
+      sf::st_linestring(),
+      sf::st_linestring(matrix(c(2, 2), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(3, 3, 3, 3), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(0, 0, Inf, 1), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(0, 0, 1, 1), ncol = 2, byrow = TRUE)),
+      crs = 4326
+    )
+  )
+
+  coords <- get_coords(rivers)
+  ft <- get_from_to_nodes(rivers, coords)
+
+  expect_equal(nrow(ft), 5)
+  expect_true(all(is.na(ft[1:4, c("FrNode", "ToNode")])))
+  expect_false(anyNA(ft[5, c("FrNode", "ToNode")]))
+})
+
+test_that("rmDuplicatedLines removes duplicate reaches and invalid lines", {
+  skip_if_not_installed("sf")
+
+  rivers <- sf::st_sf(
+    id = 1:6,
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 1), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(0, 0, 1, 1), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(),
+      sf::st_linestring(matrix(c(2, 2), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(3, 3, 3, 3), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(4, 4, 5, 5), ncol = 2, byrow = TRUE)),
+      crs = 4326
+    )
+  )
+
+  out <- rmDuplicatedLines(rivers)
+
+  expect_s3_class(out, "sf")
+  expect_equal(nrow(out), 2)
+  expect_equal(out$id, c(1, 6))
+  ft <- get_from_to_nodes(out)
+  expect_false(anyNA(ft[, c("FrNode", "ToNode")]))
+})
+
 # Test S4 class conversion functions -----------------------------------------
 
 test_that("as_shud_river validates input", {

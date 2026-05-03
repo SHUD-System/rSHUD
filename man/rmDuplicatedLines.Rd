@@ -16,8 +16,8 @@ compatibility.}
 \value{
 Line object without duplicated from/to nodes, preserving the input
 class where possible. Lines whose FROM/TO nodes cannot be determined, such
-as empty or incomplete LINESTRING geometries, are removed before duplicate
-FROM/TO pairs are filtered.
+as empty, one-coordinate, non-finite, or same-start/end LINESTRING
+geometries, are removed before duplicate FROM/TO pairs are filtered.
 }
 \description{
 Remove incomplete lines and duplicated lines with identical FROM/TO nodes.
