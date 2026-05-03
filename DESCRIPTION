@@ -1,8 +1,8 @@
 Package: rSHUD
 Type: Package
 Title: Toolbox For SHUD Modeling System
-Version: 2.3.0
-Date: 2026-05-01
+Version: 2.4.0
+Date: 2026-05-03
 Authors@R: c(
     person("Lele", "Shu", 
            email = "shulele@lzb.ac.cn", 

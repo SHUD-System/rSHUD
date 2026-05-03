@@ -1,3 +1,85 @@
+# rSHUD 2.4.0
+
+**Release Date**: 2026-05-03
+
+本版本是基于 rSHUD 2.2.0 的累计稳定版发布，整合了 v3 迁移后的解锁修复、兼容层补全、旧空间 API 清理、文档口径统一、CRS 安全保护，以及真实 case 验证前置修复。相比 v2.2.0，本版本重点不是新增水文公式，而是让 v3 代码路径可导出、可测试、可在真实 SHUD 输入上更稳健地运行。
+
+## 1. 相比 v2.2.0 的总体变化
+
+- 完成 v3 API 可用性收口：重新生成 `NAMESPACE`，导出现代 snake_case API 和必要兼容入口。
+- 补齐旧 API 兼容层：旧函数保留为 deprecated wrapper，转发到现代实现，并给出迁移提示。
+- 进一步移除活跃代码、测试和默认文档示例中的旧 spatial API 使用，默认路径切换到 `sf` / `terra`。
+- 修复包级 `R CMD check` blockers，examples、tests、Rd usage、vignettes 执行路径整体更稳定。
+- 增加模型构建入口 CRS guard，避免经纬度、feet-unit 投影、缺 CRS 或混合 CRS 输入继续产生 silent wrong output。
+- 修复真实 case 预检中暴露的 LAI、forcing、river attribute、forcing coverage、output 读取和 river geometry 问题。
+
+## 2. API 导出与兼容性修复
+
+- 重新生成 `NAMESPACE`，让 v2.2.0 中已存在但未完整导出的现代函数可以被用户直接调用。
+- 修复 `autoBuildModel()`：旧入口不再直接中止，而是作为兼容 wrapper 转发到 `auto_build_model()`。
+- 增加 legacy 参数名映射和 `sp` / `raster` 到 `sf` / `terra` 的兼容转换。
+- 增加或修复多个旧入口 wrapper，包括 `FromToNode()`、`write.riv()`、`sp.RiverSeg()` 等。
+- 增加 `SHUD.RIVER` 旧对象兼容初始化和 `upgrade_shud_river()`，用于读取和升级 v2 序列化对象。
+
+## 3. 空间 API 与 deprecation warning 清理
+
+- 移除生产路径中对 `sp.mesh2Shape()` 的活跃依赖，默认改用 `mesh_to_sf()`。
+- `sp.Tri2Shape()` 现在直接转发到现代 mesh conversion，并只对自身旧名称发出 deprecation warning。
+- 更新 mesh、plot、GIS core 等测试，默认覆盖现代 API。
+- README、中文 README 和非 migration vignettes 的默认示例改为 `sf` / `terra` 与 snake_case API。
+- 保留旧 API 只用于 migration 对照、deprecated wrapper、兼容实现和明确的兼容测试。
+
+## 4. 包级检查与文档稳定性
+
+- 修复 v2.2.0 后遗留的 `R CMD check` blockers，包括 examples、Rd usage、vignette 执行路径和 namespace NOTE。
+- 避免文档 vignettes 在 check 中执行依赖外部文件或旧 API 的代码块。
+- 修复 `fishnet`、`voronoipolygons()`、legacy plotting examples 等示例路径。
+- 新增 `plot_timeseries()` 兼容 alias，并恢复 generic time-series plotting 行为。
+- `PET_PM()` 返回值和单位处理更明确，减少无关控制台输出。
+- 补充 PET、plot、水量平衡等测试覆盖。
+
+## 5. CRS 安全保护
+
+- `auto_build_model()` / `quick_model()` 增加统一 CRS 校验。
+- 空间输入必须具备 CRS；缺失 CRS 会直接报错。
+- 经度/纬度 CRS 会被拒绝，因为默认 buffer、simplify、mesh 和属性提取参数使用米制空间语义。
+- 投影 CRS 必须使用 metre/meter 单位；feet-unit 投影会被拒绝并提示实际单位。
+- `domain`、`dem`、`rivers`、`forcing_sites`、`soil`、`geology`、`landcover` 等输入必须使用同一 CRS。
+- 本版本选择保守拒绝策略，不自动重投影，避免不同投影输入被静默混算。
+
+## 6. 真实 case 预检修复
+
+- `read_lai()` 支持单 block `.tsd.lai` 作为 `LAI`，同时保留双 block `LAI` / `RL` 兼容，并为额外 block 提供确定性命名。
+- `read_forc_fn()` 支持相对 forcing 目录优先相对 `.tsd.forc` 文件位置解析，同时保留绝对路径行为。
+- `RiverAtt(riv=...)` 正确使用传入的 `SHUD.RIVER` 对象，不再无条件从 `.shud` 环境读取。
+- `ForcingCoverage()` 支持 point site 和 polygon / multipolygon coverage，增加 filename 数量校验和更清晰的 `MULTIPOINT` 拒绝信息。
+- 修复 SHUD 输出读取中的版本、变量和表头处理问题，使真实 case 输出更容易被 rSHUD 读取和诊断。
+
+## 7. River topology 与 geometry 修复
+
+- `FromToNode()` / `get_from_to_nodes()` 移除不安全的 `rgeos::gSimplify()` 前处理，避免河段端点被简化后无法匹配原始节点。
+- FROM/TO 节点匹配改为向量化 coordinate hash，显著提升大河网性能。
+- 空 LINESTRING、单点 LINESTRING、非有限坐标和首尾相同的退化线会返回 `NA` 节点，而不是进入拓扑计算。
+- `rmDuplicatedLines()` 会先过滤无法确定 FROM/TO 节点的无效河段，再执行重复 FROM/TO reach 去重。
+- 增加 river 单元测试，覆盖 invalid geometry 和 duplicate reach 行为。
+
+## 8. 验证情况
+
+本版本发布前在本地完成以下验证：
+
+- `git diff --check`：通过。
+- `testthat::test_file("tests/testthat/test-river.R", reporter = "summary")`：通过。
+- `testthat::test_dir("tests/testthat", reporter = "summary")`：通过。
+- `R CMD build --no-build-vignettes --no-manual --md5 --resave-data .`：通过。
+- `R CMD check --no-manual --no-build-vignettes --no-tests rSHUD_2.4.0.tar.gz`：通过，保留禁用 vignette build 导致的 2 个既有 warning。
+
+## 9. 兼容性说明
+
+- 本版本仍保留大部分旧 API wrapper，但默认文档和普通测试不再把旧 API 作为推荐路径。
+- v2.2.0 中标记的旧 API 迁移方向不变：新代码应优先使用 snake_case、`sf` 和 `terra` 路径。
+- 对 CRS 的校验比 v2.2.0 更严格；过去可能继续运行但单位错误或 CRS 混用的输入，现在会提前报错。
+- v2 baseline 只能作为历史参照，不应作为 v3 后续修复后的数值真值。
+
 # rSHUD 2.3.0
 
 **Release Date**: 2026-05-01
