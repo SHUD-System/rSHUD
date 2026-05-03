@@ -596,24 +596,32 @@ SinglePolygon <- function(x, id = 0){
   ret
 }
 
-#' Remove the duplicated lines, which means the FROM and TO points are identical.
+#' Remove incomplete lines and duplicated lines with identical FROM/TO nodes.
 #' \code{rmDuplicatedLines}
 #' @param x \code{sf} line object; legacy spatial input is accepted for
 #'   compatibility.
 #' @param ... More options in duplicated()
 #' @return Line object without duplicated from/to nodes, preserving the input
-#'   class where possible.
+#'   class where possible. Lines whose FROM/TO nodes cannot be determined, such
+#'   as empty, one-coordinate, non-finite, or same-start/end LINESTRING
+#'   geometries, are removed before duplicate FROM/TO pairs are filtered.
 #' @export
 rmDuplicatedLines <- function(x, ...){
   # x = spi.riv
   cd = get_coords(x)
   # dim(cd)
   ft = get_from_to_nodes(x, cd)
-  id = which(duplicated(ft[, -1], MARGIN = 1, ...))
-  if(length(id) > 0){
-    r = x[-id,]
-  }else{
-    r = x
+  valid = stats::complete.cases(ft[, c("FrNode", "ToNode"), drop = FALSE])
+  keep = valid
+  if (any(valid)) {
+    dup = duplicated(ft[valid, c("FrNode", "ToNode"), drop = FALSE], MARGIN = 1, ...)
+    keep[which(valid)[dup]] = FALSE
+  }
+  idx = which(keep)
+  if (inherits(x, "sfc")) {
+    r = x[idx]
+  } else {
+    r = x[idx,]
   }
   return(r)
 }
@@ -693,8 +701,12 @@ voronoipolygons = function(x = NULL, pts = NULL, rw = NULL, crs = NULL) {
 
 #' Generate the coverage map for forcing sites.
 #' \code{ForcingCoverage}
-#' @param sp.meteoSite \code{sf} POINT object; legacy \code{SpatialPoints*}
-#'   input is accepted for compatibility.
+#' @param sp.meteoSite \code{sf} POINT or POLYGON object; legacy
+#'   \code{SpatialPoints*}/\code{SpatialPolygons*} input is accepted for
+#'   compatibility. Polygon inputs are returned as one forcing zone per polygon,
+#'   with representative point coordinates used for site metadata. This supports
+#'   real AutoSHUD/DataPre polygon `meteoCov.shp` forcing-coverage layers as well
+#'   as point station inputs.
 #' @param pcs Projected Coordinate System (crs object)
 #' @param gcs Geographic Coordinate System (crs object)
 #' @param dem DEM as a \code{terra::SpatRaster}
@@ -705,7 +717,7 @@ voronoipolygons = function(x = NULL, pts = NULL, rw = NULL, crs = NULL) {
 #' @return Legacy \code{SpatialPolygonsDataFrame} forcing coverage object.
 #' @export
 ForcingCoverage <- function(sp.meteoSite = NULL, filenames = paste0(sp.meteoSite$ID, '.csv'),
-                            pcs, gcs = sf::st_crs(4326), 
+                            pcs, gcs = sf::st_crs(4326),
                             dem, wbd, enlarge = 10000
                             ){
   # Compatibility conversion for older forcing-site workflows.
@@ -715,42 +727,79 @@ ForcingCoverage <- function(sp.meteoSite = NULL, filenames = paste0(sp.meteoSite
   if (!inherits(wbd, "sf") && !inherits(wbd, "sfc")) {
     wbd <- sf::st_as_sf(wbd)
   }
-  
+
   if(is.null(sp.meteoSite)){
     sp.meteoSite <- sf::st_centroid(sf::st_geometry(wbd))
     sp.meteoSite <- sf::st_sf(ID = 1:length(sp.meteoSite), geometry = sp.meteoSite)
-    filenames <- paste0(sp.meteoSite$ID, '.csv')
+    if (missing(filenames) || is.null(filenames) || length(filenames) == 0) {
+      filenames <- paste0(sp.meteoSite$ID, '.csv')
+    }
+  } else if (inherits(sp.meteoSite, "sfc")) {
+    sp.meteoSite <- sf::st_sf(geometry = sp.meteoSite)
+    sp.meteoSite$ID <- seq_len(nrow(sp.meteoSite))
   } else if (!inherits(sp.meteoSite, "sf") && !inherits(sp.meteoSite, "sfc")) {
     sp.meteoSite <- sf::st_as_sf(sp.meteoSite)
-    if (is.null(sp.meteoSite$ID)) sp.meteoSite$ID <- 1:nrow(sp.meteoSite)
   }
-  
+  if (is.null(sp.meteoSite$ID)) sp.meteoSite$ID <- seq_len(nrow(sp.meteoSite))
+  if (missing(filenames) || is.null(filenames) || length(filenames) == 0) {
+    filenames <- paste0(sp.meteoSite$ID, '.csv')
+  }
+  if (length(filenames) != nrow(sp.meteoSite)) {
+    stop(
+      sprintf(
+        "filenames must contain exactly one value per sp.meteoSite feature; got %d for %d features",
+        length(filenames), nrow(sp.meteoSite)
+      ),
+      call. = FALSE
+    )
+  }
+
   x.pcs <- sf::st_transform(sp.meteoSite, pcs)
-  x.gcs <- sf::st_transform(sp.meteoSite, gcs)
-  
-  ll <- sf::st_coordinates(x.gcs)
-  xy <- sf::st_coordinates(x.pcs)
-  
+  geom_types <- unique(as.character(sf::st_geometry_type(x.pcs)))
+  is_point_site <- all(geom_types %in% "POINT")
+  is_polygon_site <- all(geom_types %in% c("POLYGON", "MULTIPOLYGON"))
+  if (!is_point_site && !is_polygon_site) {
+    stop(
+      paste(
+        "sp.meteoSite must contain POINT sites or POLYGON/MULTIPOLYGON coverage;",
+        "cast or split MULTIPOINT inputs first"
+      ),
+      call. = FALSE
+    )
+  }
+
+  site_points.pcs <- if (is_polygon_site) {
+    sf::st_point_on_surface(sf::st_geometry(x.pcs))
+  } else {
+    sf::st_geometry(x.pcs)
+  }
+  site_points.gcs <- sf::st_transform(site_points.pcs, gcs)
+
+  ll <- sf::st_coordinates(site_points.gcs)[, 1:2, drop = FALSE]
+  xy <- sf::st_coordinates(site_points.pcs)[, 1:2, drop = FALSE]
+
   # Extract elevation using terra
-  z_ext <- terra::extract(dem, terra::vect(x.pcs))
+  z_ext <- terra::extract(dem, terra::vect(sf::st_as_sf(site_points.pcs)))
   z <- z_ext[, 2] # terra::extract returns ID in first col
-  
+
   att <- data.frame(1:nrow(sp.meteoSite), ll, xy, z, filenames)
   colnames(att) <- c('ID', 'Lon', 'Lat', 'X', 'Y', 'Z', 'Filename')
   
   e1 <- terra::ext(wbd)
-  e2 <- terra::ext(terra::vect(x.pcs))
-  rw <- c(min(e1$xmin, e2$xmin), 
+  e2 <- terra::ext(terra::vect(sf::st_as_sf(site_points.pcs)))
+  rw <- c(min(e1$xmin, e2$xmin),
          max(e1$xmax, e2$xmax),
          min(e1$ymin, e2$ymin),
-         max(e1$ymax, e2$ymax)) 
-         
+         max(e1$ymax, e2$ymax))
+
   if(is.null(enlarge)){
     enlarge <- min(diff(rw[1:2]), diff(rw[3:4])) * 0.02
   }
   rw <- rw + c(-1, 1, -1, 1) * enlarge
-  
-  if(nrow(x.pcs) < 2){
+
+  if (is_polygon_site) {
+    sp.forc <- x.pcs
+  } else if(nrow(x.pcs) < 2){
     # Single-site fallback still uses the compatibility fishnet helper.
     sp.forc <- fishnet(xx = rw[1:2], yy = rw[3:4], crs = pcs)
     sp.forc <- sf::st_as_sf(sp.forc)

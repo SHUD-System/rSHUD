@@ -14,7 +14,9 @@ compatibility.}
 \item{coords}{Matrix of unique coordinates (default: get_coords(sf_line))}
 }
 \value{
-Matrix with columns: ID, FrNode, ToNode
+Matrix with columns: ID, FrNode, ToNode. Invalid line geometries
+with fewer than two coordinates, non-finite coordinates, or identical start
+and end coordinates return \code{NA} for \code{FrNode} and \code{ToNode}.
 }
 \description{
 Identifies the start and end node indices for each river segment

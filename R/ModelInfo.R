@@ -154,7 +154,9 @@ MeshAtt <- function(pm = read_mesh(), att = read_att(),
 #' @return Attributes of each river reach
 #' @export
 RiverAtt <- function(riv = read_river()){
-  riv = read_river()
+  if (!inherits(riv, "SHUD River")) {
+    stop("Parameter 'riv' must be a SHUD.RIVER object", call. = FALSE)
+  }
   it = riv@river$Type
   y = data.frame(riv@river, 
                   riv@rivertype[it, -1])

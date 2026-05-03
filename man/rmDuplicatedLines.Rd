@@ -2,7 +2,7 @@
 % Please edit documentation in R/Func_GIS.R
 \name{rmDuplicatedLines}
 \alias{rmDuplicatedLines}
-\title{Remove the duplicated lines, which means the FROM and TO points are identical.
+\title{Remove incomplete lines and duplicated lines with identical FROM/TO nodes.
 \code{rmDuplicatedLines}}
 \usage{
 rmDuplicatedLines(x, ...)
@@ -15,9 +15,11 @@ compatibility.}
 }
 \value{
 Line object without duplicated from/to nodes, preserving the input
-class where possible.
+class where possible. Lines whose FROM/TO nodes cannot be determined, such
+as empty, one-coordinate, non-finite, or same-start/end LINESTRING
+geometries, are removed before duplicate FROM/TO pairs are filtered.
 }
 \description{
-Remove the duplicated lines, which means the FROM and TO points are identical.
+Remove incomplete lines and duplicated lines with identical FROM/TO nodes.
 \code{rmDuplicatedLines}
 }

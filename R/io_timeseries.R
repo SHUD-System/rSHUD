@@ -64,26 +64,39 @@ read_tsd <- function(file) {
 
 #' Read LAI time series file
 #' 
-#' Reads a LAI (Leaf Area Index) time series file (.ts.lai) and returns
-#' properly named time series components.
+#' Reads a LAI (Leaf Area Index) time series file (.tsd.lai or legacy
+#' .ts.lai) and returns properly named time-series components. Real SHUD input
+#' files may contain only one block; those files are returned as `LAI`. Two-block
+#' compatibility files are returned as `LAI` and `RL`.
 #' 
 #' @param file Character. Full path to LAI time series file
-#' @return List of time series data with LAI and RL (Roughness Length) components
+#' @return List of time-series data. One-block files are named `LAI`; two-block
+#'   files are named `LAI` and `RL` (Roughness Length). Additional blocks, if
+#'   present, are named `Block3`, `Block4`, etc.
 #' @family timeseries-io
 #' @export
 #' @examples
 #' \dontrun{
 #' lai_data <- read_lai("model.ts.lai")
 #' plot(lai_data$LAI)
-#' plot(lai_data$RL)
+#' if ("RL" %in% names(lai_data)) plot(lai_data$RL)
 #' }
-read_lai <- function(file = shud.filein()["ts.lai"]) {
-  if (missing(file) || is.null(file) || is.na(file)) {
+read_lai <- function(file = shud.filein()["md.lai"]) {
+  if (missing(file)) {
+    file <- .resolve_default_file(shud.filein()["md.lai"])
+  }
+  if (is.null(file) || length(file) == 0 || is.na(file) || file == "") {
     stop("Parameter 'file' is required", call. = FALSE)
   }
   
   x <- read_tsd(file)
-  names(x) <- c("LAI", "RL")
+  if (length(x) == 1) {
+    names(x) <- "LAI"
+  } else if (length(x) == 2) {
+    names(x) <- c("LAI", "RL")
+  } else if (length(x) > 2) {
+    names(x) <- c("LAI", "RL", paste0("Block", seq.int(3, length(x))))
+  }
   return(x)
 }
 
@@ -277,10 +290,10 @@ read.tsd <- function(file) {
 #' @export
 #' @section Deprecated:
 #' \code{readlai()} is deprecated. Use \code{read_lai()} instead.
-readlai <- function(file = shud.filein()["ts.lai"]) {
+readlai <- function(file = shud.filein()["md.lai"]) {
   .Deprecated("read_lai", package = "rSHUD",
               msg = "readlai() is deprecated. Use read_lai() instead.")
-  read_lai(file)
+  if (missing(file)) read_lai() else read_lai(file)
 }
 
 #' @rdname write_tsd

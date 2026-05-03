@@ -16,8 +16,12 @@ ForcingCoverage(
 )
 }
 \arguments{
-\item{sp.meteoSite}{\code{sf} POINT object; legacy \code{SpatialPoints*}
-input is accepted for compatibility.}
+\item{sp.meteoSite}{\code{sf} POINT or POLYGON object; legacy
+\code{SpatialPoints*}/\code{SpatialPolygons*} input is accepted for
+compatibility. Polygon inputs are returned as one forcing zone per polygon,
+with representative point coordinates used for site metadata. This supports
+real AutoSHUD/DataPre polygon \code{meteoCov.shp} forcing-coverage layers as well
+as point station inputs.}
 
 \item{filenames}{Output filenames associated with the forcing sites.}
 
